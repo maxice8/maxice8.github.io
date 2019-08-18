@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/11-updating-tmplgen/">Updating packages with tmplgen</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-04
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/tutorial/">#tutorial</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>This is a follow up tutorial on my <a href="../7-using-tmplgen">first tutorial</a>,
+Reading that is highly recommended and it is assumed you already know
+the basics covered in that.</p>
+<p>Today i saw a package needed updating, ruby-faraday_middleware. A great
+opportunity to write this article in how tmplgen can help you keep your
+language specific packages updated.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">./xbps-src update-check srcpkgs/ruby-faraday_middleware
+</span><span style="color:#e8e8d3;">ruby-faraday_middleware-0.13.0 -&gt; ruby-faraday_middleware-0.13.1
+</span></pre><p><a name="continue-reading"></a></p>
+<h2 id="update">--update</h2>
+<p>First we are going to use -u or --update, which is the most common operator
+you will use for updating, here is the template in its current form:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;ruby-faraday_middleware&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">ruby-faraday_middleware
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">0.13.0
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">2
+</span><span style="color:#ffb964;">noarch</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">yes
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">gem
+</span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">ruby-faraday&gt;=0.7.4 ruby-faraday&lt;1.0</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Various middleware for Faraday</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">maxice8 &lt;thinkabit.ukim@gmail.com&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">MIT</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://github.com/lostisland/faraday_middleware</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">14d8e147fffa4d26cf3b1fae4938e5c8b033628a0c6b69dcd781273f14cf9aaf
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">post_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vlicense</span><span style="color:#e8e8d3;"> LICENSE.md
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Looks neat to me, so now we are going to run tmplgen -u faraday_middleware.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> tmplgen</span><span style="color:#ffb964;"> -u</span><span style="color:#e8e8d3;"> faraday_middleware
+</span></pre>
+<p>Silence, let's see what changed.</p>
+<blockquote>
+<p>git diff</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/ruby-faraday_middleware/template b/srcpkgs/ruby-faraday_middleware/template
+</span><span style="color:#e8e8d3;">index a2cc2c51e7..8bd4e74ae1 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/ruby-faraday_middleware/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/ruby-faraday_middleware/template
+</span><span style="font-style:italic;color:#888888;">@@ -1,7 +1,7 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Template file for &#39;ruby-faraday_middleware&#39;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=ruby-faraday_middleware
+</span><span style="color:#a1000d;">-version=0.13.0
+</span><span style="color:#a1000d;">-revision=2
+</span><span style="color:#558f1f;">+version=0.13.1
+</span><span style="color:#558f1f;">+revision=1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">noarch=yes
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=gem
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">depends=&quot;ruby-faraday&gt;=0.7.4 ruby-faraday&lt;1.0&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -9,7 +9,7 @@</span><span style="color:#e8e8d3;"> short_desc=&quot;Various middleware for Faraday&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">maintainer=&quot;maxice8 &lt;thinkabit.ukim@gmail.com&gt;&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">license=&quot;MIT&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">homepage=&quot;https://github.com/lostisland/faraday_middleware&quot;
+</span><span style="color:#a1000d;">-checksum=14d8e147fffa4d26cf3b1fae4938e5c8b033628a0c6b69dcd781273f14cf9aaf
+</span><span style="color:#558f1f;">+checksum=b94e3e7845f78db0eacdfc7e0185f0310765ccd70a46b6ce6478aa858ace23a9
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">post_install() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vlicense LICENSE.md
+</span></pre>
+<p>How neat, it even resets revision to 1, let's build it just to be sure it
+is all OK.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-src pkg ruby-faraday_middleware
+</span><span style="color:#e8e8d3;">=&gt; Registering new packages to /host/binpkgs/ruby-faraday_middleware
+</span><span style="color:#e8e8d3;">index: added `ruby-faraday_middleware-0.13.1_1&#39; (noarch).
+</span><span style="color:#e8e8d3;">index: 1 packages registered.
+</span></pre>
+<p>Seems fine to me, this package is ready for shipping to Travis CI which
+is then shipped into the builders and finally made available to our
+end users.</p>
+<h2 id="updateall">--UpdateAll</h2>
+<p>Before we go there is another method for update, -U or --UpdateAll, it acts
+the same way as -u|--update with a single difference, it also updates the
+distfiles and homepage variables.</p>
+<p>Let's see if they have changed in this package.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> tmplgen</span><span style="color:#ffb964;"> -U</span><span style="color:#e8e8d3;"> faraday_middleware
+</span><span style="color:#ffb964;">[WARN</span><span style="color:#e8e8d3;">  libtmplgen::tmplwriter] Couldn</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">t find </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">distfiles</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> string and as such won</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">t update it!
+</span></pre>
+<p>OK, it couldn't find distfiles and refused to replace it, a good idea since it would
+otherwise replace it with nothing.</p>
+<blockquote>
+<p>git diff</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/ruby-faraday_middleware/template b/srcpkgs/ruby-faraday_middleware/template
+</span><span style="color:#e8e8d3;">index a2cc2c51e7..8bd4e74ae1 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/ruby-faraday_middleware/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/ruby-faraday_middleware/template
+</span><span style="font-style:italic;color:#888888;">@@ -1,7 +1,7 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Template file for &#39;ruby-faraday_middleware&#39;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=ruby-faraday_middleware
+</span><span style="color:#a1000d;">-version=0.13.0
+</span><span style="color:#a1000d;">-revision=2
+</span><span style="color:#558f1f;">+version=0.13.1
+</span><span style="color:#558f1f;">+revision=1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">noarch=yes
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=gem
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">depends=&quot;ruby-faraday&gt;=0.7.4 ruby-faraday&lt;1.0&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -9,7 +9,7 @@</span><span style="color:#e8e8d3;"> short_desc=&quot;Various middleware for Faraday&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">maintainer=&quot;maxice8 &lt;thinkabit.ukim@gmail.com&gt;&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">license=&quot;MIT&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">homepage=&quot;https://github.com/lostisland/faraday_middleware&quot;
+</span><span style="color:#a1000d;">-checksum=14d8e147fffa4d26cf3b1fae4938e5c8b033628a0c6b69dcd781273f14cf9aaf
+</span><span style="color:#558f1f;">+checksum=b94e3e7845f78db0eacdfc7e0185f0310765ccd70a46b6ce6478aa858ace23a9
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">post_install() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vlicense LICENSE.md
+</span></pre>
+<p>Oh, the homepage remained the same, good to know it didn't change.</p>
+<h2 id="making-a-pull-request">Making a Pull Request</h2>
+<p>As a bonus i will also provide a sneak peek on how i make a PR for packages,
+using my simple xg wrapper around xbps-src, xtools and a few git operations
+and mkpr which is a wrapper around hub from GitHub for doing operations with
+GitHub.</p>
+<blockquote>
+<p>xg</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#fad07a;">usage</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">usage: %s &lt;-oebrxndlusah&gt; [args]\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">basename </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">0</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">help</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#ffb964;">usage
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">cat </span><span style="color:#99ad6a;">&lt;&lt;</span><span style="color:#8fbfdc;">EOF
+</span><span style="color:#99ad6a;">
+</span><span style="color:#99ad6a;">-o --off-load : unpack distfile
+</span><span style="color:#99ad6a;">-e --edit : edit template
+</span><span style="color:#99ad6a;">-b --build : build package
+</span><span style="color:#99ad6a;">-r --rebuild : rebuild package
+</span><span style="color:#99ad6a;">-c --check : run the check phase after a cleanup
+</span><span style="color:#99ad6a;">-x --xgensum : run xgensum of template
+</span><span style="color:#99ad6a;">-X --Xgensum : run xgensum of template with -c
+</span><span style="color:#99ad6a;">-n --navigate : navigate srcpkgs dir of template
+</span><span style="color:#99ad6a;">-d --diff : see files removed and added between versions
+</span><span style="color:#99ad6a;">-l --lint : run xlint on template
+</span><span style="color:#99ad6a;">-u --update : run xbump on template
+</span><span style="color:#99ad6a;">-s --send : push to remote git
+</span><span style="color:#99ad6a;">-a --amend : amend commit
+</span><span style="color:#99ad6a;">-f --fetch : fetch distfile
+</span><span style="color:#99ad6a;">-h --help : show this message
+</span><span style="color:#8fbfdc;">EOF
+</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">cmd</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-z </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">arg</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> rev-parse</span><span style="color:#ffb964;"> --abbrev-ref</span><span style="color:#99ad6a;"> HEAD)</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">arg</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">shift
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">shift
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">branch</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> rev-parse</span><span style="color:#ffb964;"> --abbrev-ref</span><span style="color:#99ad6a;"> HEAD)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">cmd</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-o|--off-load</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">./xbps-src -I</span><span style="color:#e8e8d3;"> extract </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-e|--edit</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">e</span><span style="color:#e8e8d3;"> srcpkgs/</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">/template;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-b|--build</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">./xbps-src -f -C</span><span style="color:#e8e8d3;"> pkg </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-r|--rebuild</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">./xbps-src</span><span style="color:#e8e8d3;"> clean </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&amp;&amp; </span><span style="color:#ffb964;">./xbps-src -f</span><span style="color:#e8e8d3;"> pkg </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-c|--check</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">./xbps-src</span><span style="color:#e8e8d3;"> clean </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&amp;&amp; </span><span style="color:#ffb964;">./xbps-src</span><span style="color:#e8e8d3;"> check</span><span style="color:#ffb964;"> -Q </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-x|--xgensum</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">xgensum -f -i</span><span style="color:#e8e8d3;"> srcpkgs/</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">/template </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-X|--Xgensum</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">xgensum -f -c -i</span><span style="color:#e8e8d3;"> srcpkgs/</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">/template </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-n|--navigate</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">f</span><span style="color:#e8e8d3;"> srcpkgs/</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-d|--diff</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">xbps-query --repository</span><span style="color:#e8e8d3;">=hostdir/binpkgs/</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot;</span><span style="color:#ffb964;"> -f </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-l|--lint</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">xlint</span><span style="color:#e8e8d3;"> srcpkgs/</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">/template;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-u|--update</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">xbump </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">arg</span><span style="color:#99ad6a;">:-$</span><span style="color:#ffb964;">branch</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-s|--send</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> push</span><span style="color:#ffb964;"> -uf</span><span style="color:#e8e8d3;"> origin </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-a|--amend</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> commit</span><span style="color:#ffb964;"> --amend -v </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-f|--fetch</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">./xbps-src</span><span style="color:#e8e8d3;"> fetch </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">-h|--help</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">help;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">usage</span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span></pre>
+<blockquote>
+<p>mkpr</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#888888;"># SPDX-License-Identifier: GPL-3.0-only
+</span><span style="color:#888888;"># mkpr [BRANCH] ... - mkpr create a pull request
+</span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">EDIT</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">] &amp;&amp; </span><span style="color:#ffb964;">EDIT</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">--edit</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">|| </span><span style="color:#ffb964;">EDIT</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">--no-edit</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">while </span><span style="color:#e8e8d3;">[ $</span><span style="color:#ffb964;"># -gt</span><span style="color:#e8e8d3;"> 0 ]
+</span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">= </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-r</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">REVIEW</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-r $</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">shift
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">elif </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">= </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-a</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">ASSIGN</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-a $</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">shift
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">elif </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">= </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-l</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">LABEL</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-l $</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">shift
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">elif </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">= </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-e</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">EDIT</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">--edit</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">args </span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">shift
+</span><span style="color:#8fbfdc;">done
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-z </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">args</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">] &amp;&amp; </span><span style="color:#ffb964;">args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> rev-parse</span><span style="color:#ffb964;"> --abbrev-ref</span><span style="color:#99ad6a;"> HEAD)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">selectcommit</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> show</span><span style="color:#ffb964;"> -s --format</span><span style="color:#e8e8d3;">=%</span><span style="color:#ffb964;">B </span><span style="color:#e8e8d3;">$(</span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> log upstream/master..</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;</span><span style="color:#ffb964;"> --pretty</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">%h %s</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">|
+</span><span style="color:#e8e8d3;">                              </span><span style="color:#ffb964;">fzy </span><span style="color:#e8e8d3;">|
+</span><span style="color:#e8e8d3;">                              </span><span style="color:#ffb964;">cut -d </span><span style="color:#556633;">&#39; &#39;</span><span style="color:#ffb964;"> -f1</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">}
+</span><span style="color:#fad07a;">pr</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> rebase upstream/master &gt;/dev/null </span><span style="color:#cf6a4c;">2</span><span style="color:#e8e8d3;">&gt;&amp;</span><span style="color:#cf6a4c;">1
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> push</span><span style="color:#ffb964;"> -uf</span><span style="color:#e8e8d3;"> origin </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&gt;/dev/null </span><span style="color:#cf6a4c;">2</span><span style="color:#e8e8d3;">&gt;&amp;</span><span style="color:#cf6a4c;">1
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> rev-list</span><span style="color:#ffb964;"> --count</span><span style="color:#99ad6a;"> upstream/master..</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">-gt</span><span style="color:#e8e8d3;"> 1 ]
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">msg</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">selectcommit </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">hub</span><span style="color:#e8e8d3;"> pull-request</span><span style="color:#ffb964;"> -h </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;</span><span style="color:#ffb964;"> -m </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">msg</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">EDIT </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">ASSIGN </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">REVIEW </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">LABEL
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">hub</span><span style="color:#e8e8d3;"> pull-request</span><span style="color:#ffb964;"> -h </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">EDIT </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">ASSIGN </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">REVIEW </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">LABEL
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">}
+</span><span style="color:#8fbfdc;">for</span><span style="color:#e8e8d3;"> arg </span><span style="color:#8fbfdc;">in </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">args
+</span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">pr </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">arg</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">done
+</span></pre>
+<p>Now we update the package</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xg</span><span style="color:#ffb964;"> -u
+</span><span style="color:#ffb964;">[ruby-faraday_middleware</span><span style="color:#e8e8d3;"> acf3571f22] ruby-faraday_middleware: update to 0.13.1.
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">1</span><span style="color:#e8e8d3;"> file changed, 3 insertions(+)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 3 deletions(-)
+</span></pre>
+<p>Ship it to my branch</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xg</span><span style="color:#ffb964;"> -s
+</span><span style="color:#ffb964;">Enumerating</span><span style="color:#e8e8d3;"> objects: 9, done.
+</span><span style="color:#ffb964;">Counting</span><span style="color:#e8e8d3;"> objects: 100% (9/9)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">Delta</span><span style="color:#e8e8d3;"> compression using up to 4 threads
+</span><span style="color:#ffb964;">Compressing</span><span style="color:#e8e8d3;"> objects: 100% (4/4)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">Writing</span><span style="color:#e8e8d3;"> objects: 100% (5/5)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 1.17 KiB | </span><span style="color:#ffb964;">1.17</span><span style="color:#e8e8d3;"> MiB/s, done.
+</span><span style="color:#ffb964;">Total</span><span style="color:#e8e8d3;"> 5 (delta 3)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> reused 0 (delta 0)
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;"> Resolving deltas: 100% (3/3)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> completed with 3 local objects.
+</span><span style="color:#ffb964;">To</span><span style="color:#e8e8d3;"> https://github.com/maxice8/UnlimitedPullRequestWorks
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">00a0a4ad94..acf3571f22</span><span style="color:#e8e8d3;">  ruby-faraday_middleware -&gt; ruby-faraday_middleware
+</span><span style="color:#ffb964;">Branch </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">ruby-faraday_middleware</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> set up to track remote branch </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">ruby-faraday_middleware</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> from </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">origin</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">.
+</span></pre>
+<p>And use mkpr to create a pull request:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> mkpr
+</span><span style="color:#ffb964;">http://github.com/void-linux/void-packages/pull/8173
+</span></pre>
+<p>Neat, let's check it out.</p>
+<p><img src="../11-pr.png" alt="PR Image" /></p>
+<p>Looks good to me, and the diff ?</p>
+<p><img src="../11-pr-diff.png" alt="PR Diff Image" /></p>
+<p>All done.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

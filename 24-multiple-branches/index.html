@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/24-multiple-branches/">Alpine: multiple branches and backports</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-07-23
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/distro/">#distro</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="intro">Intro</h2>
+<p>One of the major differences between my previous distro, <a href="https://voidlinux.org">Void Linux</a>,
+and the distro i contribute to now, <a href="https://alpinelinux.org">Alpine Linux</a>, is the presence
+of multiple releases on the latter one.</p>
+<p><a href="https://alpinelinux.org">Alpine Linux</a> has multiple releases, the last is the 3.10.x branch
+which is on 3.10.1, on my desktop i run edge which is directly from master, and most of my
+contributions assumed that i would contribute only to the master branch.</p>
+<p><a name="continue-reading"></a></p>
+<p>Consequently, my scripts were all made with the assumption of a single branch, if you wanted
+to contribute to another branch you had to modify them to point to another branch.</p>
+<p>Soon i wanted to involve myself more on Alpine, so i started backporting fixes and following
+that my scripts to contribute were rewritten</p>
+<h2 id="rewriting">Rewriting</h2>
+<h3 id="alpine-stable-prefix">alpine-stable-prefix</h3>
+<p><a href="https://alpinelinux.org">Alpine Linux</a> has branches for each of its 3.x releases in the following
+format:</p>
+<ul>
+<li>$major.$minor-stable</li>
+</ul>
+<p>3.10.1 is held in 3.10-stable, all versions from 3.6.x to 3.10.x follow that and so will 3.11.x
+as far as it can be seen.</p>
+<p>To work on those branches i prepend the $major.$minor- to the package i am working on, for
+example if I'm working on <a href="https://www.gnutls.org">GnuTLS</a> on the 3.9 branch the branch name
+would be 3.9-gnutls.</p>
+<p>To extract that value i create the <code>alpine-stable-prefix</code> script, it will just print the version
+in $major.$minor format if the prefix is present or nothing if it is not, allowing for a quick
+empty variable check on scripts.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-d</span><span style="color:#e8e8d3;"> .git ] || exit 1
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">branch</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">branch</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> rev-parse</span><span style="color:#ffb964;"> --abbrev-ref</span><span style="color:#99ad6a;"> HEAD)</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Only work on supported alpine releases.
+</span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">branch</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">3.10-*</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">echo 3.10 ;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">3.9-*</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">echo 3.9 ;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">3.8-*</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">echo 3.8 ;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">3.7-*</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">echo 3.7 ;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">exit 1 ;;
+</span><span style="color:#8fbfdc;">esac
+</span></pre><h3 id="gbr">gbr</h3>
+<p><code>gbr</code> is my script to make-or-switch to new git branches, if the branch doesn't exist, it creates
+it, if it exists it will switch to it. Quite simple, quite important since my workflow is based
+on branches.</p>
+<p>Before my adaptations it would always follow from the master branch, but since <a href="https://alpinelinux.org">Alpine Linux</a>
+has other branches i needed to adapt to it, using the previously mentioned <code>alpine-stable-prefix</code>
+it now checks if the new branch has a alpine version prefix and then switches to it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if git rev-parse --quiet --verify &quot;$1&quot; &gt;/dev/null 2&gt;&amp;1; then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">git checkout &quot;$1&quot; &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">else
+</span><span style="color:#a1000d;">-		git checkout master &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#a1000d;">-		git checkout -b &quot;$1&quot; &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#558f1f;">+		_RELBASE=&quot;$(alpine-stable-prefix &quot;$1&quot;)&quot;
+</span><span style="color:#558f1f;">+		if [ -n &quot;$_RELBASE&quot; ]; then
+</span><span style="color:#558f1f;">+			git branch -f &quot;$1&quot; upstream/&quot;$_RELBASE&quot;-stable &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#558f1f;">+		else
+</span><span style="color:#558f1f;">+			git branch -f &quot;$1&quot; upstream/master &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#558f1f;">+		fi
+</span><span style="color:#558f1f;">+		git checkout &quot;$1&quot; &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">shift
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">done
+</span></pre><h3 id="gcp">gcp</h3>
+<p>The <code>gcp</code> script compares my branch with the master branch, or whatever branch I'm working against
+and gives me a list of commits that will be pushed from my branch to the tracked branch when i push.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> gcp
+</span><span style="color:#ffb964;">8e61ccf621</span><span style="color:#e8e8d3;"> main/sqlite: fix CVE-2019-8457
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">set $@ -- $(git rev-parse --abbrev-ref HEAD)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">fi
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#558f1f;">+_REALBASE=&quot;$(alpine-stable-prefix)&quot;
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+if [ -n &quot;$_REALBASE&quot; ]; then
+</span><span style="color:#558f1f;">+	_REALBASE=&quot;$_REALBASE-stable&quot;
+</span><span style="color:#558f1f;">+fi
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">while [ $# -gt 0 ]
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">do
+</span><span style="color:#a1000d;">-	git log upstream/master..$1 --pretty=&#39;%C(yellow)%h %C(white)%s&#39; 
+</span><span style="color:#558f1f;">+	git log upstream/&quot;${_REALBASE:-master}&quot;..&quot;$1&quot; --pretty=&#39;%C(yellow)%h %C(white)%s&#39; 
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">shift
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">done
+</span></pre><h3 id="pushp-and-pullp">pushp and pullp</h3>
+<p>Those 2 scripts are responsible for pulling from upstream and then pushing to it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">alpine-stable-prefix</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">_REALBASE</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#99ad6a;">-stable</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> pull upstream</span><span style="color:#ffb964;"> --rebase </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#99ad6a;">:-master}</span><span style="color:#556633;">&quot;
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">alpine-stable-prefix</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">_REALBASE</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#99ad6a;">-stable</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> push upstream </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> rev-parse</span><span style="color:#ffb964;"> --abbrev-ref</span><span style="color:#99ad6a;"> HEAD)</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">:</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">_REALBASE</span><span style="color:#99ad6a;">:-master}</span><span style="color:#556633;">&quot;
+</span></pre><h3 id="mkpr">mkpr</h3>
+<p>This script is very important, it is used to create pull requests, it also needs
+to be cognizant of multiple branches so it can create pull requests against the
+correct branch.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pr() {
+</span><span style="color:#558f1f;">+	if [ -z &quot;$BASE&quot; ] &amp;&amp; [ -n &quot;$(alpine-stable-prefix &quot;$1&quot;)&quot; ]; then
+</span><span style="color:#558f1f;">+		_REALBASE=&quot;$(alpine-stable-prefix &quot;$1&quot;)&quot;-stable
+</span><span style="color:#558f1f;">+		BASE=&quot;--base $_REALBASE&quot;
+</span><span style="color:#558f1f;">+	fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">git rebase upstream/&quot;${_REALBASE:-master}&quot; &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">git push -uf origin &quot;$1&quot; &gt;/dev/null 2&gt;&amp;1
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if [ &quot;$(git rev-list --count upstream/&quot;${_REALBASE:-master}&quot;..$1)&quot; -gt 1 ]
+</span></pre><h3 id="ax">ax</h3>
+<p>The most used script, it deals with editing APKBUILDs, running docker to build
+them via <a href="https://github.com/alpinelinux/docker-abuild">dabuild</a> and other things
+such as unpacking the source code for inspection.</p>
+<p>Part of my workflow is using the name of the package for the branch name, it takes
+that name and allows easy operation, writing <code>ax e</code> to edit an APKBUILD is far
+quicker than typing <code>ax e $pkgname</code>, but it can be done if necessary, and it extends
+to all operations.</p>
+<p>Adding support means that <code>ax</code> now needs to know that there is the possibility of
+a prefix in the form of the alpine branch $major.$minor- and deal with it accordingly.
+Like in all scripts <code>alpine-stable-prefix</code> is used to get that information.</p>
+<pre style="background-color:#151515;">
+<span style="font-style:italic;color:#888888;">@@ -282,6 +282,12 @@</span><span style="color:#e8e8d3;"> mkgit() {
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">cmd=&quot;$1&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">_branch=&quot;$(git rev-parse --abbrev-ref HEAD)&quot;
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+# Deal with branches with alpine stable prefixes
+</span><span style="color:#558f1f;">+if [ -n &quot;$(alpine-stable-prefix &quot;$_branch&quot;)&quot; ]; then
+</span><span style="color:#558f1f;">+	_branch=&quot;$(echo &quot;$_branch&quot; | cut -d - -f2-)&quot;
+</span><span style="color:#558f1f;">+fi
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">if [ -z &quot;$2&quot; ]; then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">branch=&quot;$(find_repo &quot;$_branch&quot;)&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">else
+</span><span style="font-style:italic;color:#888888;">@@ -290,7 +296,12 @@</span><span style="color:#e8e8d3;"> else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">case &quot;$2&quot; in
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">main|community|testing|unmaintained)
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">branch=&quot;$(find_repo &quot;$_branch&quot;)&quot;;;
+</span><span style="color:#a1000d;">-		*) branch=&quot;$(find_repo &quot;$2&quot; &amp;&amp; shift || find_repo &quot;$_branch&quot;)&quot; ;;
+</span><span style="color:#558f1f;">+		*) 
+</span><span style="color:#558f1f;">+			# Deal with branches with alpine stable prefixes
+</span><span style="color:#558f1f;">+			if [ -n &quot;$(alpine-stable-prefix &quot;$2&quot;)&quot; ]; then
+</span><span style="color:#558f1f;">+				branch=&quot;$(echo &quot;$2&quot; | cut -d - -f2-)&quot;
+</span><span style="color:#558f1f;">+			fi
+</span><span style="color:#558f1f;">+			branch=&quot;$(find_repo &quot;${branch:-$2}&quot; &amp;&amp; shift || find_repo &quot;$_branch&quot;)&quot; ;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">esac
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">fi
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">shift
+</span></pre>
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

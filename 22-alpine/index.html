@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/22-alpine/">Alpine: Moving In</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-04-23
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/distro/">#distro</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="intro">Intro</h2>
+<p>Recently i switched to <a href="https://alpinelinux.org/">Alpine Linux</a> a Linux
+distro based on musl libc and busybox with focus on security and being lightweight.</p>
+<p>This article will document the process of moving in from Void Linux to Alpine, how
+the uniqueness of using busybox for userland tooling was dealt with and how i got
+into contributing for it.</p>
+<p><a name="continue-reading"></a></p>
+<hr />
+<h3 id="coming-from">Coming from</h3>
+<p>My previous distro was Void Linux, which i used for as long as i contributed to it.</p>
+<p>It is a very solid distro, updates are frequent, Repology counts between 86% to 89%
+of packages are updated.</p>
+<p>The worst part of moving is that there wasn't anything technically wrong with the
+distro itself. If i had to pick a distro i knew would work just fine i would pick
+Void Linux.</p>
+<p>But alas, other factors related to development and contribution sapped my fun out
+of contributing and i want to contribute to every distro i use in one way or another.</p>
+<p>I picked Void because i wanted to contribute over it, initially over Alpine Linux,
+and went to Exherbo for a time and contributed to it. Now i pick Alpine.</p>
+<hr />
+<h3 id="going-to">Going to</h3>
+<p>First thing i did was to load up SysrescueCD on my DriveDroid and plug into my
+notebook.</p>
+<p>I have been using SysrescueCD to install OSes from it with chroot with
+no problems for a long time, much before my long stay in Void, i remember installing
+Gentoo and Exherbo with it and i was super comfortable.</p>
+<p>So i just picked up the Alpine chroot install guide from
+<a href="https://wiki.alpinelinux.org/wiki/Installing_Alpine_Linux_in_a_chroot">here</a>. Pretty
+simple and straightforward. I did hit a hitch where it failed to load modules when
+i first generated the initramfs with mknitfs but i just did the following in the
+initramfs rescue environment</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">modprobe</span><span style="color:#e8e8d3;"> ext4
+</span><span style="color:#ffb964;">mount</span><span style="color:#e8e8d3;"> /dev/sda2 /sysroot
+</span><span style="color:#e8e8d3;">exit
+</span></pre>
+<p>And it continued as usual. I first installed whatever i could that i used from Void Linux
+into Alpine, turns out a few packages were missing like <code>zola</code>, <code>wmutils</code>, <code>xidle</code>,
+<code>fd</code>, <code>fcount</code>, <code>sx</code> and <code>qimgv</code> among others.</p>
+<p>After installing everything i tried setting up my dotfiles only to hit a problem. Busybox's
+ln doesn't support the <code>-r</code> flag which sets up a relative symlink. Easy enough i just made
+it hardcoded, it is not like this decision will come back to bite me later.</p>
+<p>I decided to drop <code>hsetroot</code> entirely and just use <code>bgs</code> for setting my wallpaper, but overall
+my scripts had no problem, at least visible, in getting to work with busybox.</p>
+<p>One problem was <code>gotop</code> which wasn't available and didn't work with ps from busybox, it was
+worked around by installing the <code>procps</code> package.</p>
+<p>Another was the lack of the <code>shellcheck</code> package which is behind the clusterfuck
+that is Haskell packaging.</p>
+<p>Alpine seems very phobic to adding dependencies, so most stuff is compiled without pulseaudio
+support, thankfully i don't need much advanced features from pulseaudio for stuff like <code>mpd</code>
+so i just installed <code>pulseaudio-alsa</code> and <code>alsa-plugins-pulse</code> to get to work.</p>
+<p>Also the <code>fish</code> package was outdated and without maintainer, so i adopted it and updated it.</p>
+<p>On the bright side the <code>/bin/sh</code> of Alpine Linux is very similar to the one from Void Linux,
+which is <code>dash</code>, while Alpine's is the <code>ash</code> shell from busybox. Which means that all my
+scripts that relied purely on POSIX shell features + local worked just fine.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

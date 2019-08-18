@@ -1,0 +1,77 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>maxice8-devel</title>
+        <link>https://maxice8.github.io</link>
+        <description></description>
+        <generator>Zola</generator>
+        <language>en</language>
+        <atom:link href="https://maxice8.github.io/tags/tutorial/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Thu, 07 Feb 2019 00:00:00 +0000</lastBuildDate>
+        
+            <item>
+                <title>Adding meson syntax highlighting</title>
+                <pubDate>Thu, 07 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/18-adding-meson-to-syntaxes/</link>
+                <guid>https://maxice8.github.io/18-adding-meson-to-syntaxes/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a small post&#x2F;tutorial&#x2F;diary about how i added meson
+syntax to my website.&lt;&#x2F;p&gt;
+&lt;p&gt;It is no surprise i use Zola to generate my website and besides a few
+hiccups it all works very well. One of those hiccups is that i like
+meson but Zola doesn&#x27;t meet me halfway with meson highlighting.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Updating packages with tmplgen</title>
+                <pubDate>Mon, 04 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/11-updating-tmplgen/</link>
+                <guid>https://maxice8.github.io/11-updating-tmplgen/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a follow up tutorial on my &lt;a href=&quot;..&#x2F;7-using-tmplgen&quot;&gt;first tutorial&lt;&#x2F;a&gt;,
+Reading that is highly recommended and it is assumed you already know
+the basics covered in that.&lt;&#x2F;p&gt;
+&lt;p&gt;Today i saw a package needed updating, ruby-faraday_middleware. A great
+opportunity to write this article in how tmplgen can help you keep your
+language specific packages updated.&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#151515;&quot;&gt;
+&lt;span style=&quot;color:#e8e8d3;&quot;&gt;.&#x2F;xbps-src update-check srcpkgs&#x2F;ruby-faraday_middleware
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e8e8d3;&quot;&gt;ruby-faraday_middleware-0.13.0 -&amp;gt; ruby-faraday_middleware-0.13.1
+&lt;&#x2F;span&gt;&lt;&#x2F;pre&gt;</description>
+            </item>
+        
+            <item>
+                <title>Basic usage of tmplgen, a Void Linux template generator</title>
+                <pubDate>Sat, 02 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/7-using-tmplgen/</link>
+                <guid>https://maxice8.github.io/7-using-tmplgen/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;Many modern languages (and some old ones) today have their own
+package manager ecosystem, where someone working on that language
+can easily get pieces of code written by other people that do
+their task for them.&lt;&#x2F;p&gt;
+&lt;p&gt;A few examples include:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;metacpan.org&#x2F;&quot;&gt;meta::cpan&lt;&#x2F;a&gt; for Perl.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;pypi.org&#x2F;&quot;&gt;PyPi&lt;&#x2F;a&gt; for Python.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;rubygems.org&#x2F;&quot;&gt;RubyGems&lt;&#x2F;a&gt; for Ruby.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;crates.io&#x2F;&quot;&gt;crates&lt;&#x2F;a&gt; for Rust.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>How this site is done</title>
+                <pubDate>Fri, 01 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/3-how-its-done/</link>
+                <guid>https://maxice8.github.io/3-how-its-done/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This small post will show all about how this site, which is hosted via &lt;a href=&quot;https:&#x2F;&#x2F;pages.github.com&#x2F;&quot;&gt;GitHub Pages&lt;&#x2F;a&gt;,
+and is for all intents and purposes a blog, is done.&lt;&#x2F;p&gt;
+&lt;p&gt;Hopefully this post can also be of help to users that want a similar setup.&lt;&#x2F;p&gt;
+&lt;p&gt;Without further ado.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+    </channel>
+</rss>

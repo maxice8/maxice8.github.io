@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/14-wrapping-vala/">Wrapping vala for cross with xbps-src</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-04
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="preface">Preface</h2>
+<p>This is a continuation of <a href="../8-cross-the-gir">crossing the gir</a>, it is highly
+recommended you read it before.</p>
+<h2 id="introduction">Introduction</h2>
+<p>Today we are going to make vala work with cross compilation, it currently already
+compiles with it, but there are a few problems with projects that generate vala
+bindings.</p>
+<p><a name="continue-reading"></a></p>
+<h3 id="gnu-configure">gnu-configure</h3>
+<p>Starting with autoconf which was the easier fix, this time around autoconf does
+the right thing. It uses pkg-config to find the variables to find the directories
+it needs to search, namely vapidir and vapidir_versioned.</p>
+<blockquote>
+<p>/usr/share/aclocal/vapigen.m4</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">AS_CASE([$enable_vala],
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">[yes], [
+</span><span style="color:#e8e8d3;">      </span><span style="color:#e8e8d3;">VAPIGEN=`$PKG_CONFIG --variable=vapigen $vapigen_pkg_name`
+</span><span style="color:#e8e8d3;">      </span><span style="color:#e8e8d3;">VAPIGEN_MAKEFILE=`$PKG_CONFIG --variable=datadir $vapigen_pkg_name`/vala/Makefile.vapigen
+</span><span style="color:#e8e8d3;">      </span><span style="color:#e8e8d3;">AS_IF([test &quot;x$2&quot; = &quot;x&quot;], [
+</span><span style="color:#e8e8d3;">          </span><span style="color:#e8e8d3;">VAPIGEN_VAPIDIR=`$PKG_CONFIG --variable=vapidir $vapigen_pkg_name`
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">], [
+</span><span style="color:#e8e8d3;">          </span><span style="color:#e8e8d3;">VAPIGEN_VAPIDIR=`$PKG_CONFIG --variable=vapidir_versioned $vapigen_pkg_name`
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">])
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">])
+</span></pre>
+<p>As you can see it makes use of <code>pkg-config --variable</code> to get the directories. as
+we know, the --variable call doesn't prefix it with PKG_CONFIG_SYSROOT_DIR, which
+is the directory where the cross components are installed.</p>
+<p>As seen previously this can be fixed trivially, just prefix the variables in the
+pkg-config file with ${pc_sysrootdir}.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/vala/template b/srcpkgs/vala/template
+</span><span style="color:#e8e8d3;">index 5dcf0a9f870..f00fd05d87f 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/vala/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/vala/template
+</span><span style="font-style:italic;color:#888888;">@@ -1,7 +1,7 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Template file for &#39;vala&#39;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=vala
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">version=0.42.5
+</span><span style="color:#a1000d;">-revision=1
+</span><span style="color:#558f1f;">+revision=2
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=gnu-configure
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;--disable-graphviz&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">hostmakedepends=&quot;flex libxslt pkg-config automake libtool&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -28,6 +28,13 @@</span><span style="color:#e8e8d3;"> pre_configure() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">autoreconf -fi
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#558f1f;">+post_install() {
+</span><span style="color:#558f1f;">+	vsed -e &#39;s|^datadir=.*|datadir=${pc_sysrootdir}/${datarootdir}|g&#39; \
+</span><span style="color:#558f1f;">+		 -e &#39;s|^vapidir=.*|vapidir=${pc_sysrootdir}/${datadir}/vala/vapi|g&#39; \
+</span><span style="color:#558f1f;">+		 -e &#39;s|^vapidir_versioned=.*|vapidir_versioned=${pc_sysrootdir}/${datadir}/vala-0.42/vapi|g&#39; \
+</span><span style="color:#558f1f;">+		 -i ${DESTDIR}/usr/lib/pkgconfig/vapigen-0.42.pc
+</span><span style="color:#558f1f;">+}
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libvala_package() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">short_desc+=&quot; - shared library&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">pkg_install() {
+</span></pre>
+<p>This fixes the problem for autoconf projects making use of vapigen.m4.</p>
+<h3 id="meson">Meson</h3>
+<p><a href="https://mesonbuild.com">meson</a> is more complicated, it doesn't use
+pkg-config files to set those values, it just runs vapigen itself
+and hopes for the best.</p>
+<p>If they used the pkg-config file the fix for autoconf would also
+apply here and i could end this article a few sentences ago.</p>
+<p>On the bright side we now have a nice opportunity to talk about
+another nice thing xbps-src provides: wrappers.</p>
+<h2 id="xbps-src-wrappers">xbps-src wrappers</h2>
+<p>xbps-src wrappers are executable files that are put in
+/builddir/.xbps-<pkgname>/wrappers and the PATH variable is
+prefixed with it.</p>
+<p>It is used extensively in xbps-src, one example is ignoring
+-L/usr/lib during cross compilation, there are also wrappers
+for -config binaries provided by projects, some of which are
+insanely in ELF format, making them impossible to use in
+cross compilation.</p>
+<p>Today we are going to wrap vapigen, the tool used to generate
+vala bindings we need.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/common/hooks/pre-configure/02-script-wrapper.sh b/common/hooks/pre-configure/02-script-wrapper.sh
+</span><span style="color:#e8e8d3;">index 59aa4eda3a4..9eac4843ff1 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/common/hooks/pre-configure/02-script-wrapper.sh
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/common/hooks/pre-configure/02-script-wrapper.sh
+</span><span style="font-style:italic;color:#888888;">@@ -78,6 +78,21 @@</span><span style="color:#e8e8d3;"> _EOF
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">ln -sf ${XBPS_CROSS_TRIPLET}-pkg-config ${XBPS_WRAPPERDIR}/pkg-config
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#558f1f;">+vapigen_wrapper() {
+</span><span style="color:#558f1f;">+	if [ ! -x /usr/bin/vapigen ]; then
+</span><span style="color:#558f1f;">+		return 0
+</span><span style="color:#558f1f;">+	fi
+</span><span style="color:#558f1f;">+	[ -x ${XBPS_WRAPPERDIR}/vapigen ] &amp;&amp; return 0
+</span><span style="color:#558f1f;">+	cat &gt;&gt;${XBPS_WRAPPERDIR}/vapigen&lt;&lt;_EOF
+</span><span style="color:#558f1f;">+#!/bin/sh
+</span><span style="color:#558f1f;">+exec /usr/bin/vapigen \\
+</span><span style="color:#558f1f;">+	 --vapidir=${XBPS_CROSS_BASE}/usr/share/vala/vapi \\
+</span><span style="color:#558f1f;">+	 --vapidir=${XBPS_CROSS_BASE}/usr/share/vala-0.42/vapi \\
+</span><span style="color:#558f1f;">+	 --girdir=${XBPS_CROSS_BASE}/usr/share/gir-1.0 &quot;\$@&quot;
+</span><span style="color:#558f1f;">+_EOF
+</span><span style="color:#558f1f;">+	chmod 755 ${XBPS_WRAPPERDIR}/vapigen
+</span><span style="color:#558f1f;">+}
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">install_wrappers() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">local fname
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="font-style:italic;color:#888888;">@@ -120,6 +135,7 @@</span><span style="color:#e8e8d3;"> hook() {
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">install_cross_wrappers
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">pkgconfig_wrapper
+</span><span style="color:#558f1f;">+	vapigen_wrapper
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">generic_wrapper icu-config
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">generic_wrapper libgcrypt-config
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">generic_wrapper freetype-config
+</span></pre>
+<p>Looks simple enough:</p>
+<ol>
+<li>Check if vapigen is installed.</li>
+<li>Check if vapigen wrapper isn't already installed.</li>
+<li>Write it out, passing the args we need and then the rest.</li>
+<li>Make it executable</li>
+</ol>
+<p>This should be the final result for cross compiling to aarch64:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#e8e8d3;">exec /usr/bin/vapigen \
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">--vapidir</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/usr/aarch64-linux-gnu/usr/share/vala/vapi </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">--vapidir</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/usr/aarch64-linux-gnu/usr/share/vala-0.42/vapi </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">--girdir</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/usr/aarch64-linux-gnu/usr/share/gir-1.0 </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>All done now, meson and autoconf are fixed.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

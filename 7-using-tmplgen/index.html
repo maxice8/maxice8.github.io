@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/7-using-tmplgen/">Basic usage of tmplgen, a Void Linux template generator</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-02
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/tutorial/">#tutorial</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>Many modern languages (and some old ones) today have their own
+package manager ecosystem, where someone working on that language
+can easily get pieces of code written by other people that do
+their task for them.</p>
+<p>A few examples include:</p>
+<ul>
+<li><a href="https://metacpan.org/">meta::cpan</a> for Perl.</li>
+<li><a href="https://pypi.org/">PyPi</a> for Python.</li>
+<li><a href="https://rubygems.org/">RubyGems</a> for Ruby.</li>
+<li><a href="https://crates.io/">crates</a> for Rust.</li>
+</ul>
+<p><a name="continue-reading"></a></p>
+<p>All this readily available code is great, it avoids having to re-implement
+a lot of stuff on your own projects and makes it a breeze. In fact the tool
+that is going to be shown today, <code>tmplgen</code>, is written in Rust and thus
+makes heavy use of the <a href="https://crates.io">crates</a> ecosystem.</p>
+<p>On the counter side, distributions must package it, if their users require
+it. And with such a nice package manager, it is easy to get lost in massive
+trees of dependencies, where one language module has a dependency on another
+and another and another and so on.</p>
+<h2 id="tmplgen"><a href="https://github.com/Cogitri/tmplgen">tmplgen</a></h2>
+<h3 id="introduction-1">Introduction</h3>
+<p>To help solve that problem, <a href="https://voidlinux.org">Void Linux</a> contributor
+and <a href="https://exherbo.org/">Exherbo</a> core developer <a href="https://github.com/Cogitri/">Cogitri</a>
+wrote a tool for automatically querying those language specific managers via
+Web APIs and then writing xbps-src templates for those packages automatically.</p>
+<p>Today we are going to package a small collection of packages from <a href="https://rubygems.org/">RubyGems</a>
+as a tutorial.</p>
+<h3 id="installing">Installing</h3>
+<p>First we need to install the tool, simple enough, it is available in the repositories.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">\# </span><span style="color:#ffb964;">xbps-install -y</span><span style="color:#e8e8d3;"> tmplgen
+</span><span style="color:#ffb964;">Name</span><span style="color:#e8e8d3;">    Action    Version           New version            Download size
+</span><span style="color:#ffb964;">tmplgen</span><span style="color:#e8e8d3;"> install   -                 1.2.0_1                -
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">Size</span><span style="color:#e8e8d3;"> required on disk:        5715KB
+</span><span style="color:#ffb964;">Space</span><span style="color:#e8e8d3;"> available on disk:       184GB
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">[*]</span><span style="color:#e8e8d3;"> Downloading binary packages
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">[*]</span><span style="color:#e8e8d3;"> Verifying package integrity
+</span><span style="color:#ffb964;">tmplgen-1.2.0_1:</span><span style="color:#e8e8d3;"> verifying RSA signature...
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">[*]</span><span style="color:#e8e8d3;"> Running transaction tasks
+</span><span style="color:#ffb964;">tmplgen-1.2.0_1:</span><span style="color:#e8e8d3;"> unpacking ...
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">[*]</span><span style="color:#e8e8d3;"> Configuring unpacked packages
+</span><span style="color:#ffb964;">tmplgen-1.2.0_1:</span><span style="color:#e8e8d3;"> configuring ...
+</span><span style="color:#ffb964;">tmplgen-1.2.0_1:</span><span style="color:#e8e8d3;"> installed successfully.
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">0</span><span style="color:#e8e8d3;"> downloaded, 1 installed, 0 updated, 1 configured, 0 removed.
+</span></pre><h3 id="configuring">Configuring</h3>
+<p><a href="https://github.com/Cogitri/tmplgen">tmplgen</a> requires some configuration
+before it can be run, it needs the XBPS_DISTDIR variable to be set.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> export XBPS_DISTDIR=/path/to/void-packages
+</span></pre><h3 id="picking-something-to-package">Picking something to package</h3>
+<p>Let's pick something to package from <a href="https://rubygems.org">RubyGems</a>, one package
+that has C extensions and one that doesn't. I decided on <a href="https://rubygems.org/gems/rb-readline">rb-readline</a></p>
+<h3 id="running">Running</h3>
+<p>Let's run <code>tmplgen</code> and try to package something with it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> tmplgen</span><span style="color:#ffb964;"> -t</span><span style="color:#e8e8d3;"> gem rb-readline
+</span><span style="color:#ffb964;">[WARN</span><span style="color:#e8e8d3;">  libtmplgen::helpers] ruby-rb-readline of package description is longer than 80 characters, please cut as you see fit!
+</span><span style="color:#ffb964;">[WARN</span><span style="color:#e8e8d3;">  libtmplgen::tmplwriter] Gem ruby is part of ruby, won</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">t write a template for it!
+</span><span style="color:#99ad6a;">[WARN  libtmplgen::tmplwriter] Won</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">t write template for built-in package ruby
+</span></pre>
+<p>Ok, let's see if anything was done at all.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ git status --porcelain
+</span><span style="color:#e8e8d3;">?? srcpkgs/ruby-rb-readline/
+</span></pre>
+<p>There it is!, note that it prefixes the package name with ruby-.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;ruby-rb-readline&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">ruby-rb-readline
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">0.5.5
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#ffb964;">noarch</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">yes
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">gem
+</span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">ruby</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">The readline library provides a pure Ruby implementation of the GNU readline C library, as well as the Readline extension that ships as part of the standard library</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">maxice8 &lt;thinkabit.ukim@gmail.com&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">BSD</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">http://github.com/ConnorAtherton/rb-readline</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">9e9bd7e198bdef0822c46902f6c592b882c1f9777894a4c3dcf5b320824a8793
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">post_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vlicense</span><span style="color:#e8e8d3;"> LICENSE
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Looks neat, it automatically set up most information for it. A few things to
+note is that it can't handle a few cases which we must do it ourselves:</p>
+<ul>
+<li>It doesn't automatically cut the short_desc.</li>
+<li>It doesn't convert a license to the SPDX short-identifier if its ambiguous.</li>
+<li>It guesses the file is called license file is called LICENSE.</li>
+<li>It can't know if the package has C extension and thus needs the gemspec build style.</li>
+<li>It can only guess the wrksrc</li>
+</ul>
+<p>Let's do those fixups, where applicable.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;ruby-rb-readline&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">ruby-rb-readline
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">0.5.5
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#ffb964;">noarch</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">yes
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">gem
+</span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">ruby</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Pure Ruby implementation of GNU readline library</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">maxice8 &lt;thinkabit.ukim@gmail.com&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">BSD-3-Clause</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">http://github.com/ConnorAtherton/rb-readline</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">9e9bd7e198bdef0822c46902f6c592b882c1f9777894a4c3dcf5b320824a8793
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">post_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vlicense</span><span style="color:#e8e8d3;"> LICENSE
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Looks nice, let's build it!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg ruby-rb-readline
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xls ruby-rb-readline
+</span><span style="color:#ffb964;">/usr/lib/ruby/gems/2.6.0/gems/rb-readline-0.5.5/bench/_rl_adjust_point.rb
+</span><span style="color:#ffb964;">/usr/lib/ruby/gems/2.6.0/gems/rb-readline-0.5.5/lib/rb-readline.rb
+</span><span style="color:#ffb964;">/usr/lib/ruby/gems/2.6.0/gems/rb-readline-0.5.5/lib/rbreadline/version.rb
+</span><span style="color:#ffb964;">/usr/lib/ruby/gems/2.6.0/gems/rb-readline-0.5.5/lib/rbreadline.rb
+</span><span style="color:#ffb964;">/usr/lib/ruby/gems/2.6.0/gems/rb-readline-0.5.5/lib/readline.rb
+</span><span style="color:#ffb964;">/usr/lib/ruby/gems/2.6.0/specifications/rb-readline-0.5.5.gemspec
+</span><span style="color:#ffb964;">/usr/share/licenses/ruby-rb-readline/LICENSE
+</span></pre>
+<p>And let's run an <a href="https://github.com/ConnorAtherton/rb-readline/blob/master/examples/example_readline.rb">example</a>
+just to be sure.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">\# </span><span style="color:#ffb964;">xbps-install --repository</span><span style="color:#e8e8d3;">=hostdir/binpkgs</span><span style="color:#ffb964;"> -y</span><span style="color:#e8e8d3;"> ruby-rb-readline
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> ruby /tmp/example_readline.rb
+</span><span style="color:#e8e8d3;">&gt; ls
+</span><span style="color:#ffb964;">You</span><span style="color:#e8e8d3;"> typed: ls
+</span><span style="color:#e8e8d3;">&gt; vi
+</span><span style="color:#ffb964;">You</span><span style="color:#e8e8d3;"> typed: vi
+</span><span style="color:#e8e8d3;">&gt; quit
+</span><span style="color:#ffb964;">You</span><span style="color:#e8e8d3;"> typed: quit
+</span></pre>
+<p>Success!</p>
+<h2 id="closing">Closing</h2>
+<p><a href="https://github.com/Cogitri/tmplgen">tmplgen</a> is an amazing tool, this
+tutorial doesn't show it's full capabilities like walking down the whole
+dependency tree of a package and also automatically updating to a new version.
+And is meant more to show basic usage, if there is enough demand a followup
+can be written.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

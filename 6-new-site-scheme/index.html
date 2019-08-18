@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/6-new-site-scheme/">Follow up on &#x27;How this site is done&#x27;</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-02
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/site/">#site</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<blockquote>
+<p>This is a follow up on my previous post <a href="../3-how-its-done">How this site is done</a>.</p>
+</blockquote>
+<p>Starting as of 2019-02-02 this website now uses a forked version of the even theme
+for <code>zola</code> (the static site engine for this website).</p>
+<p><a name="continue-reading"></a></p>
+<p>The most stark difference is the fact it now has a dark theme instead of a light one,
+keen readers will notice the colors of the background match the 'hard contrast' background
+colors of the <a href="https://github.com/morhetz/gruvbox">gruvbox-dark</a> theme.</p>
+<p>It also uses the teal color from the same theme, the quoteblocks and codefences also
+use colors from it, and so does the background. The configuration was also changed to
+use <a href="https://github.com/morhetz/gruvbox">gruvbox-dark</a> as the syntax highlight colorscheme.</p>
+<p>In short this whole website was changed to make extensive use of <a href="https://github.com/morhetz/gruvbox">gruvbox-dark</a>.</p>
+<h2 id="how-it-was-done">How it was done</h2>
+<p>The process of &quot;forking&quot; (much rather be called vendoring) even was quit easy. Themes
+live in the themes directory of the website root.</p>
+<p>This is the current tree:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> tree</span><span style="color:#ffb964;"> -d -L</span><span style="color:#e8e8d3;"> 1
+</span><span style="color:#e8e8d3;">.
+</span><span style="color:#ffb964;">├──</span><span style="color:#e8e8d3;"> content
+</span><span style="color:#ffb964;">├──</span><span style="color:#e8e8d3;"> public
+</span><span style="color:#ffb964;">├──</span><span style="color:#e8e8d3;"> resources
+</span><span style="color:#ffb964;">├──</span><span style="color:#e8e8d3;"> sass
+</span><span style="color:#ffb964;">├──</span><span style="color:#e8e8d3;"> static
+</span><span style="color:#ffb964;">└──</span><span style="color:#e8e8d3;"> templates
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">6</span><span style="color:#e8e8d3;"> directories
+</span></pre>
+<p>All that was required was moving the, templates, sass and static from even to the root.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> mv themes/even/templates/* templates/
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> mv themes/even/sass/* sass/
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> mv themes/even/static/* static
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> rm</span><span style="color:#ffb964;"> -rf</span><span style="color:#e8e8d3;"> themes/even
+</span></pre>
+<p>And remove the theme key from the config.toml file. Another side-effect is that the
+Travis CI configuration was made simpler, we no longer need to clone the even repository
+at every run.</p>
+<p>This is it now:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">branches</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">only</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">- </span><span style="color:#99ad6a;">devel
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">before_script</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">  </span><span style="color:#888888;"># Download and unzip the zola executable
+</span><span style="color:#e8e8d3;">  </span><span style="color:#888888;"># Replace the version numbers in the URL by the version you want to use
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">- </span><span style="color:#99ad6a;">curl -s -L https://github.com/getzola/zola/releases/download/v0.5.1/zola-v0.5.1-x86_64-unknown-linux-gnu.tar.gz | sudo tar xvzf - -C /usr/local/bin
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">script</span><span style="color:#e8e8d3;">: </span><span style="color:#8fbfdc;">|
+</span><span style="color:#99ad6a;">  </span><span style="color:#99ad6a;">zola build
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># If you are using a different folder than `public` for the output directory, you will
+</span><span style="color:#888888;"># need to change the `zola` command and the `ghp-import` path
+</span><span style="color:#ffb964;">after_success</span><span style="color:#e8e8d3;">: </span><span style="color:#8fbfdc;">|
+</span><span style="color:#99ad6a;">  </span><span style="color:#e8e8d3;">[ </span><span style="color:#99ad6a;">$TRAVIS_BRANCH = devel </span><span style="color:#e8e8d3;">] </span><span style="color:#8fbfdc;">&amp;</span><span style="color:#ffb964;">&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">zola build &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">sudo pip install ghp-import &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">ghp-import -n -b master public &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git master
+</span></pre>
+<p>Some plans for the future include getting <code>zola</code> from <a href="https://voidlinux.org">Void Linux</a>
+as it is the distro i live on. But in the meantime it is good enough.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

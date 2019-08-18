@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/8-cross-the-gir/">Crossing the gir</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-02
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>For those uninitiated, gir is <a href="https://gi.readthedocs.io/en/latest/">GObject Introspection</a>.
+A technology from GNOME that allows libraries to expose bindings to any language
+that can speak to C. It is the reason you can use lots of languages to write your
+GNOME and GTK applications while <a href="https://qt.io">Qt5</a> is mostly limited to C++
+and Python.</p>
+<p>On <a href="https://voidlinux.org">Void Linux</a> a high emphasis is placed into stuff being
+able to be cross compiled and for a long time gir has eluded us, with it's requirement
+of running stuff on the target system and using raw dumps of C structures.</p>
+<p>Now this is a river that is going to be crossed.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="crossing-the-gir">crossing the gir</h2>
+<blockquote>
+<p>Artifact means any piece of compiled code</p>
+</blockquote>
+<p>Making gir cross compilable is not an easy task, as described above it requires
+running artifacts created for the target system, the bane of cross compilation.</p>
+<p>Most of the time when running artifacts for a package it means generators, which
+can <strong>most</strong> of the time be built on the host system and then ran just fine.</p>
+<p>Not for gir, it needs specific information from those artifacts that is only
+pertinent to the target architecture.</p>
+<h3 id="gobject-introspection">gobject-introspection</h3>
+<p>We start with the beast itself, a collection of tools for generate <code>.gir</code> and
+<code>.typelib</code> files, <code>g-ir-scanner</code>, <code>g-ir-compiler</code>, <code>g-ir-generate</code>. Also a
+collection of common bindings like <code>DBus</code>, <code>GLib</code>, etc.</p>
+<p>Thankfully for us, the <a href="https://www.yoctoproject.org/">Yocto Project</a> and
+<a href="https://buildroot.org/">Buildroot</a> did all of the work patching gir, most
+of the work required was importing the required parts, discarding what we
+don't use and gluing it in <code>xbps-src's</code> infrastructure.</p>
+<h3 id="prelink-cross">prelink-cross</h3>
+<p>One of the first things required was importing a tool that the
+<a href="https://www.yoctoproject.org/">Yocto Project</a> used on their gir works.</p>
+<p>It was easy enough for <code>glibc</code> systems, while we had to fetch a git commit
+there wasn't much problem getting it compile and run with success.</p>
+<p>The problem came when <code>musl</code> appeared, <a href="https://voidlinux.org">Void Linux</a>
+developer <a href="https://github.com/Gottox">Enno &quot;Gottox&quot; Boland</a> tackled this
+problem, and at every corner compatibility problems appeared. Nonetheless
+he did it, and made <a href="https://github.com/Gottox/prelink-cross">prelink-cross</a>
+available for use in <a href="https://voidlinux.org">Void Linux</a></p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;prelink-cross&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">prelink-cross
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">20180128
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#ffb964;">_githash</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">ca213abd9ebfd77a04e3a967bf9f7bc1ef832087
+</span><span style="color:#ffb964;">wrksrc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">prelink-cross-${</span><span style="color:#ffb964;">_githash</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">gnu-configure
+</span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">automake libtool</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">elfutils-devel binutils-devel</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">case </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> argp-standalone</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#ffb964;">LDFLAGS</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> -largp</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Prelink from the yocto project</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">maxice8 &lt;thinkabit.ukim@gmail.com&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">GPL-2.0-or-later</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://git.yoctoproject.org/cgit.cgi/prelink-cross</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">distfiles</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://github.com/Gottox/prelink-cross/archive/$</span><span style="color:#ffb964;">_githash</span><span style="color:#99ad6a;">.tar.gz</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">b6b0baf60e7e66f62ed8e7117973be24b2d24649490365e6a88e11be0dd2fab4
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">pre_configure</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">autoreconf -fi
+</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">post_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># We don&#39;t want the tools that are on prelink
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># just prelink-rltd
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">rm -f </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#e8e8d3;">}/usr/bin/{execstack,prelink}
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">rm -rf </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#e8e8d3;">}/usr/share/man
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>To have an idea of the patching required, this is the git additions/deletions
+of all changes made, to work around <code>glibc</code> specific behaviour:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure.ac          |  1 +
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">gelfx32/gelfx.h       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/Makefile.am       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-alpha.c      |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-arm.c        |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-cris.c       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-i386.c       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-ia64.c       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-mips.c       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-ppc.c        |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-ppc64.c      |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-s390.c       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-s390x.c      |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-sh.c         |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-sparc.c      |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-sparc64.c    |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/arch-x86_64.c     |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/cache.c           |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/checksum.c        |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/conflict.c        |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/cxx.c             |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/doit.c            |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/dso.c             |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/dwarf2.c          |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/elf.h             |  4 ----
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/exec.c            |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/execle_open.c     |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/execstack.c       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/fptr.c            |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/gather.c          |  6 +++++-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/get.c             |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/layout.c          |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/main.c            |  4 ++--
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/md5.h             |  8 ++++----
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/mdebug.c          |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/prelink.c         |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/reloc.c           |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/Makefile.am  |  1 +
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/dl-load.c    |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/dl-lookup.c  |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/dl-misc.c    |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/dl-object.c  |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/dl-version.c |  4 ++--
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/rtld.c       |  6 +++---
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/rtld/rtld.h       |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/space.c           |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/stabs.c           |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/undo.c            |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/undoall.c         |  2 +-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/verify.c          | 11 +++++++++-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/wrap-error.c      | 56 +++++++++++++++++++++++++++++++++++++++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/wrap-error.h      | 11 ++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">src/wrap-file.c       |  8 ++++----
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">53 files changed, 140 insertions(+), 62 deletions(-)
+</span></pre>
+<p>Regardless, with that out of the way we can go back to gir.</p>
+<hr />
+<h4 id="wrapping-gobject-introspection">wrapping gobject-introspection</h4>
+<p>We can now make use of the patches from the <a href="https://www.yoctoproject.org/">Yocto Project</a>,
+and we need to write our own wrappers based on Yocto's ones.</p>
+<p>First we need to wrap <code>g-ir-scanner</code>, easy enough we renamed the executable
+that is built by the package to <code>g-ir-scanner.wrapped</code> and claim
+<code>g-ir-scanner</code> for ourselves with this:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/usr/bin/env bash
+</span><span style="color:#888888;"># Check if we are running in an xbps-src environment and run the wrapper if that
+</span><span style="color:#888888;"># is the case.
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">-a -n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">-a -n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_VERSION</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># This prevents g-ir-scanner from writing cache data to $HOME
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">GI_SCANNER_DISABLE_CACHE</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">exec /usr/bin/g-ir-scanner.wrapped \
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">--use-binary-wrapper</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/usr/bin/g-ir-scanner-qemuwrapper </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">--use-ldd-wrapper</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/usr/bin/g-ir-scanner-lddwrapper </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">--add-include-path</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/share/gir-1.0 </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">--add-include-path</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/lib/gir-1.0 </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">@</span><span style="color:#99ad6a;">/</span><span style="color:#ffb964;">/</span><span style="color:#99ad6a;">-I\/usr\/include/-I${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}\/usr\/include}</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">exec /usr/bin/g-ir-scanner.wrapped </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>You may notice the <code>--use-binary-wrapper=</code> and <code>--use-ldd-wrapper=</code>,
+which point to other wrappers we also need to write, again based on Yocto's
+but for <a href="https://voidlinux.org">Void Linux</a> specifically.</p>
+<p>Here is <code>g-ir-scanner-qemuwrapper</code>:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#888888;"># Use a modules directory which doesn&#39;t exist so we don&#39;t load random things
+</span><span style="color:#888888;"># which may then get deleted (or their dependencies) and potentially segfault
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">GIO_MODULE_DIR</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/gio/modules-dummy
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">_MACHINE</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">x86_64 </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">i686</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">_MACHINE</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">i386 </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">aarch64*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">_MACHINE</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">aarch64 </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">armv*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">_MACHINE</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">arm </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">/usr/bin/qemu-${_MACHINE}-static </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">-L </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#e8e8d3;">} \
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">-E</span><span style="color:#e8e8d3;"> LD_LIBRARY_PATH=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/lib:.libs:${</span><span style="color:#ffb964;">GIR_EXTRA_LIBS_PATH</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">            </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>You may notice we make use of <code>qemu-user-static</code> to run on the target machine.</p>
+<p>And <code>g-ir-scanner-lddwrapper</code>, this is where <code>prelink-cross</code> appears:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#ffb964;">/usr/bin/prelink-rtld --root</span><span style="color:#e8e8d3;">=${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#e8e8d3;">} </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>That wraps ups our wrapper for <code>g-ir-scanner</code>, now we need to wrap <code>g-ir-compiler</code>.
+This one gets more complicated as we need to wrap it in a way it can know
+to use the <code>g-ir-compiler</code> from the gir if it's being currently built.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/bin/sh
+</span><span style="color:#888888;">#
+</span><span style="color:#888888;"># Check if we are running in an xbps-src environment and run the wrapper if that
+</span><span style="color:#888888;"># is the case.
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">-a -n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">-a -n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_VERSION</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># wrapper for g-ir-compiler, which runs the target version of it through qemu.
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># g-ir-compiler writes out the raw content of a C struct to disk, and therefore
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># is architecture dependent.
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-x</span><span style="color:#e8e8d3;"> build/tools/g-ir-compiler ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># We are compiling gobject-introspection.
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># lets used the one we just compiled.
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">gir_bin</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">build/tools/g-ir-compiler
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">elif </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-x </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#e8e8d3;">}/usr/bin/g-ir-compiler.wrapped ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># Lets use the g-ir-compiler from the target
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">gir_bin</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/bin/g-ir-compiler.wrapped
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">exec /usr/bin/g-ir-scanner-qemuwrapper ${</span><span style="color:#ffb964;">gir_bin</span><span style="color:#e8e8d3;">} </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">exec /usr/bin/g-ir-compiler.wrapped </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">@</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>OK, the wrappers are wrapped, let's make the template install them correctly.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> sed</span><span style="color:#ffb964;"> -n </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">29,43p</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> srcpkgs/gobject-introspection/template
+</span><span style="color:#888888;"># Install our wrappers system-wide, they are required for building all other
+</span><span style="color:#888888;"># gobject-based packages.
+</span><span style="color:#ffb964;">vbin </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">FILESDIR</span><span style="color:#e8e8d3;">}/g-ir-scanner-qemuwrapper
+</span><span style="color:#ffb964;">vbin </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">FILESDIR</span><span style="color:#e8e8d3;">}/g-ir-scanner-lddwrapper
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Install g-ir-scanner-wrapper as g-ir-scanner, we need it with that name since
+</span><span style="color:#888888;"># we can&#39;t expect people to just not hardcode /usr/bin/g-ir-scanner, some packages
+</span><span style="color:#888888;"># like gtk+3 just like **really** much to use /usr/bin/g-ir-scanner and meson with
+</span><span style="color:#888888;"># find_program is also to blame.
+</span><span style="color:#ffb964;">mv </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#e8e8d3;">}/usr/bin/g-ir-scanner{,.wrapped}
+</span><span style="color:#ffb964;">vbin </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">FILESDIR</span><span style="color:#e8e8d3;">}/g-ir-scanner-wrapper g-ir-scanner
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Same logic of g-ir-scanner applies here
+</span><span style="color:#ffb964;">mv </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#e8e8d3;">}/usr/bin/g-ir-compiler{,.wrapped}
+</span><span style="color:#ffb964;">vbin </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">FILESDIR</span><span style="color:#e8e8d3;">}/g-ir-compiler-wrapper g-ir-compiler
+</span></pre>
+<p>Let's also allow our package to be cross compiled by setting the appropriate dependencies
+and configuration options for it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> sed</span><span style="color:#ffb964;"> -n </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">20,26p</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> srcpkgs/gobject-introspection/template
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CROSS_BUILD</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gobject-introspection qemu-user-static prelink-cross</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> -Denable-host-gi=true
+</span><span style="color:#99ad6a;">     </span><span style="color:#99ad6a;">-Denable-gi-cross-wrapper=/usr/bin/g-ir-scanner-qemuwrapper
+</span><span style="color:#99ad6a;">     </span><span style="color:#99ad6a;">-Denable-gi-ldd-wrapper=/usr/bin/g-ir-scanner-lddwrapper
+</span><span style="color:#99ad6a;">     </span><span style="color:#99ad6a;">-Dpkgconfig-sysroot-path=${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span></pre><h4 id="pkg-config-sysroot-dir">pkg-config sysroot dir</h4>
+<p>Before finishing gir we need to do some final touches on its
+<code>pkg-config</code> files, which contains some very important variables
+that packages use like <code>g_ir_scanner</code> which points to the point
+of the <code>g-ir-scanner</code> binary and <code>typelibdir</code> and <code>girdir</code> which
+point to the directory where the <code>.typelib</code> and <code>.gir</code> files are
+to be found.</p>
+<p>Packages query for these variables with <code>pkg-config --variable &lt;variable&gt;</code>,
+and a problem occurs there when cross compiling.</p>
+<p><code>pkg-config</code> can normally be made to return values for the target
+system by setting the <code>PKG_CONFIG_SYSROOT_DIR</code> variable, when a
+package queries for <code>CFLAGS</code> with <code>pkg-config --cflags</code> the
+values returned for the includes (-I) are prefixed with the value
+of <code>PKG_CONFIG_SYSROOT_DIR</code>.</p>
+<p>But, that doesn't happen for values queried with <code>pkg-config --variable</code>,
+if a package ask for where the <code>.typelib</code> and <code>.gir</code> files are, the values
+returned are from the host system, not the target one.</p>
+<p>Do not despair, not all is lost, we can prefix <code>${pc_sysrootdir}</code> in the
+<code>pkg-config</code> files and the value will be inserted as expected, so let's
+do it in the template:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> sed</span><span style="color:#ffb964;"> -n </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">45,54p</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> srcpkgs/gobject-introspection/template
+</span><span style="color:#888888;"># modify the pkg-config files to respect ${pc_sysrootdir} for variables that are
+</span><span style="color:#888888;"># meant to be called with &#39;pkg-config --variable&#39;
+</span><span style="color:#ffb964;">vsed -e </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">s|^g_ir_scanner=.*|g_ir_scanner=${pc_sysrootdir}/${bindir}/g-ir-scanner|g</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">-e </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">s|^g_ir_compiler=.*|g_ir_compiler=${pc_sysrootdir}/${bindir}/g-ir-compiler|g</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">-e </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">s|^g_ir_generate=.*|g_ir_generate=${pc_sysrootdir}/${bindir}/g-ir-generate|g</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">-e </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">s|^gidatadir.*|gidatadir=${pc_sysrootdir}/${datadir}/gobject-introspection-1.0|g</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">-e </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">s|^girdir.*|girdir=${pc_sysrootdir}/${datadir}/gir-1.0|g</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">-e </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">s|^typelibdir.*|typelibdir=${pc_sysrootdir}/${libdir}/girepository-1.0|g</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">-i </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#e8e8d3;">}/usr/lib/pkgconfig/gobject-introspection-1.0.pc \
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">-i </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#e8e8d3;">}/usr/lib/pkgconfig/gobject-introspection-no-export-1.0.pc
+</span></pre>
+<p>One last thing before we finish the <code>gobject-introspection</code> package itself, let's
+remove the <code>EXT_SUFFIX</code> from the <code>cpython3</code> bindings, so that cross compilation
+is not affected by usage of the <code>EXT_SUFFIX</code> from the host system and not the
+target one, Reading this <a href="../void-cpython3-cross-pt1">article</a> is recommended
+for further information.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> sed</span><span style="color:#ffb964;"> -n </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">56,58p</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> srcpkgs/gobject-introspection/template
+</span><span style="color:#888888;"># Fix the name of the python3 c bindings
+</span><span style="color:#ffb964;">mv </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#e8e8d3;">}/usr/lib/gobject-introspection/giscanner/_giscanner*.so \
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">${DESTDIR}/usr/lib/gobject-introspection/giscanner/_giscanner.so
+</span></pre>
+<p>Let's try and compile it!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg gobject-introspection
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/gobject-introspection
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">gir-freedesktop-1.58.3_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (aarch64).
+</span><span style="color:#99ad6a;">index: added `gobject-introspection-1.58.3_2</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> (aarch64).
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `libgirepository-1.58.3_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (aarch64).
+</span><span style="color:#99ad6a;">index: added `libgirepository-devel-1.58.3_2</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> (aarch64).
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> 8 packages registered.
+</span></pre>
+<p>Appears to work, let's spin up an <code>aarch64</code> machine:</p>
+<blockquote>
+<p>Thanks to <a href="https://github.com/Cogitri">Cogitri</a> for lending the machine.</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> uname</span><span style="color:#ffb964;"> -m
+</span><span style="color:#ffb964;">aarch64
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">platform
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; platform.platform()
+</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Linux-4.14.91_1-aarch64-with-glibc2.17</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">gi
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; gi.require_version(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">DBus</span><span style="color:#556633;">&quot;</span><span style="color:#ffb964;">, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">1.0</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt;
+</span></pre><h3 id="gir-build-helper">gir build_helper</h3>
+<p>We can now glue some components from <code>xbps-src</code> to make cross compilation
+of packages that use gir more convenient.</p>
+<p>This time we will use the newly introduced <code>build_helper</code> which, if you
+haven't heard of them then this <a href="../3-build-helper-void">article</a> is
+recommended, here will be written only a very short explanation.</p>
+<p>In short <code>build_helper</code> is a system of files that contain shell snippets
+that set global variables and template specific variables (like
+<code>hostmakedepends</code>) when sourced, they are a nice way to encapsulate
+complex logic in a way that we can import them only when necessary.</p>
+<p>Here is the new <code>build_helper</code> for helping with gir cross compilation:
+gir!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> cat common/build-helper/gir.sh
+</span><span style="color:#888888;">#
+</span><span style="color:#888888;"># gir - build-helper for gobject-introspection
+</span><span style="color:#888888;">#
+</span><span style="color:#888888;"># This build-helper is used for packages that make use of
+</span><span style="color:#888888;"># the GObject introspection middleware layer.
+</span><span style="color:#888888;"># 
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Check if the &#39;gir&#39; build_option is set or if there is no
+</span><span style="color:#888888;"># &#39;gir&#39; build_option.
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">] || [[ $</span><span style="color:#ffb964;">build_options </span><span style="color:#e8e8d3;">!= *</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">* ]]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># Provide the host tooling, g-ir-scanner, g-ir-compiler and its
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># wrappers.
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gobject-introspection</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CROSS_BUILD</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># Required for running binaries produced from g-ir-compiler
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># via g-ir-scanner-qemuwrapper
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> qemu-user-static</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># Required for running the g-ir-scanner-lddwrapper
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> prelink-cross</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># Provide basic .gir types like GLib, GObject, DBus, Gio, cairo
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># and tooling like g-ir-compiler
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gobject-introspection</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#8fbfdc;">fi
+</span></pre><h3 id="python-gobject">python-gobject</h3>
+<p>Now that we got that nice glue, let's make use of it and start by
+adapting <code>python-gobject</code> to be cross compilable.</p>
+<p>Why ? Everyone uses it, here is a list of the packages that depend
+on either <code>python-gobject</code> or <code>python3-gobject</code></p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">TwitchNotifier-0.5_1
+</span><span style="color:#ffb964;">avahi-discover-0.7_6
+</span><span style="color:#ffb964;">blueman-2.0.8_1
+</span><span style="color:#ffb964;">caffeine-ng-3.4.2_1
+</span><span style="color:#ffb964;">caribou-0.4.21_1
+</span><span style="color:#ffb964;">catfish-1.4.7_1
+</span><span style="color:#ffb964;">ccsm-0.8.16_4
+</span><span style="color:#ffb964;">cdemu-client-3.2.0_2
+</span><span style="color:#ffb964;">chrome-gnome-shell-10.1_1
+</span><span style="color:#ffb964;">cinnamon-4.0.9_1
+</span><span style="color:#ffb964;">cinnamon-screensaver-4.0.3_1
+</span><span style="color:#ffb964;">clearine-0.5_1
+</span><span style="color:#ffb964;">d-feet-0.3.14_1
+</span><span style="color:#ffb964;">devedeng-4.13.0_1
+</span><span style="color:#ffb964;">eolie-0.9.51_1
+</span><span style="color:#ffb964;">flowblade-1.16_2
+</span><span style="color:#ffb964;">gajim-1.1.2_1
+</span><span style="color:#ffb964;">gcdemu-3.2.0_1
+</span><span style="color:#ffb964;">gnome-3.30.0_3
+</span><span style="color:#ffb964;">gnome-music-3.30.2_1
+</span><span style="color:#ffb964;">gnome-passwordsafe-3.31.1_2
+</span><span style="color:#ffb964;">gnome-tweaks-3.30.2_1
+</span><span style="color:#ffb964;">gpodder-3.10.7_1
+</span><span style="color:#ffb964;">gpsd-xgps-3.17_4
+</span><span style="color:#ffb964;">gramps-5.0.1_1
+</span><span style="color:#ffb964;">gscreenshot-2.10.1_1
+</span><span style="color:#ffb964;">gst1-python-1.14.4_1
+</span><span style="color:#ffb964;">gst1-python3-1.14.4_2
+</span><span style="color:#ffb964;">guake-3.4.0_2
+</span><span style="color:#ffb964;">gufw-18.10.0_1
+</span><span style="color:#ffb964;">ibus-1.5.19_2
+</span><span style="color:#ffb964;">ibus-hangul-1.5.1_3
+</span><span style="color:#ffb964;">ice-ssb-5.3.4_1
+</span><span style="color:#ffb964;">indicator-doom-cpu-1.0.1_1
+</span><span style="color:#ffb964;">kupfer-319_2
+</span><span style="color:#ffb964;">laditools-1.1.0_2
+</span><span style="color:#ffb964;">libgladeui3-3.22.1_1
+</span><span style="color:#ffb964;">libpeas-1.22.0_1
+</span><span style="color:#ffb964;">libratbag-0.9.904_1
+</span><span style="color:#ffb964;">lightdm-gtk-greeter-settings-1.2.2_1
+</span><span style="color:#ffb964;">lollypop-0.9.916_1
+</span><span style="color:#ffb964;">lutris-0.4.23_1
+</span><span style="color:#ffb964;">mate-menu-18.04.3_1
+</span><span style="color:#ffb964;">mate-tweak-18.10.2_1
+</span><span style="color:#ffb964;">meld-3.20.0_1
+</span><span style="color:#ffb964;">menulibre-2.2.0_1
+</span><span style="color:#ffb964;">mkchromecast-0.3.8.1_1
+</span><span style="color:#ffb964;">mozo-1.20.2_1
+</span><span style="color:#ffb964;">mugshot-0.4.1_1
+</span><span style="color:#ffb964;">mypaint-1.2.1_5
+</span><span style="color:#ffb964;">networkmanager-dmenu-1.1_1
+</span><span style="color:#ffb964;">onboard-1.4.1_4
+</span><span style="color:#ffb964;">oomox-1.6.2_2
+</span><span style="color:#ffb964;">piper-0.2.903_1
+</span><span style="color:#ffb964;">pithos-1.4.1_1
+</span><span style="color:#ffb964;">pulseaudio-equalizer-ladspa-3.0.1_1
+</span><span style="color:#ffb964;">pulseeffects-3.2.3_3
+</span><span style="color:#ffb964;">pychess-0.12.4_2
+</span><span style="color:#ffb964;">python-atspi-2.30.0_1
+</span><span style="color:#ffb964;">python-gobject-devel-3.30.4_2
+</span><span style="color:#ffb964;">python3-atspi-2.30.0_1
+</span><span style="color:#ffb964;">python3-dbusmock-0.18.1_1
+</span><span style="color:#ffb964;">python3-openrazer-2.4.0_1
+</span><span style="color:#ffb964;">quodlibet-4.2.1_2
+</span><span style="color:#ffb964;">rednotebook-2.8_1
+</span><span style="color:#ffb964;">redshift-gtk-1.12_1
+</span><span style="color:#ffb964;">sc-controller-0.4.6.1_1
+</span><span style="color:#ffb964;">scanmem-0.17_4
+</span><span style="color:#ffb964;">sonata-1.7b1_2
+</span><span style="color:#ffb964;">soundconverter-3.0.0_3
+</span><span style="color:#ffb964;">startup-tools-1.13.4_1
+</span><span style="color:#ffb964;">syncthing-gtk-0.9.4.3_1
+</span><span style="color:#ffb964;">system-config-printer-1.5.11_4
+</span><span style="color:#ffb964;">terminator-1.91_1
+</span><span style="color:#ffb964;">tryton-5.0.5_1
+</span><span style="color:#ffb964;">uberwriter-12.11.02_1
+</span><span style="color:#ffb964;">udiskie-1.7.5_1
+</span><span style="color:#ffb964;">variety-0.7.1_1
+</span><span style="color:#ffb964;">vimiv-0.9.1_2
+</span><span style="color:#ffb964;">virt-manager-tools-2.0.0_2
+</span><span style="color:#ffb964;">volctl-0.6.2_1
+</span><span style="color:#ffb964;">wpgtk-5.8.7_1
+</span><span style="color:#ffb964;">xdot-1.0_1
+</span><span style="color:#ffb964;">zeitgeist-1.0.1_1
+</span></pre>
+<p>Quite a lot, eh ?</p>
+<p>Here is the <code>python3-gobject</code> template, notable is the usage of the gir
+build_helper.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;python3-gobject&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">python3-gobject
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">3.30.4
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#ffb964;">wrksrc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">pygobject-${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">meson
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-Dpython=python${</span><span style="color:#ffb964;">py3_ver</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">pycompile_module</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gi pygtkcompat</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">pkg-config</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">libglib-devel python3-cairo-devel python3-devel</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir-freedesktop python3-cairo</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Python3 bindings for GObject</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Enno Boland &lt;gottox@voidlinux.org&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">LGPL-2.1-or-later</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://pygobject.readthedocs.io/</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">distfiles</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">GNOME_SITE</span><span style="color:#99ad6a;">}/pygobject/${</span><span style="color:#ffb964;">version%</span><span style="color:#99ad6a;">.*}/pygobject-${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}.tar.xz</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">2dc1a1a444b82955e65b81c2a2511ecf8032404beba4ef1d48144168f2f64c43
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">broken</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Error relocating /usr/aarch64-linux-musl/usr/lib/libz.so.1: unsupported relocation type 1026</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">python3-gobject-devel_package</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">libgirepository-devel python3-cairo-devel
+</span><span style="color:#99ad6a;">     </span><span style="color:#99ad6a;">libglib-devel libffi-devel
+</span><span style="color:#99ad6a;">     </span><span style="color:#99ad6a;">python3-gobject&gt;=${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}_${</span><span style="color:#ffb964;">revision</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - development files</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#fad07a;">pkg_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/include
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/lib/pkgconfig
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Before we can have some fun with it and compile some base software we need
+to deal with one last issue, <code>meson</code>.</p>
+<h3 id="meson">meson</h3>
+<p>The meson implementation of gir generation unconditionally uses the native
+<code>pkg-config</code>, it makes sense since nobody (except Yocto, and now us) does
+cross gir.</p>
+<p>Using the native <code>pkg-config</code> means it will run <code>/usr/bin/pkg-config</code> and
+thus will only search parts of the host system and not of the cross system,
+which is great when we need to build <code>generators</code> and other binaries that
+run on the host system to help the build process, but in this case we
+need the information from the target system.</p>
+<p>Let's just patch the <code>meson</code> package to do it. It is a one line change.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/mesonbuild/modules/gnome.py b/mesonbuild/modules/gnome.py
+</span><span style="color:#e8e8d3;">index bf49770..42473cb 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- mesonbuild/modules/gnome.py
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ mesonbuild/modules/gnome.py
+</span><span style="font-style:italic;color:#888888;">@@ -429,7 +429,7 @@</span><span style="color:#e8e8d3;"> class GnomeModule(ExtensionModule):
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">try:
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">gir_dep = self.gir_dep or PkgConfigDependency(&#39;gobject-introspection-1.0&#39;,
+</span><span style="color:#e8e8d3;">                                                           </span><span style="color:#e8e8d3;">state.environment,
+</span><span style="color:#a1000d;">-                                                          {&#39;native&#39;: True})
+</span><span style="color:#558f1f;">+                                                          {&#39;native&#39;: False})
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">pkgargs = gir_dep.get_compile_args()
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">except Exception:
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">raise MesonException(&#39;gobject-introspection dependency was not found, gir cannot be generated.&#39;)
+</span></pre>
+<p>OK, all done!</p>
+<h2 id="let-s-have-fun">Let's have fun!</h2>
+<p>Let's have some fun!, let's cross compile <code>gtk+3</code> with gir!</p>
+<h3 id="dep-gdk-pixbuf">dep: gdk-pixbuf</h3>
+<p>First we need to build the dependencies of <code>gtk+3</code> that it uses
+for building its own gir files.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/gdk-pixbuf/template b/srcpkgs/gdk-pixbuf/template
+</span><span style="color:#e8e8d3;">index d8c2c6db67..e353c55197 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/gdk-pixbuf/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/gdk-pixbuf/template
+</span><span style="font-style:italic;color:#888888;">@@ -3,10 +3,10 @@</span><span style="color:#e8e8d3;"> pkgname=gdk-pixbuf
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">version=2.38.0
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">revision=1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=meson
+</span><span style="color:#558f1f;">+build_helper=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;-Dgir=$(vopt_if gir true false) -Djasper=false
+</span><span style="color:#e8e8d3;">  </span><span style="color:#a1000d;">-Dpng=true -Dx11=true -Dinstalled_tests=false&quot;
+</span><span style="color:#a1000d;">-hostmakedepends=&quot;gettext-devel glib-devel pkg-config
+</span><span style="color:#a1000d;">- $(vopt_if gir &#39;gobject-introspection&#39;) libxslt docbook-xsl&quot;
+</span><span style="color:#558f1f;">+hostmakedepends=&quot;gettext-devel glib-devel pkg-config libxslt docbook-xsl&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">makedepends=&quot;libX11-devel libglib-devel libpng-devel tiff-devel
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">shared-mime-info&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">short_desc=&quot;Image loading library for The GTK+ toolkit (v2)&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -18,12 +18,11 @@</span><span style="color:#e8e8d3;"> checksum=dd50973c7757bcde15de6bcd3a6d462a445efd552604ae6435a0532fbbadae47
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Package build options
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_options=&quot;gir&quot;
+</span><span style="color:#558f1f;">+build_options_default=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Disable gir for cross builds.
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">if [ &quot;$CROSS_BUILD&quot; ]; then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">hostmakedepends+=&quot; gdk-pixbuf-devel&quot;
+</span><span style="color:#a1000d;">-else
+</span><span style="color:#a1000d;">-	build_options_default=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">fi
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pre_configure() {
+</span></pre>
+<p>Now let's build it and check the contents.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-src -f -a aarch64 pkg gdk-pixbuf
+</span><span style="color:#e8e8d3;">=&gt; Registering new packages to /host/binpkgs/gobject-introspection
+</span><span style="color:#e8e8d3;">index: added `gdk-pixbuf-2.38.0_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `gdk-pixbuf-devel-2.38.0_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `gdk-pixbuf-xlib-2.38.0_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: 11 packages registered.
+</span><span style="color:#e8e8d3;">$ env XBPS_TARGET_ARCH=aarch64 xls gdk-pixbuf{,-devel} | grep -E &#39;.(gir|typelib)&#39;
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/GdkPixbuf-2.0.typelib
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/GdkPixdata-2.0.typelib
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/GdkPixbuf-2.0.gir
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/GdkPixdata-2.0.gir
+</span></pre><h3 id="dep-pango">dep: pango</h3>
+<p>Same thing for <code>pango</code>:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/pango/template b/srcpkgs/pango/template
+</span><span style="color:#e8e8d3;">index 2ba99274b5..98adbd8f1d 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/pango/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/pango/template
+</span><span style="font-style:italic;color:#888888;">@@ -4,8 +4,8 @@</span><span style="color:#e8e8d3;"> version=1.42.4
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">revision=1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;$(vopt_enable gir introspection) --disable-gtk-doc&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=gnu-configure # switch to meson when possible
+</span><span style="color:#a1000d;">-hostmakedepends=&quot;glib-devel help2man pkg-config
+</span><span style="color:#a1000d;">- $(vopt_if gir &#39;gobject-introspection&#39;)&quot;
+</span><span style="color:#558f1f;">+build_helper=&quot;gir&quot;
+</span><span style="color:#558f1f;">+hostmakedepends=&quot;glib-devel help2man pkg-config&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">makedepends=&quot;fribidi-devel harfbuzz-devel libXft-devel libthai-devel&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">short_desc=&quot;Library for layout and rendering of text&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">maintainer=&quot;Juan RP &lt;xtraeme@voidlinux.org&gt;&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -16,10 +16,7 @@</span><span style="color:#e8e8d3;"> checksum=1d2b74cd63e8bd41961f2f8d952355aa0f9be6002b52c8aa7699d9f5da597c9d
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Package build options
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_options=&quot;gir&quot;
+</span><span style="color:#a1000d;">-# Disable gir for cross builds.
+</span><span style="color:#a1000d;">-if [ -z &quot;$CROSS_BUILD&quot; ]; then
+</span><span style="color:#a1000d;">-	build_options_default=&quot;gir&quot;
+</span><span style="color:#a1000d;">-fi
+</span><span style="color:#558f1f;">+build_options_default=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">post_install() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">rm -rf -- &quot;${DESTDIR}&quot;/usr/share/installed-tests
+</span></pre>
+<p>Build and list gir files:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-src -f -a aarch64 pkg pango
+</span><span style="color:#e8e8d3;">=&gt; Registering new packages to /host/binpkgs/gobject-introspection
+</span><span style="color:#e8e8d3;">index: added `pango-1.42.4_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `pango-devel-1.42.4_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `pango-view-1.42.4_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `pango-xft-1.42.4_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: 15 packages registered.
+</span><span style="color:#e8e8d3;">$ env XBPS_TARGET_ARCH=aarch64 xls pango{,-devel} | grep -E &#39;.(gir|typelib)&#39;
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/Pango-1.0.typelib
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/PangoCairo-1.0.typelib
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/PangoFT2-1.0.typelib
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/Pango-1.0.gir
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/PangoCairo-1.0.gir
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/PangoFT2-1.0.gir
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/PangoXft-1.0.gir
+</span></pre><h3 id="dep-atk">dep: atk</h3>
+<p>Last one required!</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/atk/template b/srcpkgs/atk/template
+</span><span style="color:#e8e8d3;">index 7cb2c212cb..2531e3e127 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/atk/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/atk/template
+</span><span style="font-style:italic;color:#888888;">@@ -3,8 +3,9 @@</span><span style="color:#e8e8d3;"> pkgname=atk
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">version=2.30.0
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">revision=1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=meson
+</span><span style="color:#558f1f;">+build_helper=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;-Dintrospection=$(vopt_if gir true false)&quot;
+</span><span style="color:#a1000d;">-hostmakedepends=&quot;pkg-config glib-devel $(vopt_if gir gobject-introspection)&quot;
+</span><span style="color:#558f1f;">+hostmakedepends=&quot;pkg-config glib-devel&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">makedepends=&quot;libglib-devel&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">short_desc=&quot;Set of interfaces for accessibility&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">maintainer=&quot;Juan RP &lt;xtraeme@voidlinux.org&gt;&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -15,11 +16,7 @@</span><span style="color:#e8e8d3;"> checksum=dd4d90d4217f2a0c1fee708a555596c2c19d26fef0952e1ead1938ab632c027b
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Package build options
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_options=&quot;gir&quot;
+</span><span style="color:#a1000d;">-
+</span><span style="color:#a1000d;">-# Disable gir for cross builds.
+</span><span style="color:#a1000d;">-if [ -z &quot;$CROSS_BUILD&quot; ]; then
+</span><span style="color:#a1000d;">-	build_options_default=&quot;gir&quot;
+</span><span style="color:#a1000d;">-fi
+</span><span style="color:#558f1f;">+build_options_default=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">atk-devel_package() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">depends=&quot;${makedepends} atk&gt;=${version}_${revision}&quot;
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-src -f -a aarch64 pkg atk
+</span><span style="color:#e8e8d3;">=&gt; Registering new packages to /host/binpkgs/gobject-introspection
+</span><span style="color:#e8e8d3;">index: added `atk-2.30.0_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `atk-devel-2.30.0_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: 17 packages registered.
+</span><span style="color:#e8e8d3;">$ env XBPS_TARGET_ARCH=aarch64 xls pango{,-devel} | grep -E &#39;.(gir|typelib)&#39;
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/Atk-1.0.typelib
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/Atk-1.0.gir
+</span></pre>
+<p>All done, now for <code>gtk+3</code> itself!</p>
+<h3 id="gtk-3">gtk+3</h3>
+<p>A very complex template, a maze of conditionals.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/gtk+3/template b/srcpkgs/gtk+3/template
+</span><span style="color:#e8e8d3;">index 1a09502be3..b2315300d0 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/gtk+3/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/gtk+3/template
+</span><span style="font-style:italic;color:#888888;">@@ -4,6 +4,7 @@</span><span style="color:#e8e8d3;"> version=3.24.4
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">revision=1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">wrksrc=&quot;gtk+-${version}&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=gnu-configure
+</span><span style="color:#558f1f;">+build_helper=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#XXX broken configure script: Can&#39;t use vopt_enable cloudproviders, configure
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#checks for libcloudproviders when we pass &#39;--disable-cloudproviders&#39; to it!
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;--disable-schemas-compile
+</span><span style="font-style:italic;color:#888888;">@@ -12,9 +13,8 @@</span><span style="color:#e8e8d3;"> configure_args=&quot;--disable-schemas-compile
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">$(vopt_enable wayland wayland-backend) $(vopt_enable x11 x11-backend)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">$(vopt_if cloudproviders &#39;--enable-cloudproviders&#39;)&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">conf_files=&quot;/etc/gtk-3.0/im-multipress.conf&quot;
+</span><span style="color:#a1000d;">-hostmakedepends=&quot;gettext-devel glib-devel gobject-introspection gtk-doc
+</span><span style="color:#a1000d;">- gtk-update-icon-cache pkg-config perl
+</span><span style="color:#a1000d;">- $(vopt_if wayland &#39;wayland-devel wayland-protocols&#39;)&quot;
+</span><span style="color:#558f1f;">+hostmakedepends=&quot;gettext-devel glib-devel pkg-config perl gtk-doc
+</span><span style="color:#558f1f;">+ gtk-update-icon-cache $(vopt_if wayland &#39;wayland-devel wayland-protocols&#39;)&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">makedepends=&quot;at-spi2-atk-devel gdk-pixbuf-devel libepoxy-devel pango-devel
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">iso-codes $(vopt_if colord &#39;colord-devel&#39;) $(vopt_if cups &#39;cups-devel&#39;)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">$(vopt_if wayland &#39;libxkbcommon-devel wayland-devel wayland-protocols MesaLib-devel&#39;)
+</span><span style="font-style:italic;color:#888888;">@@ -35,12 +35,7 @@</span><span style="color:#e8e8d3;"> desc_option_broadway=&quot;Enable support for the HTML5 Broadway backend&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">desc_option_cloudproviders=&quot;Enable integration with cloudproviders, such as Nextcloud&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Enable all options (other than cloudproviders) by default.
+</span><span style="color:#a1000d;">-build_options_default=&quot;colord cups broadway wayland x11&quot;
+</span><span style="color:#a1000d;">-
+</span><span style="color:#a1000d;">-# Enable gir only for native builds.
+</span><span style="color:#a1000d;">-if [ -z &quot;$CROSS_BUILD&quot; ]; then
+</span><span style="color:#a1000d;">-	build_options_default+=&quot; gir&quot;
+</span><span style="color:#a1000d;">-fi
+</span><span style="color:#558f1f;">+build_options_default=&quot;colord cups broadway wayland x11 gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">do_check() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;"># Requires xserver running
+</span></pre>
+<p>Seems to be all right.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-src -f -a aarch64 pkg gtk+3
+</span><span style="color:#e8e8d3;">=&gt; Registering new packages to /host/binpkgs/gobject-introspection
+</span><span style="color:#e8e8d3;">index: added `gtk+3-3.24.4_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `gtk+3-demo-3.24.4_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `gtk+3-devel-3.24.4_1&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: 20 packages registered.
+</span><span style="color:#e8e8d3;">$ env XBPS_TARGET_ARCH=aarch64 xls gtk+3{,-devel} | grep -E &#39;.(gir|typelib)&#39;
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/Gdk-3.0.typelib
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/GdkX11-3.0.typelib
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/Gtk-3.0.typelib
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/Gdk-3.0.gir
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/GdkX11-3.0.gir
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/Gtk-3.0.gir
+</span></pre>
+<p>Ah all nice.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">platform
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; platform.platform()
+</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Linux-4.14.97_1-aarch64-with-glibc2.17</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">gi
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; gi.require_version(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Gtk</span><span style="color:#556633;">&quot;</span><span style="color:#ffb964;">, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">3.0</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt;
+</span></pre><h2 id="loose-ends">Loose ends</h2>
+<p>Not all is rosy when gir and cross compilation meet, but we got very
+far, regardless there are still fixes to do.</p>
+<h3 id="meson-1">Meson</h3>
+<p>Meson is still not complete, some packages like <code>gdk-pixbuf</code> and <code>atk</code>
+compile just fine. Others like <code>libgusb</code>, less so:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/libgusb/template b/srcpkgs/libgusb/template
+</span><span style="color:#e8e8d3;">index c2358c1125..00bcfdb940 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/libgusb/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/libgusb/template
+</span><span style="font-style:italic;color:#888888;">@@ -1,13 +1,14 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Template file for &#39;libgusb&#39;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=libgusb
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">version=0.3.0
+</span><span style="color:#a1000d;">-revision=3
+</span><span style="color:#558f1f;">+revision=4
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=meson
+</span><span style="color:#558f1f;">+build_helper=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;-Ddocs=false -Dgir=$(vopt_if gir true false)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#a1000d;">-Dvapi=$(vopt_if vala true false)&quot;
+</span><span style="color:#a1000d;">-hostmakedepends=&quot;pkg-config $(vopt_if gir gobject-introspection)
+</span><span style="color:#a1000d;">- $(vopt_if vala vala)&quot;
+</span><span style="color:#a1000d;">-makedepends=&quot;libglib-devel libusb-devel libgudev-devel $(vopt_if vala vala-devel) usbutils&quot;
+</span><span style="color:#558f1f;">+hostmakedepends=&quot;pkg-config $(vopt_if vala vala)&quot;
+</span><span style="color:#558f1f;">+makedepends=&quot;libglib-devel libusb-devel libgudev-devel $(vopt_if vala vala-devel)
+</span><span style="color:#558f1f;">+ usbutils&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">short_desc=&quot;GLib wrapper around libusb1&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">maintainer=&quot;Juan RP &lt;xtraeme@voidlinux.org&gt;&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">license=&quot;LGPL-2.1-or-later&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -16,8 +17,9 @@</span><span style="color:#e8e8d3;"> distfiles=&quot;http://people.freedesktop.org/~hughsient/releases/${pkgname}-${versio
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">checksum=d8e7950f99b6ae4c3e9b8c65f3692b9635289e6cff8de40c4af41b2e9b348edc
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_options=&quot;gir vala&quot;
+</span><span style="color:#558f1f;">+build_options_default=&quot;gir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">if [ -z &quot;$CROSS_BUILD&quot; ]; then
+</span><span style="color:#a1000d;">-	build_options_default=&quot;gir vala&quot;
+</span><span style="color:#558f1f;">+	build_options_default+=&quot; vala&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">fi
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libgusb-devel_package() {
+</span></pre>
+<p>Looks good to me.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg libgusb
+</span><span style="color:#ffb964;">[8/20]</span><span style="color:#e8e8d3;"> Generating GUsb-1.0.gir with a custom command.
+</span><span style="color:#ffb964;">FAILED:</span><span style="color:#e8e8d3;"> gusb/GUsb-1.0.gir
+</span><span style="color:#ffb964;">/usr/aarch64-linux-gnu/usr/bin/g-ir-scanner -pthread -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include/gobject-introspection-1.0</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include/glib-2.0</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/lib/glib-2.0/include</span><span style="color:#ffb964;"> --no-libtool --namespace</span><span style="color:#e8e8d3;">=GUsb</span><span style="color:#ffb964;"> --nsversion</span><span style="color:#e8e8d3;">=1.0</span><span style="color:#ffb964;"> --warn-all --output</span><span style="color:#e8e8d3;"> gusb/GUsb-1.0.gir</span><span style="color:#ffb964;"> --c-include</span><span style="color:#e8e8d3;">=gusb.h</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/builddir/libgusb-0.3.0/gusb</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/builddir/libgusb-0.3.0/build/gusb</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">./.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">./gusb/.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../gusb/.</span><span style="color:#ffb964;"> --filelist</span><span style="color:#e8e8d3;">=/builddir/libgusb-0.3.0/build/gusb/bf6bc9e@@gusb@sha/GUsb_1.0_gir_filelist</span><span style="color:#ffb964;"> -L</span><span style="color:#e8e8d3;">/builddir/libgusb-0.3.0/build/gusb</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=gusb</span><span style="color:#ffb964;"> --include</span><span style="color:#e8e8d3;">=Gio-2.0</span><span style="color:#ffb964;"> --include</span><span style="color:#e8e8d3;">=GObject-2.0</span><span style="color:#ffb964;"> --symbol-prefix</span><span style="color:#e8e8d3;">=g_usb</span><span style="color:#ffb964;"> --identifier-prefix</span><span style="color:#e8e8d3;">=GUsb</span><span style="color:#ffb964;"> --pkg-export</span><span style="color:#e8e8d3;">=gusb</span><span style="color:#ffb964;"> --cflags-begin -I</span><span style="color:#e8e8d3;">./.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">./gusb/.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../gusb/.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include/libmount</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include/blkid</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include/uuid</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include/glib-2.0</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/lib/glib-2.0/include</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include/libusb-1.0</span><span style="color:#ffb964;"> -D_FORTIFY_SOURCE</span><span style="color:#e8e8d3;">=2</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/include</span><span style="color:#ffb964;"> --cflags-end --library</span><span style="color:#e8e8d3;"> gusb</span><span style="color:#ffb964;"> -L</span><span style="color:#e8e8d3;">/builddir/libgusb-0.3.0/build/gusb</span><span style="color:#ffb964;"> -L</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/lib</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=gio-2.0</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=gobject-2.0</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=glib-2.0</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=usb-1.0
+</span><span style="color:#ffb964;">In</span><span style="color:#e8e8d3;"> file included from /builddir/libgusb-0.3.0/build/g-ir-cpp-se2xrgqu.c:4:
+</span><span style="color:#ffb964;">/builddir/libgusb-0.3.0/build/gusb/gusb-version.h:31:2:</span><span style="color:#e8e8d3;"> error: </span><span style="color:#888888;">#error &quot;Only &lt;gusb.h&gt; can be included directly.&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#888888;">#error &quot;Only &lt;gusb.h&gt; can be included directly.&quot;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">^~~~~
+</span><span style="color:#ffb964;">In</span><span style="color:#e8e8d3;"> file included from /usr/aarch64-linux-gnu/usr/include/bits/libc-header-start.h:33,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/aarch64-linux-gnu/usr/include/limits.h:26,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/lib/gcc/aarch64-linux-gnu/8.2.0/include-fixed/limits.h:194,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/lib/gcc/aarch64-linux-gnu/8.2.0/include-fixed/syslimits.h:7,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/lib/gcc/aarch64-linux-gnu/8.2.0/include-fixed/limits.h:34,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/aarch64-linux-gnu/usr/lib/glib-2.0/include/glibconfig.h:11,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/aarch64-linux-gnu/usr/include/glib-2.0/glib/gtypes.h:32,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/aarch64-linux-gnu/usr/include/glib-2.0/glib/galloca.h:32,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/aarch64-linux-gnu/usr/include/glib-2.0/glib.h:30,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/aarch64-linux-gnu/usr/include/glib-2.0/gobject/gbinding.h:28,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /usr/aarch64-linux-gnu/usr/include/glib-2.0/glib-object.h:23,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /builddir/libgusb-0.3.0/gusb/gusb-context.h:25,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /builddir/libgusb-0.3.0/gusb/gusb-autocleanups.h:24,
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> /builddir/libgusb-0.3.0/build/g-ir-cpp-se2xrgqu.c:5:
+</span><span style="color:#ffb964;">/usr/aarch64-linux-gnu/usr/include/features.h:381:4:</span><span style="color:#e8e8d3;"> warning: </span><span style="color:#888888;">#warning _FORTIFY_SOURCE requires compiling with optimization (-O) [-Wcpp]
+</span><span style="color:#e8e8d3;"> </span><span style="color:#888888;">#  warning _FORTIFY_SOURCE requires compiling with optimization (-O)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">^~~~~~~
+</span><span style="color:#ffb964;">Traceback</span><span style="color:#e8e8d3;"> (most recent call last):
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/python3.6/distutils/unixccompiler.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 107, in preprocess
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">self.spawn</span><span style="color:#e8e8d3;">(pp_args)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/python3.6/distutils/ccompiler.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 909, in spawn
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">spawn</span><span style="color:#e8e8d3;">(cmd, dry_run=self.dry_run)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/python3.6/distutils/spawn.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 36, in spawn
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">_spawn_posix</span><span style="color:#e8e8d3;">(cmd, search_path, dry_run=dry_run)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/python3.6/distutils/spawn.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 159, in _spawn_posix
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">%</span><span style="color:#e8e8d3;"> (cmd, exit_status))
+</span><span style="color:#ffb964;">distutils.errors.DistutilsExecError:</span><span style="color:#e8e8d3;"> command </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">aarch64-linux-gnu-cpp</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> failed with exit status 1
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">During</span><span style="color:#e8e8d3;"> handling of the above exception, another exception occurred:
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">Traceback</span><span style="color:#e8e8d3;"> (most recent call last):
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/bin/g-ir-scanner.wrapped</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 106, in &lt;module&gt;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">sys.exit</span><span style="color:#e8e8d3;">(scanner_main(sys.argv))
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/gobject-introspection/giscanner/scannermain.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 555, in scanner_main
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">ss</span><span style="color:#e8e8d3;"> = create_source_scanner(options, args)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/gobject-introspection/giscanner/scannermain.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 459, in create_source_scanner
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">ss.parse_files</span><span style="color:#e8e8d3;">(filenames)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/gobject-introspection/giscanner/sourcescanner.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 262, in parse_files
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">self._parse</span><span style="color:#e8e8d3;">(headers)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/gobject-introspection/giscanner/sourcescanner.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 307, in _parse
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">self._cpp_options</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/gobject-introspection/giscanner/ccompiler.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 211, in preprocess
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">extra_postargs</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">extra_postargs</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/usr/lib/python3.6/distutils/unixccompiler.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 109, in preprocess
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">raise</span><span style="color:#e8e8d3;"> CompileError(msg)
+</span><span style="color:#ffb964;">distutils.errors.CompileError:</span><span style="color:#e8e8d3;"> command </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">aarch64-linux-gnu-cpp</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> failed with exit status 1
+</span><span style="color:#ffb964;">ninja:</span><span style="color:#e8e8d3;"> build stopped: subcommand failed.
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">libgusb-0.3.0_4:</span><span style="color:#e8e8d3;"> do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">${make_cmd} -C ${meson_builddir} ${makejobs} ${make_build_args} ${make_build_target}</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> do_build() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/build-style/meson.sh:125
+</span></pre>
+<p>The cause is known, <code>-DGUSB_COMPILATION</code> is lost somewhere along the way.
+Causing the header to <code>#error</code> out.</p>
+<h3 id="musl">musl</h3>
+<p><a href="https://www.musl-libc.org/">musl</a> is very important to <a href="https://voidlinux.org">Void Linux</a>
+so it is very nice to have gir be cross compilable to it.</p>
+<p>But there are some problems to be debugged and corrected:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64-musl pkg gtk+3
+</span><span style="color:#ffb964;">FAILED:</span><span style="color:#e8e8d3;"> gdk-pixbuf/GdkPixbuf-2.0.gir
+</span><span style="color:#ffb964;">/usr/aarch64-linux-musl/usr/bin/g-ir-scanner -pthread -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/include/gobject-introspection-1.0</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/include/glib-2.0</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/lib/glib-2.0/include</span><span style="color:#ffb964;"> --no-libtool --namespace</span><span style="color:#e8e8d3;">=GdkPixbuf</span><span style="color:#ffb964;"> --nsversion</span><span style="color:#e8e8d3;">=2.0</span><span style="color:#ffb964;"> --warn-all --output</span><span style="color:#e8e8d3;"> gdk-pixbuf/GdkPixbuf-2.0.gir</span><span style="color:#ffb964;"> --c-include</span><span style="color:#e8e8d3;">=gdk-pixbuf/gdk-pixbuf.h</span><span style="color:#ffb964;"> --quiet -DGDK_PIXBUF_COMPILATION -I</span><span style="color:#e8e8d3;">/builddir/gdk-pixbuf-2.38.0/gdk-pixbuf</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/builddir/gdk-pixbuf-2.38.0/build/gdk-pixbuf</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">./.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">./gdk-pixbuf/pixops</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../gdk-pixbuf/pixops</span><span style="color:#ffb964;"> --filelist</span><span style="color:#e8e8d3;">=/builddir/gdk-pixbuf-2.38.0/build/gdk-pixbuf/f4c7bd6@@gdk_pixbuf-2.0@sha/GdkPixbuf_2.0_gir_filelist</span><span style="color:#ffb964;"> --include</span><span style="color:#e8e8d3;">=GModule-2.0</span><span style="color:#ffb964;"> --include</span><span style="color:#e8e8d3;">=Gio-2.0</span><span style="color:#ffb964;"> --symbol-prefix</span><span style="color:#e8e8d3;">=gdk</span><span style="color:#ffb964;"> --identifier-prefix</span><span style="color:#e8e8d3;">=Gdk</span><span style="color:#ffb964;"> --pkg-export</span><span style="color:#e8e8d3;">=gdk-pixbuf-2.0</span><span style="color:#ffb964;"> --cflags-begin -I</span><span style="color:#e8e8d3;">./.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../.</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">./gdk-pixbuf/pixops</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">../gdk-pixbuf/pixops</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/include/glib-2.0</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/lib/glib-2.0/include</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/include/libmount</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/include/blkid</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/include/uuid</span><span style="color:#ffb964;"> -D_FORTIFY_SOURCE</span><span style="color:#e8e8d3;">=2</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/include</span><span style="color:#ffb964;"> --cflags-end --library</span><span style="color:#e8e8d3;"> gdk_pixbuf-2.0</span><span style="color:#ffb964;"> -L</span><span style="color:#e8e8d3;">/builddir/gdk-pixbuf-2.38.0/build/gdk-pixbuf</span><span style="color:#ffb964;"> -L</span><span style="color:#e8e8d3;">/usr/aarch64-linux-musl/usr/lib</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=m</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=gobject-2.0</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=glib-2.0</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=gmodule-2.0</span><span style="color:#ffb964;"> --extra-library</span><span style="color:#e8e8d3;">=gio-2.0
+</span><span style="color:#ffb964;">Error</span><span style="color:#e8e8d3;"> relocating /usr/aarch64-linux-musl/usr/lib/libz.so.1: unsupported relocation type 1026
+</span><span style="color:#ffb964;">Error</span><span style="color:#e8e8d3;"> relocating /usr/aarch64-linux-musl/usr/lib/libz.so.1: unsupported relocation type 1027
+</span><span style="color:#ffb964;">Error</span><span style="color:#e8e8d3;"> relocating /usr/aarch64-linux-musl/usr/lib/libz.so.1: unsupported relocation type 1025
+</span><span style="color:#ffb964;">collect2:</span><span style="color:#e8e8d3;"> error: ld returned 127 exit status
+</span><span style="color:#ffb964;">linking</span><span style="color:#e8e8d3;"> of temporary binary failed: Command </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">[</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">aarch64-linux-musl-gcc</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-o</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">/builddir/gdk-pixbuf-2.38.0/build/tmp-introspectxv6j_hsz/GdkPixbuf-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-fstack-clash-protection</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-D_FORTIFY_SOURCE=2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-O2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-pipe</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-march=armv8-a</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-musl/usr/include</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">/builddir/gdk-pixbuf-2.38.0/build/tmp-introspectxv6j_hsz/GdkPixbuf-2.0.o</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-L.</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,-rpath,.</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,--no-as-needed</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-L/builddir/gdk-pixbuf-2.38.0/build/gdk-pixbuf</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,-rpath,/builddir/gdk-pixbuf-2.38.0/build/gdk-pixbuf</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-L/usr/aarch64-linux-musl/usr/lib</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,-rpath,/usr/aarch64-linux-musl/usr/lib</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lgdk_pixbuf-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lm</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lgobject-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lglib-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lgmodule-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lgio-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lgio-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lgobject-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,--export-dynamic</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lgmodule-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-pthread</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-lglib-2.0</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,-z,relro</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,-z,now</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-Wl,--as-needed</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">-L/usr/aarch64-linux-musl/usr/lib</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">]</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> returned non-zero exit status 1.
+</span><span style="color:#ffb964;">ninja:</span><span style="color:#e8e8d3;"> build stopped: subcommand failed.
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">gdk-pixbuf-2.38.0_2:</span><span style="color:#e8e8d3;"> do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">${make_cmd} -C ${meson_builddir} ${makejobs} ${make_build_args} ${make_build_target}</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> do_build() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/build-style/meson.sh:125
+</span></pre>
+<p>O-oh...</p>
+<h2 id="closing-it-out">Closing it out</h2>
+<p>As this post is published on my site i expect the
+<a href="https://github.com/void-linux/void-packages/pull/7888">pull request</a> enabling
+gir cross to be merged, and i will probably be dealing with the inevitable
+fallout of any big change.</p>
+<p>This has been a very nice journey and there is a few groups and people i would
+like to thank:</p>
+<h3 id="yocto-project-and-buildroot">Yocto Project and Buildroot</h3>
+<blockquote>
+<p>2 Amazing projects dealing with Embedded Linux</p>
+</blockquote>
+<p>Without their patches for the <code>gobject-introspection</code> package, wrappers this
+project would have taken probably 3 or 4 times as much time as it took.</p>
+<p>Their <code>prelink</code> package (which is in Void as <code>prelink-cross</code>) is vital for
+all this to work.</p>
+<h3 id="enno-gottox-boland">Enno "<a href="https://github.com/Gottox">Gottox</a>" Boland</h3>
+<blockquote>
+<p>Core, long-time Void Linux developer</p>
+</blockquote>
+<p>While <code>musl</code> cross doesn't work at the moment, a first step need to be made
+and Gottox's work on making <code>prelink-cross</code> compile on <code>musl</code> is much
+appreciated.</p>
+<h3 id="rasmus-cogitri-thomsen">Rasmus "<a href="https://github.com/Cogitri">Cogitri</a>" Thomsen</h3>
+<blockquote>
+<p>Core Exherbo developer, Void Linux contributor</p>
+</blockquote>
+<p>Gracefully lent his <code>VPS</code> for building packages and ran commands i requested
+on his native <code>aarch64</code> machine to test that it works.</p>
+<blockquote>
+<p>If you feel you have helped me along the way with suggestions
+feel free to contact me on GitHub and i will include you here.</p>
+</blockquote>
+<h2 id="final-thoughts">Final Thoughts</h2>
+<p>I'm satisfied with the current state, all arches that use <code>glibc</code>
+now have gir and <code>musl</code> is on the works.</p>
+<p>GG.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

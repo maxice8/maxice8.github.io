@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/21-makefiles/">When writing makefiles goes wrong</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-13
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>Recently <a href="https://sourceforge.net/projects/giflib/">giflib</a> made a new update,
+after a long time, from 5.1.4 to 5.1.5, it didn't have any impressive at first,
+fixing a few bugs then i read this.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">Build Fixes
+</span><span style="color:#e8e8d3;">-----------
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">The horrible old autoconf build system has been removed with extreme prejudice.
+</span><span style="color:#e8e8d3;">You now build this simply by running &quot;make&quot; from the top-level directory.
+</span></pre>
+<p>I thought to myself, oh nice, it makes stuff simpler, less packages for us to install
+to build the package means reduced build times and since we just build and install we
+don't need incremental compiling and all that other nice stuff.</p>
+<p>Wrong!</p>
+<p>My other side went, it is extremely easy to fuck up Makefiles though, let's hope they
+did their homework.</p>
+<p>They didn't.</p>
+<p><a name="continue-reading"></a></p>
+<p>Here is the <a href="../21-makefiles/#final-recap">TLDR</a> for those that do not have time or
+just don't want to take the journey with us.</p>
+<h2 id="updating">Updating</h2>
+<p>Let's start by updating it, seems simple enough at first, we change the build_style
+from gnu-configure to gnu-makefile, we update version, reset revision to 1 and update
+the checksum.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/giflib/template b/srcpkgs/giflib/template
+</span><span style="color:#e8e8d3;">index d11669ebaf..9369f96b66 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/giflib/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/giflib/template
+</span><span style="font-style:italic;color:#888888;">@@ -1,15 +1,15 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Template file for &#39;giflib&#39;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=giflib
+</span><span style="color:#a1000d;">-version=5.1.4
+</span><span style="color:#558f1f;">+version=5.1.5
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">revision=1
+</span><span style="color:#a1000d;">-build_style=gnu-configure
+</span><span style="color:#558f1f;">+build_style=gnu-makefile
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">hostmakedepends=&quot;xmlto&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">short_desc=&quot;Library to handle, display and manipulate GIF images&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">maintainer=&quot;Juan RP &lt;xtraeme@voidlinux.org&gt;&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">homepage=&quot;http://sourceforge.net/projects/giflib/&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">license=&quot;MIT&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">distfiles=&quot;${SOURCEFORGE_SITE}/${pkgname}/${pkgname}-${version}.tar.gz&quot;
+</span><span style="color:#a1000d;">-checksum=34a7377ba834397db019e8eb122e551a49c98f49df75ec3fcc92b9a794a4f6d1
+</span><span style="color:#558f1f;">+checksum=b105046665089149fc16e20a59f54e70ee829b61168a46881f5037469ff4058f
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">post_install() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vlicense COPYING LICENSE
+</span></pre>
+<p>Looks good enough to me, let's try to build it.</p>
+<h3 id="missing-cflags">Missing CFLAGS</h3>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">/usr/bin/ld: getarg.o: relocation R_X86_64_PC32 against symbol `stderr@@GLIBC_2.2.5&#39; can not be used when making a shared object; recompile with -fPIC
+</span><span style="color:#e8e8d3;">/usr/bin/ld: final link failed: bad value
+</span><span style="color:#e8e8d3;">collect2: error: ld returned 1 exit status
+</span></pre>
+<p>Ah, they forgot to set -fPIC on their CFLAGS when building the shared library.</p>
+<p>No problem, let's add it ourselves.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/giflib/template b/srcpkgs/giflib/template
+</span><span style="color:#e8e8d3;">index d11669ebaf..62712456f8 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/giflib/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/giflib/template
+</span><span style="font-style:italic;color:#888888;">@@ -9,7 +9,9 @@</span><span style="color:#e8e8d3;"> maintainer=&quot;Juan RP &lt;xtraeme@voidlinux.org&gt;&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">homepage=&quot;http://sourceforge.net/projects/giflib/&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">license=&quot;MIT&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">distfiles=&quot;${SOURCEFORGE_SITE}/${pkgname}/${pkgname}-${version}.tar.gz&quot;
+</span><span style="color:#a1000d;">-checksum=34a7377ba834397db019e8eb122e551a49c98f49df75ec3fcc92b9a794a4f6d1
+</span><span style="color:#558f1f;">+checksum=b105046665089149fc16e20a59f54e70ee829b61168a46881f5037469ff4058f
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+CFLAGS=&quot;-fPIC&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">post_install() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vlicense COPYING LICENSE
+</span></pre>
+<p>And let's build it again</p>
+<h3 id="missing-usr-include">Missing usr/include</h3>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">mv: cannot stat &#39;/destdir//giflib-5.1.5/usr/include&#39;: No such file or directory
+</span><span style="color:#e8e8d3;">=&gt; ERROR: giflib-devel-5.1.5_1: pkg_install: &#39;mv ${_destdir}/$files ${_pkgdestdir}/${_targetdir}&#39; exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in _vmove() at common/environment/setup/install.sh:231
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in _noglob_helper() at common/environment/setup/install.sh:12
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in pkg_install() at srcpkgs/giflib-devel/template:24
+</span></pre>
+<p>What ?!, It didn't install the /usr/include headers ?!</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">masterdir/destdir/giflib-devel-5.1.5/
+</span><span style="color:#e8e8d3;">└── usr
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">1 directory, 0 files
+</span></pre>
+<p>Huh ?!, Let's take a look at their makefile.</p>
+<h3 id="missing-destdir">Missing DESTDIR</h3>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Installation/uninstallation
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">install</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">all install-bin install-man
+</span><span style="color:#fad07a;">install-bin</span><span style="color:#e8e8d3;">: </span><span style="color:#ffb964;">$(INSTALLABLE)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">$(INSTALL)</span><span style="color:#e8e8d3;"> -d &quot;</span><span style="color:#ffb964;">$(PREFIX)</span><span style="color:#e8e8d3;">/bin&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">$(INSTALL) $^</span><span style="color:#e8e8d3;"> &quot;</span><span style="color:#ffb964;">$(PREFIX)</span><span style="color:#e8e8d3;">/bin&quot;
+</span><span style="color:#fad07a;">install-man</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">$(INSTALL)</span><span style="color:#e8e8d3;"> -d &quot;</span><span style="color:#ffb964;">$(PREFIX)</span><span style="color:#e8e8d3;">/share/man/man1&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">$(INSTALL)</span><span style="color:#e8e8d3;"> -m 644 doc/*.1 &quot;</span><span style="color:#ffb964;">$(PREFIX)</span><span style="color:#e8e8d3;">/share/man/man1&quot;
+</span><span style="color:#fad07a;">uninstall</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">uninstall-man uninstall-bin
+</span><span style="color:#fad07a;">uninstall-bin</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">cd &quot;</span><span style="color:#ffb964;">$(PREFIX)</span><span style="color:#e8e8d3;">/bin&quot;; rm </span><span style="color:#ffb964;">$(INSTALLABLE)
+</span><span style="color:#fad07a;">uninstall-man</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">cd </span><span style="color:#ffb964;">$(target)</span><span style="color:#e8e8d3;">/share/man/man1/ &amp;&amp; rm -f $(shell cd doc &gt;/dev/null ; echo *.1)&lt;Paste&gt;
+</span></pre>
+<p>They don't even try to install the headers! And they don't respect the DESTDIR variable
+so they install against the host system not against the fakeroot we have!</p>
+<p>Let's just check the giflib-tools package which should contain the binaries.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">masterdir/destdir/giflib-5.1.5/
+</span><span style="color:#e8e8d3;">└── usr
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">└── share
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">└── licenses
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">└── giflib
+</span><span style="color:#e8e8d3;">                </span><span style="color:#e8e8d3;">└── LICENSE
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">4 directories, 1 file
+</span></pre>
+<p>There is nothing, except the license, the license we install manually via <code>vlicense</code> not
+their Makefile!</p>
+<p>Let's correct this, now</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/Makefile b/Makefile
+</span><span style="color:#e8e8d3;">index d197193..ea62148 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- Makefile
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ Makefile
+</span><span style="font-style:italic;color:#888888;">@@ -83,11 +83,11 @@</span><span style="color:#e8e8d3;"> make check: all
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">install: all install-bin install-man
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">install-bin: $(INSTALLABLE)
+</span><span style="color:#a1000d;">-	$(INSTALL) -d &quot;$(PREFIX)/bin&quot;
+</span><span style="color:#a1000d;">-	$(INSTALL) $^ &quot;$(PREFIX)/bin&quot;
+</span><span style="color:#558f1f;">+	$(INSTALL) -d &quot;$(DESTDIR)$(PREFIX)/bin&quot;
+</span><span style="color:#558f1f;">+	$(INSTALL) $^ &quot;$(DESTDIR)$(PREFIX)/bin&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">install-man:
+</span><span style="color:#a1000d;">-	$(INSTALL) -d &quot;$(PREFIX)/share/man/man1&quot;
+</span><span style="color:#a1000d;">-	$(INSTALL) -m 644 doc/*.1 &quot;$(PREFIX)/share/man/man1&quot;
+</span><span style="color:#558f1f;">+	$(INSTALL) -d &quot;$(DESTDIR)$(PREFIX)/share/man/man1&quot;
+</span><span style="color:#558f1f;">+	$(INSTALL) -m 644 doc/*.1 &quot;$(DESTDIR)$(PREFIX)/share/man/man1&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">uninstall: uninstall-man uninstall-bin
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">uninstall-bin:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">cd &quot;$(PREFIX)/bin&quot;; rm $(INSTALLABLE)
+</span></pre>
+<p>And also install the header</p>
+<pre style="background-color:#151515;">
+<span style="font-style:italic;color:#888888;">@@ -14,6 +14,11 @@</span><span style="color:#e8e8d3;"> checksum=b105046665089149fc16e20a59f54e70ee829b61168a46881f5037469ff4058f
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">CFLAGS=&quot;-fPIC&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">post_install() {
+</span><span style="color:#558f1f;">+	# Their new makefile is broken and doesn&#39;t install lots of essential
+</span><span style="color:#558f1f;">+	# components
+</span><span style="color:#558f1f;">+	vmkdir usr/include
+</span><span style="color:#558f1f;">+	vcopy gif_lib.h usr/include
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vlicense COPYING LICENSE
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">
+</span></pre>
+<p>OK, another time to build.</p>
+<h3 id="missing-static-archive">Missing static archive</h3>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">mv: cannot stat &#39;/destdir//giflib-5.1.5/usr/lib/*.a&#39;: No such file or directory
+</span><span style="color:#e8e8d3;">=&gt; ERROR: giflib-devel-5.1.5_1: pkg_install: &#39;mv ${_destdir}/$files ${_pkgdestdir}/${_targetdir}&#39; exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in _vmove() at common/environment/setup/install.sh:231
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in _noglob_helper() at common/environment/setup/install.sh:12
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in pkg_install() at srcpkgs/giflib-devel/template:28
+</span></pre>
+<p>OK, now the static archive is not available, you know what ? We don't need them anyway
+for this specific package, let's just remove it.</p>
+<pre style="background-color:#151515;">
+<span style="font-style:italic;color:#888888;">@@ -22,7 +25,6 @@</span><span style="color:#e8e8d3;"> giflib-devel_package() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">short_desc+=&quot; - development files&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">pkg_install() {
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">vmove usr/include
+</span><span style="color:#a1000d;">-		vmove usr/lib/*.a
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">vmove usr/lib/*.so
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>And another time.</p>
+<h3 id="missing-shared-library">Missing shared library</h3>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">mv: cannot stat &#39;/destdir//giflib-5.1.5/usr/lib/*.so&#39;: No such file or directory
+</span><span style="color:#e8e8d3;">=&gt; ERROR: giflib-devel-5.1.5_1: pkg_install: &#39;mv ${_destdir}/$files ${_pkgdestdir}/${_targetdir}&#39; exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in _vmove() at common/environment/setup/install.sh:231
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in _noglob_helper() at common/environment/setup/install.sh:12
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   in pkg_install() at srcpkgs/giflib-devel/template:28
+</span></pre>
+<p>OK, now the solink the -devel package is missing, for those that don't know
+the solink is a symlink to the library file that has no soversion in it.</p>
+<p>As an example:</p>
+<ul>
+<li>libfoo.so.1.0.0 (library file)</li>
+<li>libfoo.so.1 (soname symlink)</li>
+<li>libfoo.so (solink)</li>
+</ul>
+<p>Packages when linked, look for the soname symlink, when an ABI breaking change
+is made the soname is bumped, in this case from libfoo.so.1 to libfoo.so.2
+and all packages that depend on libfoo need to be rebuilt to search for the
+correct library.</p>
+<p>The solink is there for the development package and is used when linking.</p>
+<p>Back to giflib, which readers at <code>#xbps</code>, Void Linux's development
+channel know started annoying me.</p>
+<p>Well, let's fix it ourselves, just install it as libgif.so.7.1.0 (value
+taken from their Makefile) and the proper symlinks, should be easy enough.</p>
+<pre style="background-color:#151515;">
+<span style="font-style:italic;color:#888888;">@@ -17,6 +17,11 @@</span><span style="color:#e8e8d3;"> post_install() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vmkdir usr/include
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vcopy gif_lib.h usr/include
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#558f1f;">+	vmkdir usr/lib
+</span><span style="color:#558f1f;">+	vinstall giflib.so 0755 usr/lib libgif.so.7.1.0
+</span><span style="color:#558f1f;">+	ln -rs ${DESTDIR}/usr/lib/libgif.so.7.1.0 ${DESTDIR}/usr/lib/libgif.so.7
+</span><span style="color:#558f1f;">+	ln -rs ${DESTDIR}/usr/lib/libgif.so.7.1.0 ${DESTDIR}/usr/lib/libgif.so
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">vlicense COPYING LICENSE
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>OK, building one more time:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">=&gt; Registering new packages to /host/binpkgs/giflib2
+</span><span style="color:#e8e8d3;">index: added `giflib-5.1.5_1&#39; (x86_64).
+</span><span style="color:#e8e8d3;">index: added `giflib-devel-5.1.5_1&#39; (x86_64).
+</span><span style="color:#e8e8d3;">index: added `giflib-tools-5.1.5_1&#39; (x86_64).
+</span><span style="color:#e8e8d3;">index: 3 packages registered.
+</span></pre>
+<p>Huzzah! It compiled, luckily i use a package that uses giflib so it is good
+to test it.</p>
+<h3 id="missing-soname">Missing SONAME</h3>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;"># xbps-src --repository=hostdir/binpkgs/giflib -u giflib
+</span><span style="color:#e8e8d3;">imlib2-1.5.1_1: broken, unresolvable shlib `libgif.so.7&#39;
+</span><span style="color:#e8e8d3;">Transaction aborted due to unresolved shlibs.
+</span></pre>
+<p>Heh ? It can't find the libgif.so.7 ?!, i'm pretty sure we installed it, let's
+check it again just to be sure</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-query --repository=hostdir/binpkgs/giflib -f giflib
+</span><span style="color:#e8e8d3;">/usr/lib/libgif.so.7.1.0
+</span><span style="color:#e8e8d3;">/usr/share/licenses/giflib/LICENSE
+</span><span style="color:#e8e8d3;">/usr/lib/libgif.so.7 -&gt; /usr/lib/libgif.so.7.1.0
+</span></pre>
+<p>It is there! Why can't it find it ?!, Let's compare the 2 packages with xbps-query
+the one from the repos and the one that we built. Thanks Bash for <code>&lt;()</code> super helpful</p>
+<blockquote>
+<p>diff &lt;(xbps-query -RS giflib) &lt;(xbps-query --repository=hostdir/binpkgs/giflib -S giflib)</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="font-style:italic;color:#888888;">2,4c2,4
+</span><span style="color:#a1000d;">&lt; build-date: 2016-04-02 23:14 UTC
+</span><span style="color:#a1000d;">&lt; filename-sha256: e0c1c6bd50e3a618db99d5c583133c5aae65b905c6c11e44b54980404879b735
+</span><span style="color:#a1000d;">&lt; filename-size: 16KB
+</span><span style="color:#e8e8d3;">---
+</span><span style="color:#558f1f;">&gt; build-date: 2019-02-13 05:55 -02
+</span><span style="color:#558f1f;">&gt; filename-sha256: ea59be29e8801dc02b6deb305440903c072307dc634a0616ce779201ced655ca
+</span><span style="color:#558f1f;">&gt; filename-size: 19KB
+</span><span style="font-style:italic;color:#888888;">6c6
+</span><span style="color:#a1000d;">&lt; installed_size: 39KB
+</span><span style="color:#e8e8d3;">---
+</span><span style="color:#558f1f;">&gt; installed_size: 47KB
+</span><span style="font-style:italic;color:#888888;">8,12c8,10
+</span><span style="color:#a1000d;">&lt; maintainer: Juan RP &lt;xtraeme@voidlinux.eu&gt;
+</span><span style="color:#a1000d;">&lt; pkgver: giflib-5.1.4_1
+</span><span style="color:#a1000d;">&lt; repository: https://alpha.de.repo.voidlinux.org/current
+</span><span style="color:#a1000d;">&lt; shlib-provides:
+</span><span style="color:#a1000d;">&lt; 	libgif.so.7
+</span><span style="color:#e8e8d3;">---
+</span><span style="color:#558f1f;">&gt; maintainer: Juan RP &lt;xtraeme@voidlinux.org&gt;
+</span><span style="color:#558f1f;">&gt; pkgver: giflib-5.1.5_1
+</span><span style="color:#558f1f;">&gt; repository: /home/terran/usr/src/void-packages/hostdir/binpkgs/giflib2
+</span><span style="font-style:italic;color:#888888;">16d13
+</span><span style="color:#a1000d;">&lt; source-revisions: giflib:b54c327
+</span></pre>
+<p>Looking at it, build-date, filename-sha256, filename-size, installed_size,
+maintainer, pkgver and repository all are ok to change, but one thing is missing.</p>
+<p>There is no shlib-provides! No wonder it fails, the soname wasn't registered.</p>
+<h3 id="missing-wl-soname">Missing -Wl,-soname</h3>
+<p>Fine then, let's find out how shlib-provides is made, to do that we need to look
+at another hook from xbps-src <code>hooks/pre-pkg/06-shlib-provides.sh</code></p>
+<p>Let's zoom in at the section that matters.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">    </span><span style="color:#888888;"># real pkg
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">find </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">_destdir</span><span style="color:#e8e8d3;">}</span><span style="color:#ffb964;"> -type</span><span style="color:#e8e8d3;"> f</span><span style="color:#ffb964;"> -name </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">*.so*</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">| </span><span style="color:#8fbfdc;">while </span><span style="color:#e8e8d3;">read f; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">_fname</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">f##</span><span style="color:#99ad6a;">*/}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">file -bi </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">f</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">application/x-sharedlib*|application/x-pie-executable*</span><span style="color:#8fbfdc;">)
+</span><span style="color:#e8e8d3;">            </span><span style="color:#888888;"># shared library
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">_soname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">${OBJDUMP} -p </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">f</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">|</span><span style="color:#ffb964;">grep</span><span style="color:#99ad6a;"> SONAME|</span><span style="color:#ffb964;">awk </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">{print $2}</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">)
+</span><span style="color:#e8e8d3;">            </span><span style="color:#888888;"># Register all versioned sonames, and
+</span><span style="color:#e8e8d3;">            </span><span style="color:#888888;"># unversioned sonames only when in libdir.
+</span><span style="color:#e8e8d3;">            </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[[ ${</span><span style="color:#ffb964;">_soname</span><span style="color:#e8e8d3;">} =~ ${</span><span style="color:#ffb964;">_versioned_pattern</span><span style="color:#e8e8d3;">} ]] ||
+</span><span style="color:#e8e8d3;">               </span><span style="color:#e8e8d3;">[[ ${</span><span style="color:#ffb964;">_soname</span><span style="color:#e8e8d3;">} =~ ${</span><span style="color:#ffb964;">_pattern</span><span style="color:#e8e8d3;">} &amp;&amp;
+</span><span style="color:#e8e8d3;">                </span><span style="color:#e8e8d3;">( </span><span style="color:#ffb964;">-e </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">_destdir</span><span style="color:#e8e8d3;">}/usr/lib/${</span><span style="color:#ffb964;">_fname</span><span style="color:#e8e8d3;">} ||
+</span><span style="color:#e8e8d3;">                  </span><span style="color:#ffb964;">-e </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">_destdir</span><span style="color:#e8e8d3;">}/usr/lib32/${</span><span style="color:#ffb964;">_fname</span><span style="color:#e8e8d3;">} ) ]]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">                </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">_soname</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&gt;&gt; ${</span><span style="color:#ffb964;">_tmpfile</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">                </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">   SONAME ${</span><span style="color:#ffb964;">_soname</span><span style="color:#99ad6a;">} from ${</span><span style="color:#ffb964;">f##</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">_destdir</span><span style="color:#99ad6a;">}}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">esac
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span></pre>
+<p>OK let's check a few things, let's use file -bi to see if libgif.so.7.1.0 matches
+the case. Using xbps-src install giflib to install it to masterdir/destdir for our
+testing.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ file -bi masterdir/destdir/giflib-5.1.5/usr/lib/libgif.so.7.1.0
+</span><span style="color:#e8e8d3;">application/x-pie-executable; charset=binary
+</span></pre>
+<p>OK, it matches now the next thing, it uses objdump -p and greps for the SONAME field</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ objdump -p masterdir/destdir/giflib-5.1.5/usr/lib/libgif.so.7.1.0 | grep SONAME
+</span><span style="color:#e8e8d3;">
+</span></pre>
+<p>Nothing ?!, just to be sure we will check if that field really matters against another
+random library on the system that is present, libnotmuch.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ objdump -p /usr/lib/libnotmuch.so.5.2.0 | grep SONAME
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">SONAME               libnotmuch.so.5
+</span></pre>
+<p>And the shlib-provides ?</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-query -RS libnotmuch -p shlib-provides
+</span><span style="color:#e8e8d3;">libnotmuch.so.5
+</span></pre>
+<p>Alright, we are missing the SONAME field, but how do we get it ? According
+to <a href="http://man7.org/conf/lca2006/shared_libraries/slide4b.html">this</a> we need
+to pass -Wl,-soname,libgif.so.7 to the linker flags of the library.</p>
+<p>Before we do that let's check how giflib creates the shared library, back to
+their makefile.</p>
+<pre style="background-color:#151515;">
+<span style="color:#fad07a;">giflib.so</span><span style="color:#e8e8d3;">: </span><span style="color:#ffb964;">$(OBJECTS) $(HEADERS)
+</span><span style="color:#e8e8d3;">     </span><span style="color:#ffb964;">$(CC) $(CFLAGS)</span><span style="color:#e8e8d3;"> -shared </span><span style="color:#ffb964;">$(OFLAGS)</span><span style="color:#e8e8d3;"> -o giflib.so </span><span style="color:#ffb964;">$(OBJECTS)
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">ln -sf giflib.so giflib.so.</span><span style="color:#ffb964;">$(LIBMAJOR)</span><span style="color:#e8e8d3;">.</span><span style="color:#ffb964;">$(LIBMINOR)</span><span style="color:#e8e8d3;">.</span><span style="color:#ffb964;">$(LIBPOINT)
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">ln -sf giflib.so giflib.so.</span><span style="color:#ffb964;">$(LIBMAJOR)
+</span></pre>
+<p>Fancy, no LDFLAGS but they do present a OFLAGS for us, let's patch it in.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/Makefile b/Makefile
+</span><span style="color:#e8e8d3;">index ea62148..43408a9 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- Makefile
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ Makefile
+</span><span style="font-style:italic;color:#888888;">@@ -62,6 +62,8 @@</span><span style="color:#e8e8d3;"> all: giflib.so giflib.a $(UTILS)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">$(UTILS):: giflib.a
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#558f1f;">+override OFLAGS += -Wl,-soname,libgif.so.$(LIBMAJOR)
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">giflib.so: $(OBJECTS) $(HEADERS)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">$(CC) $(CFLAGS) -shared $(OFLAGS) -o giflib.so $(OBJECTS)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">ln -sf giflib.so giflib.so.$(LIBMAJOR).$(LIBMINOR).$(LIBPOINT)
+</span><span style="color:#e8e8d3;">
+</span></pre>
+<p>Building it again, let's keep a close eye for that specific hook and check
+our shlib-provides and check for the soname.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">=&gt; giflib-5.1.5_1: running pre-pkg hook: 06-shlib-provides ...
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">SONAME libgif.so.7 from /usr/lib/libgif.so.7.1.0
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-src --repository=hostdir/binpkgs/giflib -S giflib -p shlib-provides
+</span><span style="color:#e8e8d3;">libgif.so.7
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ objdump -p masterdir/destdir/giflib-5.1.5/usr/lib/libgif.so.7.1.0 | grep SONAME
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">SONAME               libgif.so.7
+</span></pre><h3 id="checking-the-result">Checking the result</h3>
+<p>Seems to be all good. Now to install it again.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;"># xbps-install --repository=hostdir/binpkgs/giflib -u giflib
+</span><span style="color:#e8e8d3;">Do you want to continue? [Y/n] 1 package will be updated:
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">giflib (5.1.4_1 -&gt; 5.1.5_1) 
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">Size required on disk:         8696B
+</span><span style="color:#e8e8d3;">Space available on disk:       183GB
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">Do you want to continue? [Y/n] y
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">[*] Downloading binary packages
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">[*] Verifying package integrity
+</span><span style="color:#e8e8d3;">giflib-5.1.5_1: verifying SHA256 hash...
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">[*] Running transaction tasks
+</span><span style="color:#e8e8d3;">giflib-5.1.4_1: updating to 5.1.5_1 ...
+</span><span style="color:#e8e8d3;">giflib-5.1.5_1: unpacking ...
+</span><span style="color:#e8e8d3;">giflib-5.1.5_1: removed obsolete entry: ./usr/lib/libgif.so.7.0.0
+</span><span style="color:#e8e8d3;">[1A[K
+</span><span style="color:#e8e8d3;">[*] Configuring unpacked packages
+</span><span style="color:#e8e8d3;">giflib-5.1.5_1: configuring ...
+</span><span style="color:#e8e8d3;">giflib-5.1.5_1: updated successfully.
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">0 downloaded, 0 installed, 1 updated, 0 configured, 0 removed.
+</span></pre>
+<p>Mission complete.</p>
+<h2 id="final-recap">Final recap</h2>
+<p>Let's recap and make a TLDR for people that do not have the time to
+take this journey with us.</p>
+<p>What giflib upstream did:</p>
+<ul>
+<li>Changed their build system from gnu-configure to gnu-makefile</li>
+</ul>
+<p>What went wrong:</p>
+<ul>
+<li>Didn't respect DESTDIR when installing stuff
+<ul>
+<li>Makes it harder for distros, since they install to a fakeroot and pack it up</li>
+</ul>
+</li>
+<li>Didn't set -fPIC when compiling the shared library
+<ul>
+<li>Caused compilation failure when compiling the shared library</li>
+</ul>
+</li>
+<li>Didn't install development headers
+<ul>
+<li>Required for developing against giflib</li>
+</ul>
+</li>
+<li>Didn't install static archive
+<ul>
+<li>Required for building static pacakges that use giflib</li>
+</ul>
+</li>
+<li>Didn't install shared library
+<ul>
+<li>Required for packages that link against giflib like emacs</li>
+</ul>
+</li>
+<li>Didn't set -Wl,-soname when building the shared library
+<ul>
+<li>Prevents the system linker from working it all out and breaks xbps</li>
+</ul>
+</li>
+</ul>
+<p>Basically everything that could have gone wrong went wrong.</p>
+<h3 id="promoting-meson">Promoting Meson</h3>
+<p>This is where i <del>shill hard</del> promote my favorite build system,
+<a href="https://mesonbuild.com/">meson</a> where it is made harder to mess up
+up like it was done with giflib, unlike Makefiles where messing up
+is the natural order and people are most of the time do wrong a lot
+before they get it right once.</p>
+<h3 id="upstreaming">Upstreaming</h3>
+<p>maxice8 are you going to upstream it ?</p>
+<p>No, they are behind sourceforge, if they were on Github/Gitlab or even a
+self hosted instance of gitlab or another cooperative git interface i would
+do it eagerly.</p>
+<p>So yeah feel free to upstream all that stuff if you feel like it.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/20-cargo-annoyance/">Updating libgit2 and cargo annoyance</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-12
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>Recently <a href="https://libgit2.org/">libgit2</a> released version 0.28 which had
+a few changes to the API, most prominently the change of <code>giterr</code> functions
+to <code>git_error</code> and the rename of <code>git_buf_free</code> to <code>git_buf_dispose</code>.</p>
+<p>This isn't much of a problem, those changes were wonderfully explained
+in the
+<a href="https://raw.githubusercontent.com/libgit2/libgit2/master/docs/changelog.md">release notes</a>.</p>
+<p>So i sprang into action, all of it sounded easy, turns out thanks to a
+specific fearlessly concurrent language and its ecosystem, it wasn't.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="updating-libgit2">Updating libgit2</h2>
+<p>But first things first, let's update libgit2, should be easy enough right.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">commit ce23069f09af4075c458f5fd680e075218ad8131
+</span><span style="color:#e8e8d3;">Author: maxice8 &lt;thinkabit.ukim@gmail.com&gt;
+</span><span style="color:#e8e8d3;">Date:   Mon Feb 11 22:12:40 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libgit2: update to 0.28.0.
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">diff --git a/common/shlibs b/common/shlibs
+</span><span style="color:#e8e8d3;">index 01135ae5a3..0a46502041 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/common/shlibs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/common/shlibs
+</span><span style="font-style:italic;color:#888888;">@@ -1286,7 +1286,7 @@</span><span style="color:#e8e8d3;"> libunwind-aarch64.so.8 libunwind-1.2rc1_1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libunwind-ppc32.so.8 libunwind-1.2.1_1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libunwind-ppc64.so.8 libunwind-1.2.1_1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libmicrohttpd.so.12 libmicrohttpd-0.9.48_1
+</span><span style="color:#a1000d;">-libgit2.so.27 libgit2-0.27.3_1
+</span><span style="color:#558f1f;">+libgit2.so.28 libgit2-0.28.0_1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libgit2-glib-1.0.so.0 libgit2-glib-0.23.4_1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libagg.so.2 agg-2.5_1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libzzip-0.so.13 zziplib-0.13.62_1
+</span><span style="color:#e8e8d3;">diff --git a/srcpkgs/libgit2/template b/srcpkgs/libgit2/template
+</span><span style="color:#e8e8d3;">index c12d2a0e20..5de00bef29 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/libgit2/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/libgit2/template
+</span><span style="font-style:italic;color:#888888;">@@ -1,6 +1,6 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Template file for &#39;libgit2&#39;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=libgit2
+</span><span style="color:#a1000d;">-version=0.27.8
+</span><span style="color:#558f1f;">+version=0.28.0
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">revision=1
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=cmake
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;-DTHREADSAFE=ON&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -11,7 +11,7 @@</span><span style="color:#e8e8d3;"> maintainer=&quot;Juan RP &lt;xtraeme@voidlinux.org&gt;&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">license=&quot;GPL-2.0-or-later WITH GCC-exception-2.0&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">homepage=&quot;https://libgit2.org&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">distfiles=&quot;https://github.com/libgit2/libgit2/archive/v${version}.tar.gz&quot;
+</span><span style="color:#a1000d;">-checksum=8313873d49dc01e8b880ec334d7430ae67496a89aaa8c6e7bbd3affb47a00c76
+</span><span style="color:#558f1f;">+checksum=9d60d64dc77085e8e530e5c66314057eafe0c06e4a7a61149a70ff3e0688f284
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">case &quot;$XBPS_TARGET_MACHINE&quot; in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl)
+</span></pre>
+<p>Literally just that, we update to the new version and now the fun starts.
+Since we updated the entry in common/shlibs that means it has a new soname
+which requires us to rebuild every package that depends on libgit2.so.27 to
+now depend on libgit2.so.28</p>
+<h2 id="updating-dependencies">Updating dependencies</h2>
+<p>To get those packages we grab another tool from the excelent <code>xtools</code> toolbox
+the <code>xrevshlib</code> script. Which parses the shlib-provides and shlib-requires
+fields from packages to get which packages shlib-requires libgit2.so.28.</p>
+<p>Let's put it into action.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xrevshlib libgit2
+</span><span style="color:#ffb964;">Fritzing
+</span><span style="color:#ffb964;">amp
+</span><span style="color:#ffb964;">calligra
+</span><span style="color:#ffb964;">cargo
+</span><span style="color:#ffb964;">cargo-outdated
+</span><span style="color:#ffb964;">geany-plugins
+</span><span style="color:#ffb964;">git-series
+</span><span style="color:#ffb964;">grv
+</span><span style="color:#ffb964;">juCi++
+</span><span style="color:#ffb964;">ktexteditor
+</span><span style="color:#ffb964;">libgit2-glib
+</span><span style="color:#ffb964;">slcp
+</span><span style="color:#ffb964;">stagit
+</span></pre>
+<p>Hey that was easier than i thought, those are all the packages that we need
+to revbump, Let's bring out another tool <code>xrevbump</code> to help us.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xrevshlib libgit2 \
+</span><span style="color:#e8e8d3;">| </span><span style="color:#ffb964;">xargs</span><span style="color:#e8e8d3;"> env IGNORE_XLINT=1 NO_FORMALIZE=1 xrevbump </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">rebuild against libgit2.so.28
+</span><span style="color:#99ad6a;">
+</span><span style="color:#99ad6a;">[ci skip]</span><span style="color:#556633;">&#39;
+</span></pre>
+<p>This will revbump every package with the commit meessage:</p>
+<blockquote>
+<p>rebuild against libgit2.so.28</p>
+<p>[ci skip]</p>
+</blockquote>
+<p>The <code>[ci skip]</code> is a Travis CI construct that allows us to skip Travis CI trying
+to compile this package, since we are revbumping quite a few packages we will
+break the 50 minutes limit we have on it.</p>
+<p>The IGNORE_XLINT and NO_FORMALIZE are specific variables to my workflow, if you
+wish to know more about them let me know, just be aware you don't actually need
+them when doing this yourself.</p>
+<p>Let's take a look at the git log of changes:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">7bfe97313e stagit: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">219e4b5954 slcp: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">a52dab1a50 libgit2-glib: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">fad5b11174 ktexteditor: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">8f462f2d16 juCi++: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">d6b6ebb2da grv: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">1fc58c17e1 git-series: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">05502f194b geany-plugins: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">82b874208a cargo-outdated: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">c6964e1eb7 cargo: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">ad513ee86c calligra: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">6c09605ffa amp: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">3bdfbb90bb Fritzing: rebuild against libgit2.so.28
+</span><span style="color:#e8e8d3;">ce23069f09 libgit2: update to 0.28.0.
+</span></pre>
+<p>Seems fine to me, let's start building them.</p>
+<h3 id="stagit">stagit</h3>
+<p>Seems the simplest:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg stagit
+</span><span style="color:#e8e8d3;">=&gt; stagit-0.9_2: </span><span style="color:#ffb964;">running</span><span style="color:#e8e8d3;"> do_build ...
+</span><span style="color:#ffb964;">cc -c -fstack-clash-protection -D_FORTIFY_SOURCE</span><span style="color:#e8e8d3;">=2</span><span style="color:#ffb964;"> -mtune</span><span style="color:#e8e8d3;">=generic</span><span style="color:#ffb964;"> -O2 -pipe    -D_XOPEN_SOURCE</span><span style="color:#e8e8d3;">=700</span><span style="color:#ffb964;"> -D_DEFAULT_SOURCE -D_BSD_SOURCE -I</span><span style="color:#e8e8d3;">/usr/local/include</span><span style="color:#ffb964;"> -o</span><span style="color:#e8e8d3;"> stagit.o</span><span style="color:#ffb964;"> -c</span><span style="color:#e8e8d3;"> stagit.c
+</span><span style="color:#ffb964;">cc -c -fstack-clash-protection -D_FORTIFY_SOURCE</span><span style="color:#e8e8d3;">=2</span><span style="color:#ffb964;"> -mtune</span><span style="color:#e8e8d3;">=generic</span><span style="color:#ffb964;"> -O2 -pipe    -D_XOPEN_SOURCE</span><span style="color:#e8e8d3;">=700</span><span style="color:#ffb964;"> -D_DEFAULT_SOURCE -D_BSD_SOURCE -I</span><span style="color:#e8e8d3;">/usr/local/include</span><span style="color:#ffb964;"> -o</span><span style="color:#e8e8d3;"> reallocarray.o</span><span style="color:#ffb964;"> -c</span><span style="color:#e8e8d3;"> reallocarray.c
+</span><span style="color:#ffb964;">cc -c -fstack-clash-protection -D_FORTIFY_SOURCE</span><span style="color:#e8e8d3;">=2</span><span style="color:#ffb964;"> -mtune</span><span style="color:#e8e8d3;">=generic</span><span style="color:#ffb964;"> -O2 -pipe    -D_XOPEN_SOURCE</span><span style="color:#e8e8d3;">=700</span><span style="color:#ffb964;"> -D_DEFAULT_SOURCE -D_BSD_SOURCE -I</span><span style="color:#e8e8d3;">/usr/local/include</span><span style="color:#ffb964;"> -o</span><span style="color:#e8e8d3;"> strlcat.o</span><span style="color:#ffb964;"> -c</span><span style="color:#e8e8d3;"> strlcat.c
+</span><span style="color:#ffb964;">cc -c -fstack-clash-protection -D_FORTIFY_SOURCE</span><span style="color:#e8e8d3;">=2</span><span style="color:#ffb964;"> -mtune</span><span style="color:#e8e8d3;">=generic</span><span style="color:#ffb964;"> -O2 -pipe    -D_XOPEN_SOURCE</span><span style="color:#e8e8d3;">=700</span><span style="color:#ffb964;"> -D_DEFAULT_SOURCE -D_BSD_SOURCE -I</span><span style="color:#e8e8d3;">/usr/local/include</span><span style="color:#ffb964;"> -o</span><span style="color:#e8e8d3;"> strlcpy.o</span><span style="color:#ffb964;"> -c</span><span style="color:#e8e8d3;"> strlcpy.c
+</span><span style="color:#ffb964;">cc -o</span><span style="color:#e8e8d3;"> stagit stagit.o reallocarray.o strlcat.o strlcpy.o</span><span style="color:#ffb964;"> -Wl</span><span style="color:#e8e8d3;">,-z,relro</span><span style="color:#ffb964;"> -Wl</span><span style="color:#e8e8d3;">,-z,now</span><span style="color:#ffb964;"> -Wl</span><span style="color:#e8e8d3;">,--as-needed</span><span style="color:#ffb964;">    -lgit2
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> stagit.o: in function `</span><span style="color:#ffb964;">main</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">stagit.c:(.text.startup+0x84d): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">collect2:</span><span style="color:#e8e8d3;"> error: ld returned 1 exit status
+</span><span style="color:#ffb964;">make: </span><span style="color:#e8e8d3;">*** </span><span style="color:#8fbfdc;">[</span><span style="color:#e8e8d3;">Makefile:53: stagit</span><span style="color:#8fbfdc;">]</span><span style="color:#e8e8d3;"> Error 1
+</span></pre>
+<p>Oh, no problem, we know that giterr_ functions were renamed to git_error</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/stagit-index.c b/stagit-index.c
+</span><span style="color:#e8e8d3;">index e019793..6b25969 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- stagit-index.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ stagit-index.c
+</span><span style="font-style:italic;color:#888888;">@@ -174,7 +174,7 @@</span><span style="color:#e8e8d3;"> main(int argc, char *argv[])
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">if (git_repository_open_ext(&amp;repo, repodir,
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">GIT_REPOSITORY_OPEN_NO_SEARCH, NULL)) {
+</span><span style="color:#a1000d;">-			e = giterr_last();
+</span><span style="color:#558f1f;">+			e = git_error_last();
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">fprintf(stderr, &quot;%s: %s\n&quot;, argv[0], e-&gt;message);
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">ret = 1;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">continue;
+</span><span style="color:#e8e8d3;">diff --git a/stagit.c b/stagit.c
+</span><span style="color:#e8e8d3;">index 093cdab..25be042 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- stagit.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ stagit.c
+</span><span style="font-style:italic;color:#888888;">@@ -1101,7 +1101,7 @@</span><span style="color:#e8e8d3;"> main(int argc, char *argv[])
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (git_repository_open_ext(&amp;repo, repodir,
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">GIT_REPOSITORY_OPEN_NO_SEARCH, NULL) &lt; 0) {
+</span><span style="color:#a1000d;">-		e = giterr_last();
+</span><span style="color:#558f1f;">+		e = git_error_last();
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">fprintf(stderr, &quot;%s: %s\n&quot;, argv[0], e-&gt;message);
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">return 1;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>And again</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg stagit
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">stagit-0.9_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>Sadly the project uses only Mailing Lists which i particularly don't like, i
+use it (like iwd) but if given a choice i'd rather not.</p>
+<h3 id="slcp">slcp</h3>
+<p>Seems like another small project that can be quickly done:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src 
+</span><span style="color:#ffb964;">CC -o</span><span style="color:#e8e8d3;"> slcp
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> slcp.o: in function `</span><span style="color:#ffb964;">main</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">/builddir/slcp-0.2/slcp.c:109: undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">collect2:</span><span style="color:#e8e8d3;"> error: ld returned 1 exit status
+</span><span style="color:#ffb964;">make: </span><span style="color:#e8e8d3;">*** </span><span style="color:#8fbfdc;">[</span><span style="color:#e8e8d3;">Makefile:29: slcp</span><span style="color:#8fbfdc;">]</span><span style="color:#e8e8d3;"> Error 1
+</span></pre>
+<p>Oh, an error, but thanks to libgit2's changelog we know that git_buf_free
+became git_buf_dispose.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/slcp.c b/slcp.c
+</span><span style="color:#e8e8d3;">index 7f12b08..e93c1fd 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- slcp.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ slcp.c
+</span><span style="font-style:italic;color:#888888;">@@ -106,7 +106,7 @@</span><span style="color:#e8e8d3;"> int main(int argc, char* argv[])
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">git_repo = NULL;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#a1000d;">-	git_buf_free(&amp;tmpgitdb);
+</span><span style="color:#558f1f;">+	git_buf_dispose(&amp;tmpgitdb);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">/* prepare some git information */
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if(git_repo) {
+</span></pre>
+<p>And now ?</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg slcp
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">slcp-0.2_11</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>I filled a <a href="https://github.com/schachmat/slcp/pull/4">pull request</a> upstream
+the fix should be available in the next release.</p>
+<h3 id="fritzing">Fritzing</h3>
+<p>Oh, quite a bigger project but, hey:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg Fritzing
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">Fritzing-0.9.3b_4</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>Haha, first try!</p>
+<h3 id="juci">juCi++</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg juCi++
+</span><span style="color:#ffb964;">[100%]</span><span style="color:#e8e8d3;"> Linking CXX executable juci
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> libjuci_shared.a(git.cc.o): in function `</span><span style="color:#fad07a;">Git::Error::message[abi:cxx11]</span><span style="color:#e8e8d3;">()&#39;:
+</span><span style="color:#e8e8d3;">git.cc:(</span><span style="color:#ffb964;">.text+0x902</span><span style="color:#e8e8d3;">): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: libjuci_shared.a(git.cc.o): in function `Git::Repository::get_root_path(boost::filesystem::path const&amp;)</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">:
+</span><span style="color:#ffb964;">git.cc:</span><span style="color:#e8e8d3;">(.text+0x22d5): undefined reference to `</span><span style="color:#ffb964;">git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">collect2: error: ld returned 1 exit status
+</span><span style="color:#99ad6a;">make[2]: *** [src/CMakeFiles/juci.dir/build.make:258: src/juci] Error 1
+</span><span style="color:#99ad6a;">make[1]: *** [CMakeFiles/Makefile2:223: src/CMakeFiles/juci.dir/all] Error 2
+</span><span style="color:#99ad6a;">make: *** [Makefile:152: all] Error 2
+</span><span style="color:#99ad6a;">=&gt; ERROR: juCi++-1.4.6_4: do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#ffb964;">${make_cmd} </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">makejobs</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_args</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_target</span><span style="color:#e8e8d3;">}</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> exited with 2
+</span><span style="color:#99ad6a;">=&gt; ERROR:   in do_build() at common/build-style/cmake.sh:71
+</span></pre>
+<p>Typical, giterr usage and git_buf_free, the fixes should be easy.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/src/git.cc b/src/git.cc
+</span><span style="color:#e8e8d3;">index 9da2d7b..45e9007 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- src/git.cc
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ src/git.cc
+</span><span style="font-style:italic;color:#888888;">@@ -6,7 +6,7 @@</span><span style="color:#e8e8d3;"> bool Git::initialized = false;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">std::mutex Git::mutex;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">std::string Git::Error::message() noexcept {
+</span><span style="color:#a1000d;">-  const git_error *last_error = giterr_last();
+</span><span style="color:#558f1f;">+  const git_error *last_error = git_error_last();
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">if(last_error == nullptr)
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">return std::string();
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">else
+</span><span style="font-style:italic;color:#888888;">@@ -244,7 +244,7 @@</span><span style="color:#e8e8d3;"> boost::filesystem::path Git::Repository::get_root_path(const boost::filesystem::
+</span><span style="color:#e8e8d3;">       </span><span style="color:#e8e8d3;">throw std::runtime_error(error.message());
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">auto root_path = Git::path(root.ptr, root.size);
+</span><span style="color:#a1000d;">-  git_buf_free(&amp;root);
+</span><span style="color:#558f1f;">+  git_buf_dispose(&amp;root);
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">return root_path;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Ok, with those fixed, what do we do ?</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg juCi++
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">juCi++-1.4.6_4</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>A <a href="https://gitlab.com/cppit/jucipp/merge_requests/394">merge request</a> was
+filled against upstream.</p>
+<p>They asked for wrapping in pre-processor so it works against both pre-0.28
+and the 0.28 API so it is done. The final version can be seen in the
+<a href="https://gitlab.com/cppit/jucipp/merge_requests/394">merge request</a>.</p>
+<h3 id="ktexteditor">ktexteditor</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg ktexteditor
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">ktexteditor-5.55.0_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>Nice, just like Fritzing.</p>
+<h3 id="libgit2-glib">libgit2-glib</h3>
+<p>This one is particularly important as is very used in GNOME.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg libgit2-glib
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans0.ltrans.o: in function `</span><span style="color:#ffb964;">ggit_patch_to_string</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x323b): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans0.ltrans.o: in function `credentials_wrap</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x3da3): undefined reference to `giterr_set_str</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans0.ltrans.o: in function `</span><span style="color:#ffb964;">ggit_message_prettify</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x584a): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans0.ltrans.o: in function `_ggit_error_set</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x6702): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans0.ltrans.o: in function `</span><span style="color:#ffb964;">ggit_repository_get_default_notes_ref</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x75c1): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans0.ltrans.o: in function `ggit_repository_discover_full</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x8ea0): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans1.ltrans.o: in function `</span><span style="color:#ffb964;">ggit_config_find_system</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x3138): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans1.ltrans.o: in function `ggit_config_find_global</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x31a8): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans1.ltrans.o: in function `</span><span style="color:#ffb964;">ggit_diff_format_email</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">&lt;artificial&gt;:(.text+0x5f07): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /tmp/ccR9BQNN.ltrans1.ltrans.o:&lt;artificial&gt;:(.text+0x5f3a): more undefined references to `git_buf_free</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> follow
+</span><span style="color:#99ad6a;">/usr/bin/ld: /tmp/ccR9BQNN.ltrans1.ltrans.o: in function `create_repository_wrapper</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">&lt;artificial&gt;:(</span><span style="color:#ffb964;">.text+0x80c0</span><span style="color:#e8e8d3;">): undefined reference to `</span><span style="color:#ffb964;">giterr_set_str</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: /tmp/ccR9BQNN.ltrans1.ltrans.o: in function `create_remote_wrapper</span><span style="color:#556633;">&#39;</span><span style="color:#ffb964;">:
+</span><span style="color:#e8e8d3;">&lt;artificial&gt;:(</span><span style="color:#ffb964;">.text+0x819f</span><span style="color:#e8e8d3;">): undefined reference to `giterr_set_str</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">collect2: error: ld returned 1 exit status
+</span><span style="color:#99ad6a;">ninja: build stopped: subcommand failed.
+</span><span style="color:#99ad6a;">=&gt; ERROR: libgit2-glib-0.27.7_2: do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">make_cmd</span><span style="color:#e8e8d3;">}</span><span style="color:#ffb964;"> -C </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">meson_builddir</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">makejobs</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_args</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_target</span><span style="color:#e8e8d3;">}</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> exited with 1
+</span><span style="color:#99ad6a;">=&gt; ERROR:   in do_build() at common/build-style/meson.sh:126
+</span></pre>
+<p>Oh wow, lots of errors, but all of them either giterr or git_buf_free. Should
+be trivial by now, let's fix them.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-clone-options.c b/libgit2-glib/ggit-clone-options.c
+</span><span style="color:#e8e8d3;">index 1288a82..9234efc 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-clone-options.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-clone-options.c
+</span><span style="font-style:italic;color:#888888;">@@ -149,7 +149,7 @@</span><span style="color:#e8e8d3;"> create_repository_wrapper (git_repository **out,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (error != NULL)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#a1000d;">-		giterr_set_str (GIT_ERROR, error-&gt;message);
+</span><span style="color:#558f1f;">+		git_error_set_str (GIT_ERROR, error-&gt;message);
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">g_error_free (error);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">if (repository != NULL)
+</span><span style="font-style:italic;color:#888888;">@@ -187,7 +187,7 @@</span><span style="color:#e8e8d3;"> create_remote_wrapper (git_remote     **out,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (error)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#a1000d;">-		giterr_set_str (GIT_ERROR, error-&gt;message);
+</span><span style="color:#558f1f;">+		git_error_set_str (GIT_ERROR, error-&gt;message);
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">g_error_free (error);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">if (remote != NULL)
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-config.c b/libgit2-glib/ggit-config.c
+</span><span style="color:#e8e8d3;">index acdad95..84601de 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-config.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-config.c
+</span><span style="font-style:italic;color:#888888;">@@ -191,7 +191,7 @@</span><span style="color:#e8e8d3;"> ggit_config_find_global (void)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (git_config_find_global (&amp;buf) == GIT_OK)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">path = g_file_new_for_path (buf.ptr);
+</span><span style="color:#a1000d;">-		git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+		git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">return path;
+</span><span style="font-style:italic;color:#888888;">@@ -220,7 +220,7 @@</span><span style="color:#e8e8d3;"> ggit_config_find_system (void)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (git_config_find_system (&amp;buf) == GIT_OK)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">path = g_file_new_for_path (buf.ptr);
+</span><span style="color:#a1000d;">-		git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+		git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">return path;
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-diff.c b/libgit2-glib/ggit-diff.c
+</span><span style="color:#e8e8d3;">index db9361d..1d62328 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-diff.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-diff.c
+</span><span style="font-style:italic;color:#888888;">@@ -786,13 +786,13 @@</span><span style="color:#e8e8d3;"> ggit_diff_format_email (GgitDiff                    *diff,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (ret != GIT_OK)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#a1000d;">-		git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+		git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">_ggit_error_set (error, ret);
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">return NULL;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">retval = g_strndup (buf.ptr, buf.size);
+</span><span style="color:#a1000d;">-	git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+	git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">return retval;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-error.c b/libgit2-glib/ggit-error.c
+</span><span style="color:#e8e8d3;">index 06a21a7..acc1eb2 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-error.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-error.c
+</span><span style="font-style:italic;color:#888888;">@@ -51,7 +51,7 @@</span><span style="color:#e8e8d3;"> _ggit_error_set (GError **error,
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">g_return_if_fail (err &lt; 0);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">/* TODO: add more kind of errors, see git_error_t */
+</span><span style="color:#a1000d;">-	git2_err = giterr_last ();
+</span><span style="color:#558f1f;">+	git2_err = git_error_last ();
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">g_set_error_literal (error, GGIT_ERROR,
+</span><span style="color:#e8e8d3;">                         </span><span style="color:#e8e8d3;">err,
+</span><span style="color:#e8e8d3;">                         </span><span style="color:#e8e8d3;">git2_err == NULL ? &quot;&quot; : git2_err-&gt;message);
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-message.c b/libgit2-glib/ggit-message.c
+</span><span style="color:#e8e8d3;">index 0fa9e8c..5100e52 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-message.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-message.c
+</span><span style="font-style:italic;color:#888888;">@@ -46,7 +46,7 @@</span><span style="color:#e8e8d3;"> ggit_message_prettify (const gchar *message,
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">git_message_prettify (&amp;buf, message, strip_comments, comment_char);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">d = g_strdup (buf.ptr);
+</span><span style="color:#a1000d;">-	git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+	git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">return d;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-patch.c b/libgit2-glib/ggit-patch.c
+</span><span style="color:#e8e8d3;">index ee04e4d..eff9e84 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-patch.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-patch.c
+</span><span style="font-style:italic;color:#888888;">@@ -194,7 +194,7 @@</span><span style="color:#e8e8d3;"> ggit_patch_to_string (GgitPatch  *patch,
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (ret == GIT_OK)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">result = g_strdup (buf.ptr);
+</span><span style="color:#a1000d;">-		git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+		git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">return result;
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-remote-callbacks.c b/libgit2-glib/ggit-remote-callbacks.c
+</span><span style="color:#e8e8d3;">index a4bc130..03064eb 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-remote-callbacks.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-remote-callbacks.c
+</span><span style="font-style:italic;color:#888888;">@@ -160,7 +160,7 @@</span><span style="color:#e8e8d3;"> credentials_wrap (git_cred     **cred,
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">if (error)
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">{
+</span><span style="color:#a1000d;">-				giterr_set_str (GIT_ERROR, error-&gt;message);
+</span><span style="color:#558f1f;">+				git_error_set_str (GIT_ERROR, error-&gt;message);
+</span><span style="color:#e8e8d3;">                </span><span style="color:#e8e8d3;">g_error_free (error);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">                </span><span style="color:#e8e8d3;">return GIT_ERROR;
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-glib/ggit-repository.c b/libgit2-glib/ggit-repository.c
+</span><span style="color:#e8e8d3;">index b9bd2b7..40e06df 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- libgit2-glib/ggit-repository.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ libgit2-glib/ggit-repository.c
+</span><span style="font-style:italic;color:#888888;">@@ -1013,7 +1013,7 @@</span><span style="color:#e8e8d3;"> ggit_repository_discover_full (GFile        *location,
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if (ret == GIT_OK)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">rep = g_file_new_for_path (buf.ptr);
+</span><span style="color:#a1000d;">-		git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+		git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">{
+</span><span style="font-style:italic;color:#888888;">@@ -3680,7 +3680,7 @@</span><span style="color:#e8e8d3;"> ggit_repository_get_default_notes_ref (GgitRepository  *repository,
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">ref = g_strdup (buf.ptr);
+</span><span style="color:#a1000d;">-	git_buf_free (&amp;buf);
+</span><span style="color:#558f1f;">+	git_buf_dispose (&amp;buf);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">return ref;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Quite a long patch.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg libgit2-glib
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">libgit2-glib-0.27.7_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>Nice, a <a href="https://gitlab.gnome.org/GNOME/libgit2-glib/merge_requests/10">merge request</a>
+has been filled against upstream.</p>
+<h3 id="geany-plugins">geany-plugins</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg geany-plugins
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> .libs/git_changebar_la-gcb-plugin.o: in function `</span><span style="color:#ffb964;">clear_cached_blob_contents</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">gcb-plugin.c:(.text+0x76): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> .libs/git_changebar_la-gcb-plugin.o: in function `free_job</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">gcb-plugin.c:(.text+0x170): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> .libs/git_changebar_la-gcb-plugin.o: in function `</span><span style="color:#ffb964;">worker_thread</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">gcb-plugin.c:(.text+0xf7b): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> .libs/git_changebar_la-gcb-plugin.o: in function `plugin_init</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">gcb-plugin.c:(.text+0x2559): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">collect2:</span><span style="color:#e8e8d3;"> error: ld returned 1 exit status
+</span><span style="color:#ffb964;">make[3]: </span><span style="color:#e8e8d3;">*** </span><span style="color:#8fbfdc;">[</span><span style="color:#e8e8d3;">Makefile:609: git-changebar.la</span><span style="color:#8fbfdc;">]</span><span style="color:#e8e8d3;"> Error 1
+</span><span style="color:#ffb964;">make[3]:</span><span style="color:#e8e8d3;"> Leaving directory </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">/builddir/geany-plugins-1.34.0/git-changebar/src</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">make[2]: </span><span style="color:#e8e8d3;">*** </span><span style="color:#8fbfdc;">[</span><span style="color:#e8e8d3;">Makefile:584: all-recursive</span><span style="color:#8fbfdc;">]</span><span style="color:#e8e8d3;"> Error 1
+</span><span style="color:#ffb964;">make[2]:</span><span style="color:#e8e8d3;"> Leaving directory </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">/builddir/geany-plugins-1.34.0/git-changebar</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">make[1]: </span><span style="color:#e8e8d3;">*** </span><span style="color:#8fbfdc;">[</span><span style="color:#e8e8d3;">Makefile:630: all-recursive</span><span style="color:#8fbfdc;">]</span><span style="color:#e8e8d3;"> Error 1
+</span><span style="color:#ffb964;">make[1]:</span><span style="color:#e8e8d3;"> Leaving directory </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">/builddir/geany-plugins-1.34.0</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">make: </span><span style="color:#e8e8d3;">*** </span><span style="color:#8fbfdc;">[</span><span style="color:#e8e8d3;">Makefile:562: all</span><span style="color:#8fbfdc;">]</span><span style="color:#e8e8d3;"> Error 2
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">geany-plugins-1.34.0_2:</span><span style="color:#e8e8d3;"> do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">${make_cmd} ${makejobs} ${make_build_args} ${make_build_target}</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 2
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> do_build() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/build-style/gnu-configure.sh:13
+</span></pre>
+<p>As is pattern, let's fix it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/git-changebar/src/gcb-plugin.c b/git-changebar/src/gcb-plugin.c
+</span><span style="color:#e8e8d3;">index 532a99a..886aa9f 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- git-changebar/src/gcb-plugin.c
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ git-changebar/src/gcb-plugin.c
+</span><span style="font-style:italic;color:#888888;">@@ -238,7 +238,7 @@</span><span style="color:#e8e8d3;"> static void
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">clear_cached_blob_contents (void)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">if (G_blob_contents.ptr) {
+</span><span style="color:#a1000d;">-    git_buf_free (&amp;G_blob_contents);
+</span><span style="color:#558f1f;">+    git_buf_dispose (&amp;G_blob_contents);
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">buf_zero (&amp;G_blob_contents);
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">G_blob_contents_tag = 0;
+</span><span style="font-style:italic;color:#888888;">@@ -293,7 +293,7 @@</span><span style="color:#e8e8d3;"> free_job (gpointer data)
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">/* unlikely, but if we still have the buffer, free it */
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">if (job-&gt;buf.ptr) {
+</span><span style="color:#a1000d;">-    git_buf_free (&amp;job-&gt;buf);
+</span><span style="color:#558f1f;">+    git_buf_dispose (&amp;job-&gt;buf);
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">g_free (job-&gt;path);
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">g_slice_free1 (sizeof *job, job);
+</span><span style="font-style:italic;color:#888888;">@@ -463,7 +463,7 @@</span><span style="color:#e8e8d3;"> worker_thread (gpointer data)
+</span><span style="color:#e8e8d3;">       </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">       </span><span style="color:#e8e8d3;">if (relpath) {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">if (! repo_get_file_blob_contents (repo, relpath, &amp;job-&gt;buf, 0)) {
+</span><span style="color:#a1000d;">-          git_buf_free (&amp;job-&gt;buf);
+</span><span style="color:#558f1f;">+          git_buf_dispose (&amp;job-&gt;buf);
+</span><span style="color:#e8e8d3;">           </span><span style="color:#e8e8d3;">buf_zero (&amp;job-&gt;buf);
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">
+</span><span style="font-style:italic;color:#888888;">@@ -1481,7 +1481,7 @@</span><span style="color:#e8e8d3;"> plugin_init (GeanyData *data)
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">G_queue             = NULL;
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">if (git_libgit2_init () &lt; 0) {
+</span><span style="color:#a1000d;">-    const git_error *err = giterr_last ();
+</span><span style="color:#558f1f;">+    const git_error *err = git_error_last ();
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">g_warning (&quot;Failed to initialize libgit2: %s&quot;, err ? err-&gt;message : &quot;?&quot;);
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">return;
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>With those fixes, let's see if it fixed.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg geany-plugins
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">geany-plugins-1.34.0_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>A <a href="https://github.com/geany/geany-plugins/pull/821">pull request</a> has been
+made. It has been asked to wrap them around so they can be compiled against
+both old and new API, so do it like <a href="../20-cargo-annoyance/#juci">juCi++</a></p>
+<h3 id="calligra">Calligra</h3>
+<p>This is a big one</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg calligra
+</span><span style="color:#e8e8d3;">[ 49%] Linking CXX shared library libcalligrageminigitplugin.so
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> CMakeFiles/calligrageminigitplugin.dir/gitcontroller.cpp.o: in function `</span><span style="color:#fad07a;">GitOpsThread::performPush</span><span style="color:#e8e8d3;">()&#39;:
+</span><span style="color:#e8e8d3;">gitcontroller.cpp:(</span><span style="color:#ffb964;">.text+0x103b</span><span style="color:#e8e8d3;">): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: gitcontroller.cpp:(.text+0x1319): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> gitcontroller.cpp:(.text+0x1523): undefined reference to `</span><span style="color:#ffb964;">giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: gitcontroller.cpp:(.text+0x1669): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> gitcontroller.cpp:(.text+0x16c1): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: gitcontroller.cpp:(.text+0x18ad): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> CMakeFiles/calligrageminigitplugin.dir/gitcontroller.cpp.o:gitcontroller.cpp:(.text+0x19e1): more undefined references to `</span><span style="color:#ffb964;">giterr_last</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> follow
+</span><span style="color:#99ad6a;">/usr/bin/ld: CMakeFiles/calligrageminigitplugin.dir/gitcontroller.cpp.o: in function `GitOpsThread::performPull()</span><span style="color:#556633;">&#39;</span><span style="color:#ffb964;">:
+</span><span style="color:#ffb964;">gitcontroller.cpp:</span><span style="color:#e8e8d3;">(.text+0x24f0): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: gitcontroller.cpp:(.text+0x2709): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> gitcontroller.cpp:(.text+0x29d1): undefined reference to `</span><span style="color:#ffb964;">giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: gitcontroller.cpp:(.text+0x2ab5): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> gitcontroller.cpp:(.text+0x2b91): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">/usr/bin/ld: gitcontroller.cpp:(.text+0x2ca1): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> CMakeFiles/calligrageminigitplugin.dir/gitcontroller.cpp.o:gitcontroller.cpp:(.text+0x2e99): more undefined references to `</span><span style="color:#ffb964;">giterr_last</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> follow
+</span><span style="color:#99ad6a;">collect2: error: ld returned 1 exit status
+</span><span style="color:#99ad6a;">make[2]: *** [gemini/cloud/git/CMakeFiles/calligrageminigitplugin.dir/build.make:165: gemini/cloud/git/libcalligrageminigitplugin.so] Error 1
+</span><span style="color:#99ad6a;">make[1]: *** [CMakeFiles/Makefile2:6387: gemini/cloud/git/CMakeFiles/calligrageminigitplugin.dir/all] Error 2
+</span><span style="color:#99ad6a;">make: *** [Makefile:130: all] Error 2
+</span><span style="color:#99ad6a;">=&gt; ERROR: calligra-3.1.0_17: do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#ffb964;">${make_cmd} </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">makejobs</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_args</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_target</span><span style="color:#e8e8d3;">}</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> exited with 2
+</span><span style="color:#99ad6a;">=&gt; ERROR:   in do_build() at common/build-style/cmake.sh:71
+</span></pre>
+<p>Familiar errors, let fix them:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/gemini/cloud/git/checkoutcreator.cpp b/gemini/cloud/git/checkoutcreator.cpp
+</span><span style="color:#e8e8d3;">index b6004b1..42e038e 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- gemini/cloud/git/checkoutcreator.cpp
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ gemini/cloud/git/checkoutcreator.cpp
+</span><span style="font-style:italic;color:#888888;">@@ -243,7 +243,7 @@</span><span style="color:#e8e8d3;"> QString CheckoutCreator::createClone(QString userVisibleName, QString url, QStri
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_repository *repo = NULL;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">int error = git_clone(&amp;repo, url.toLatin1(), checkoutLocation.toLatin1(), &amp;clone_opts);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return QString(); }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return QString(); }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">return checkoutLocation;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">diff --git a/gemini/cloud/git/gitcontroller.cpp b/gemini/cloud/git/gitcontroller.cpp
+</span><span style="color:#e8e8d3;">index 9bbf058..8fc6984 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- gemini/cloud/git/gitcontroller.cpp
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ gemini/cloud/git/gitcontroller.cpp
+</span><span style="font-style:italic;color:#888888;">@@ -168,75 +168,75 @@</span><span style="color:#e8e8d3;"> void GitOpsThread::performPush()
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_repository* repository;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">int error = git_repository_open(&amp;repository, QString(&quot;%1/.git&quot;).arg(d-&gt;gitDir).toLatin1());
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 1, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 1, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// Get the current index
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_index* index;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_repository_index(&amp;index, repository);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 2, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 2, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// refresh it, and add the file
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_index_read(index, true);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 3, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 3, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#ifdef Q_OS_WIN
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">QString relative = d-&gt;currentFile.mid(d-&gt;gitDir.length() + 9); // That is, 1 for the leading slash, and 8 for the file:///
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#else
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">QString relative = d-&gt;currentFile.mid(d-&gt;gitDir.length() + 8); // That is, 1 for the leading slash, and 8 for the file://
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#endif
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_index_add_bypath(index, relative.toLocal8Bit());
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 4, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 4, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_index_write(index);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 5, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 5, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// convert the index to a tree, so we can use that to create the commit
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_tree* tree;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_oid tree_id;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_index_write_tree(&amp;tree_id, index);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 6, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 6, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_tree_lookup(&amp;tree, repository, &amp;tree_id);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 7, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 7, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// get where we want to parent things to
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_oid obj;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_reference_name_to_id(&amp;obj, repository, &quot;HEAD&quot;);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 8, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 8, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_commit *parent = NULL;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_commit_lookup(&amp;parent, repository, &amp;obj);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 9, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 9, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// create the commit
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_oid oid;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_commit_create_v(&amp;oid, repository, &quot;HEAD&quot;, d-&gt;signature, d-&gt;signature, &quot;UTF-8&quot;, d-&gt;message.toLatin1(), tree, 1, parent);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 10, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 10, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_repository_state_cleanup(repository);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 11, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 11, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// Find the current branch&#39;s upstream remote
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_reference *current_branch;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_repository_head(&amp;current_branch, repository);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 12, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 12, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_reference *upstream;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_branch_upstream(&amp;upstream, current_branch);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 13, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 13, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// Now find the name of the remote
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_buf remote_name = {0,0,0};
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_branch_remote_name(&amp;remote_name, repository, git_reference_name(upstream));
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 14, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 14, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">QString remoteName = QString::fromUtf8(remote_name.ptr);
+</span><span style="color:#a1000d;">-    git_buf_free(&amp;remote_name);
+</span><span style="color:#558f1f;">+    git_buf_dispose(&amp;remote_name);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// And the upstream and local branch names...
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">const char *branch_name;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_branch_name(&amp;branch_name, upstream);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 15, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 15, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">QString upstreamBranchName = QString::fromUtf8(branch_name);
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">upstreamBranchName.remove(0, remoteName.length() + 1);
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_branch_name(&amp;branch_name, current_branch);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 16, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 16, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">QString branchName = QString::fromUtf8(branch_name);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_remote_callbacks remoteCallbacks = GIT_REMOTE_CALLBACKS_INIT;
+</span><span style="font-style:italic;color:#888888;">@@ -245,7 +245,7 @@</span><span style="color:#e8e8d3;"> void GitOpsThread::performPush()
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">remoteCallbacks.credentials = &amp;Private::acquireCredentialsCallback;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_remote* remote;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_remote_lookup(&amp;remote, repository, &quot;origin&quot;);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 17, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 17, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">char tempPath[512] = &quot;refs/heads/&quot;;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">char tempPath2[512] = &quot;refs/heads/&quot;;
+</span><span style="font-style:italic;color:#888888;">@@ -258,11 +258,11 @@</span><span style="color:#e8e8d3;"> void GitOpsThread::performPush()
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_push_options pushOptions;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_push_init_options(&amp;pushOptions, GIT_PUSH_OPTIONS_VERSION);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 18, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 18, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pushOptions.callbacks = remoteCallbacks;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_remote_push(remote, &amp;uploadrefs, &amp;pushOptions);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Push 19, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Push 19, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">emit pushCompleted();
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="font-style:italic;color:#888888;">@@ -271,21 +271,21 @@</span><span style="color:#e8e8d3;"> void GitOpsThread::performPull()
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_repository* repository;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">int error = git_repository_open(&amp;repository, QString(&quot;%1/.git&quot;).arg(d-&gt;gitDir).toLatin1());
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// Find the current branch&#39;s upstream remote
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_reference *current_branch;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_repository_head(&amp;current_branch, repository);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_reference *upstream;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_branch_upstream(&amp;upstream, current_branch);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// Now find the name of the remote
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_buf remote_name = {0,0,0};
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_branch_remote_name(&amp;remote_name, repository, git_reference_name(upstream));
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// Finally set the credentials on it that we&#39;re given, and fetch it
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_remote_callbacks remoteCallbacks = GIT_REMOTE_CALLBACKS_INIT;
+</span><span style="font-style:italic;color:#888888;">@@ -294,15 +294,15 @@</span><span style="color:#e8e8d3;"> void GitOpsThread::performPull()
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">remoteCallbacks.credentials = &amp;Private::acquireCredentialsCallback;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_remote* remote;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_remote_lookup(&amp;remote, repository, remote_name.ptr);
+</span><span style="color:#a1000d;">-    git_buf_free(&amp;remote_name);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    git_buf_dispose(&amp;remote_name);
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_fetch_options fetch_options = GIT_FETCH_OPTIONS_INIT;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">fetch_options.callbacks = remoteCallbacks;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_remote_fetch(remote, NULL, &amp;fetch_options, NULL);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_branch_upstream(&amp;upstream, current_branch);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// Let&#39;s check and see what sort of merge we should be doing...
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_merge_analysis_t analysis;
+</span><span style="font-style:italic;color:#888888;">@@ -480,19 +480,19 @@</span><span style="color:#e8e8d3;"> public:
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">{
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">git_config* configActual;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">int error = git_config_open_default(&amp;configActual);
+</span><span style="color:#a1000d;">-        if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#558f1f;">+        if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">git_config* config;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">error = git_config_snapshot(&amp;config, configActual);
+</span><span style="color:#a1000d;">-        if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#558f1f;">+        if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">const char* name;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">error = git_config_get_string(&amp;name, config, &quot;user.name&quot;);
+</span><span style="color:#a1000d;">-        if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#558f1f;">+        if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">const char* email;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">error = git_config_get_string(&amp;email, config, &quot;user.email&quot;);
+</span><span style="color:#a1000d;">-        if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#558f1f;">+        if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">userName = QString::fromLocal8Bit(name);
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">userEmail = QString::fromLocal8Bit(email);
+</span><span style="font-style:italic;color:#888888;">@@ -512,7 +512,7 @@</span><span style="color:#e8e8d3;"> public:
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">userName = newName;
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">error = git_config_set_string(config, &quot;user.name&quot;, newName.toLocal8Bit());
+</span><span style="color:#a1000d;">-            if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#558f1f;">+            if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">if(userEmail.isEmpty()) {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">bool ok;
+</span><span style="font-style:italic;color:#888888;">@@ -529,7 +529,7 @@</span><span style="color:#e8e8d3;"> public:
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">userEmail = newEmail;
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">error = git_config_set_string(config, &quot;user.email&quot;, newEmail.toLocal8Bit());
+</span><span style="color:#a1000d;">-            if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#558f1f;">+            if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">git_config_free(config);
+</span><span style="font-style:italic;color:#888888;">@@ -538,7 +538,7 @@</span><span style="color:#e8e8d3;"> public:
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">return false;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">error = git_signature_now(&amp;signature, userName.toLocal8Bit(), userEmail.toLocal8Bit());
+</span><span style="color:#a1000d;">-        if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#558f1f;">+        if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return false; }
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">return true;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">diff --git a/gemini/cloud/git/gitlogmodel.cpp b/gemini/cloud/git/gitlogmodel.cpp
+</span><span style="color:#e8e8d3;">index 7496519..d29c91c 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- gemini/cloud/git/gitlogmodel.cpp
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ gemini/cloud/git/gitlogmodel.cpp
+</span><span style="font-style:italic;color:#888888;">@@ -134,19 +134,19 @@</span><span style="color:#e8e8d3;"> void GitLogModel::refreshLog()
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_repository* repository;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">int error = git_repository_open(&amp;repository, QString(&quot;%1/.git&quot;).arg(d-&gt;repoDir).toLatin1());
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_revwalk *walker;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_revwalk_new(&amp;walker, repository);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">error = git_revwalk_push_range(walker, &quot;HEAD~100..HEAD&quot;);
+</span><span style="color:#a1000d;">-    if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+    if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_oid oid;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">git_commit *commit = NULL;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">while (git_revwalk_next(&amp;oid, walker) == 0) {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">error = git_commit_lookup(&amp;commit, repository, &amp;oid);
+</span><span style="color:#a1000d;">-        if(error != 0) { const git_error* err = giterr_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#558f1f;">+        if(error != 0) { const git_error* err = git_error_last(); qDebug() &lt;&lt; &quot;Kapow, error code from git2 was&quot; &lt;&lt; error &lt;&lt; &quot;which is described as&quot; &lt;&lt; err-&gt;message; return; }
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">const git_signature *author = git_commit_author(commit);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">
+</span></pre>
+<p>And let's see how it fares:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg calligra
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">calligra-3.1.0_17</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (x86_64).
+</span><span style="color:#99ad6a;">index: 26 packages registered.
+</span></pre>
+<p>Sadly the contributing process looks convoluted and confusing so i
+decided to not bother.</p>
+<h3 id="cargo">Cargo</h3>
+<p>This one is a deal-breaker and shows particular annoyance of cargo
+fetch everything model.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg cargo
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">= </span><span style="color:#ffb964;">note:</span><span style="color:#e8e8d3;"> /usr/bin/ld: /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.11.rcgu.o): in function `</span><span style="color:#ffb964;">core::ptr::real_drop_in_place</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.11:(.text._ZN4core3ptr18real_drop_in_place17h1a0b7585d37073a2E+0x2): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.11.rcgu.o): in function `git2::config::Config::get_string</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.11:(.text._ZN4git26config6Config10get_string17hdef639ea18a87d57E+0x3f0): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.13.rcgu.o): in function `</span><span style="color:#ffb964;">git2::error::Error::last_error</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.13:(.text._ZN4git25error5Error10last_error17h891df9bd8107df8cE+0x25): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> git2.dj0qflu2-cgu.13:(.text._ZN4git25error5Error10last_error17h891df9bd8107df8cE+0x9d): undefined reference to `giterr_last</span><span style="color:#556633;">&#39;
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">/usr/bin/ld: git2.dj0qflu2-cgu.13:(.text._ZN4git25error5Error10last_error17h891df9bd8107df8cE+0xfd): undefined reference to `giterr_clear</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.2.rcgu.o): in function `</span><span style="color:#ffb964;">git2::panic::wrap</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.2:(.text._ZN4git25panic4wrap17h118b1314f6de05f0E+0x2f6): undefined reference to `giterr_set_str</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.5.rcgu.o): in function `git2::transport::set_err</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.5:(.text._ZN4git29transport7set_err17h63962445c1177113E+0x17e): undefined reference to `giterr_set_str</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.5.rcgu.o): in function `&lt;git2::buf::Buf </span><span style="color:#ffb964;">as</span><span style="color:#e8e8d3;"> core::ops::drop::Drop&gt;::drop</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.5:(.text._ZN56_$LT$git2..buf..Buf$u20$as$u20$core..ops..drop..Drop$GT$4drop17h618a9504daa57525E+0x2): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.7.rcgu.o): in function `core::ptr::real_drop_in_place</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.7:(.text._ZN4core3ptr18real_drop_in_place17h1a0b7585d37073a2E+0x2): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">/usr/bin/ld:</span><span style="color:#e8e8d3;"> /builddir/cargo-0.33.0/target/release/deps/libgit2-197c7c3d8bde32da.rlib(git2-197c7c3d8bde32da.git2.dj0qflu2-cgu.7.rcgu.o): in function `</span><span style="color:#ffb964;">git2::object::Object::short_id</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:
+</span><span style="color:#99ad6a;">          </span><span style="color:#99ad6a;">git2.dj0qflu2-cgu.7:(.text._ZN4git26object6Object8short_id17hf6ddbe00ab8ba01dE+0xf0): undefined reference to `git_buf_free</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">          </span><span style="color:#ffb964;">collect2:</span><span style="color:#e8e8d3;"> error: ld returned 1 exit status
+</span><span style="color:#e8e8d3;">          </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">error:</span><span style="color:#e8e8d3;"> aborting due to previous error
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">error:</span><span style="color:#e8e8d3;"> Could not compile `cargo`.
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">To</span><span style="color:#e8e8d3;"> learn more, run the command again with</span><span style="color:#ffb964;"> --verbose</span><span style="color:#e8e8d3;">.
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">cargo-0.33.0_2:</span><span style="color:#e8e8d3;"> do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./cargo build --release</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 101
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> do_build() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> srcpkgs/cargo/template:75
+</span></pre>
+<p>The error isn't even in Cargo itself but libgit2-sys which is fetched
+by it, there is no easy way around it, we can't simply patch it with the
+normal xbps-src.</p>
+<p>There is only one thing we can do, mess with cargo, a more convoluted way
+than just dropping a patch into srcpkgs/<code>pkg</code>/patches and be done with it.</p>
+<p>First we fork the <a href="https://github.com/alexcrichton/git2-rs">libgit2-sys repo</a>
+into our namespace and adapt it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">commit 23008957fec7a9479f27aa60e60c0614bf039137
+</span><span style="color:#e8e8d3;">Author: maxice8 &lt;thinkabit.ukim@gmail.com&gt;
+</span><span style="color:#e8e8d3;">Date:   Tue Feb 12 16:17:26 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libgit2-0.28 api compat
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">diff --git a/libgit2-sys/lib.rs b/libgit2-sys/lib.rs
+</span><span style="color:#e8e8d3;">index b1c4bdf..c6e7824 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/libgit2-sys/lib.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/libgit2-sys/lib.rs
+</span><span style="font-style:italic;color:#888888;">@@ -190,37 +190,37 @@</span><span style="color:#e8e8d3;"> git_enum! {
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">git_enum! {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub enum git_error_t {
+</span><span style="color:#a1000d;">-        GITERR_NONE = 0,
+</span><span style="color:#a1000d;">-        GITERR_NOMEMORY,
+</span><span style="color:#a1000d;">-        GITERR_OS,
+</span><span style="color:#a1000d;">-        GITERR_INVALID,
+</span><span style="color:#a1000d;">-        GITERR_REFERENCE,
+</span><span style="color:#a1000d;">-        GITERR_ZLIB,
+</span><span style="color:#a1000d;">-        GITERR_REPOSITORY,
+</span><span style="color:#a1000d;">-        GITERR_CONFIG,
+</span><span style="color:#a1000d;">-        GITERR_REGEX,
+</span><span style="color:#a1000d;">-        GITERR_ODB,
+</span><span style="color:#a1000d;">-        GITERR_INDEX,
+</span><span style="color:#a1000d;">-        GITERR_OBJECT,
+</span><span style="color:#a1000d;">-        GITERR_NET,
+</span><span style="color:#a1000d;">-        GITERR_TAG,
+</span><span style="color:#a1000d;">-        GITERR_TREE,
+</span><span style="color:#a1000d;">-        GITERR_INDEXER,
+</span><span style="color:#a1000d;">-        GITERR_SSL,
+</span><span style="color:#a1000d;">-        GITERR_SUBMODULE,
+</span><span style="color:#a1000d;">-        GITERR_THREAD,
+</span><span style="color:#a1000d;">-        GITERR_STASH,
+</span><span style="color:#a1000d;">-        GITERR_CHECKOUT,
+</span><span style="color:#a1000d;">-        GITERR_FETCHHEAD,
+</span><span style="color:#a1000d;">-        GITERR_MERGE,
+</span><span style="color:#a1000d;">-        GITERR_SSH,
+</span><span style="color:#a1000d;">-        GITERR_FILTER,
+</span><span style="color:#a1000d;">-        GITERR_REVERT,
+</span><span style="color:#a1000d;">-        GITERR_CALLBACK,
+</span><span style="color:#a1000d;">-        GITERR_CHERRYPICK,
+</span><span style="color:#a1000d;">-        GITERR_DESCRIBE,
+</span><span style="color:#a1000d;">-        GITERR_REBASE,
+</span><span style="color:#a1000d;">-        GITERR_FILESYSTEM,
+</span><span style="color:#558f1f;">+        GIT_ERROR_NONE = 0,
+</span><span style="color:#558f1f;">+        GIT_ERROR_NOMEMORY,
+</span><span style="color:#558f1f;">+        GIT_ERROR_OS,
+</span><span style="color:#558f1f;">+        GIT_ERROR_INVALID,
+</span><span style="color:#558f1f;">+        GIT_ERROR_REFERENCE,
+</span><span style="color:#558f1f;">+        GIT_ERROR_ZLIB,
+</span><span style="color:#558f1f;">+        GIT_ERROR_REPOSITORY,
+</span><span style="color:#558f1f;">+        GIT_ERROR_CONFIG,
+</span><span style="color:#558f1f;">+        GIT_ERROR_REGEX,
+</span><span style="color:#558f1f;">+        GIT_ERROR_ODB,
+</span><span style="color:#558f1f;">+        GIT_ERROR_INDEX,
+</span><span style="color:#558f1f;">+        GIT_ERROR_OBJECT,
+</span><span style="color:#558f1f;">+        GIT_ERROR_NET,
+</span><span style="color:#558f1f;">+        GIT_ERROR_TAG,
+</span><span style="color:#558f1f;">+        GIT_ERROR_TREE,
+</span><span style="color:#558f1f;">+        GIT_ERROR_INDEXER,
+</span><span style="color:#558f1f;">+        GIT_ERROR_SSL,
+</span><span style="color:#558f1f;">+        GIT_ERROR_SUBMODULE,
+</span><span style="color:#558f1f;">+        GIT_ERROR_THREAD,
+</span><span style="color:#558f1f;">+        GIT_ERROR_STASH,
+</span><span style="color:#558f1f;">+        GIT_ERROR_CHECKOUT,
+</span><span style="color:#558f1f;">+        GIT_ERROR_FETCHHEAD,
+</span><span style="color:#558f1f;">+        GIT_ERROR_MERGE,
+</span><span style="color:#558f1f;">+        GIT_ERROR_SSH,
+</span><span style="color:#558f1f;">+        GIT_ERROR_FILTER,
+</span><span style="color:#558f1f;">+        GIT_ERROR_REVERT,
+</span><span style="color:#558f1f;">+        GIT_ERROR_CALLBACK,
+</span><span style="color:#558f1f;">+        GIT_ERROR_CHERRYPICK,
+</span><span style="color:#558f1f;">+        GIT_ERROR_DESCRIBE,
+</span><span style="color:#558f1f;">+        GIT_ERROR_REBASE,
+</span><span style="color:#558f1f;">+        GIT_ERROR_FILESYSTEM,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="font-style:italic;color:#888888;">@@ -612,16 +612,16 @@</span><span style="color:#e8e8d3;"> git_enum! {
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">git_enum! {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub enum git_otype: c_int {
+</span><span style="color:#a1000d;">-        GIT_OBJ_ANY = -2,
+</span><span style="color:#a1000d;">-        GIT_OBJ_BAD = -1,
+</span><span style="color:#a1000d;">-        GIT_OBJ__EXT1 = 0,
+</span><span style="color:#a1000d;">-        GIT_OBJ_COMMIT = 1,
+</span><span style="color:#a1000d;">-        GIT_OBJ_TREE = 2,
+</span><span style="color:#a1000d;">-        GIT_OBJ_BLOB = 3,
+</span><span style="color:#a1000d;">-        GIT_OBJ_TAG = 4,
+</span><span style="color:#a1000d;">-        GIT_OBJ__EXT2 = 5,
+</span><span style="color:#a1000d;">-        GIT_OBJ_OFS_DELTA = 6,
+</span><span style="color:#a1000d;">-        GIT_OBJ_REF_DELTA = 7,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_ANY = -2,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_BAD = -1,
+</span><span style="color:#558f1f;">+        GIT_OBJECT__EXT1 = 0,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_COMMIT = 1,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_TREE = 2,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_BLOB = 3,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_TAG = 4,
+</span><span style="color:#558f1f;">+        GIT_OBJECT__EXT2 = 5,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_OFS_DELTA = 6,
+</span><span style="color:#558f1f;">+        GIT_OBJECT_REF_DELTA = 7,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="font-style:italic;color:#888888;">@@ -714,29 +714,29 @@</span><span style="color:#e8e8d3;"> pub type git_index_matched_path_cb = extern fn(*const c_char, *const c_char,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">git_enum! {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub enum git_idxentry_extended_flag_t {
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_INTENT_TO_ADD     = 1 &lt;&lt; 13,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_SKIP_WORKTREE     = 1 &lt;&lt; 14,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_EXTENDED2         = 1 &lt;&lt; 15,
+</span><span style="color:#a1000d;">-
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_UPDATE            = 1 &lt;&lt; 0,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_REMOVE            = 1 &lt;&lt; 1,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_UPTODATE          = 1 &lt;&lt; 2,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_ADDED             = 1 &lt;&lt; 3,
+</span><span style="color:#a1000d;">-
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_HASHED            = 1 &lt;&lt; 4,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_UNHASHED          = 1 &lt;&lt; 5,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_WT_REMOVE         = 1 &lt;&lt; 6,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_CONFLICTED        = 1 &lt;&lt; 7,
+</span><span style="color:#a1000d;">-
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_UNPACKED          = 1 &lt;&lt; 8,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_NEW_SKIP_WORKTREE = 1 &lt;&lt; 9,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_INTENT_TO_ADD     = 1 &lt;&lt; 13,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_SKIP_WORKTREE     = 1 &lt;&lt; 14,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_EXTENDED2         = 1 &lt;&lt; 15,
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_UPDATE            = 1 &lt;&lt; 0,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_REMOVE            = 1 &lt;&lt; 1,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_UPTODATE          = 1 &lt;&lt; 2,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_ADDED             = 1 &lt;&lt; 3,
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_HASHED            = 1 &lt;&lt; 4,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_UNHASHED          = 1 &lt;&lt; 5,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_WT_REMOVE         = 1 &lt;&lt; 6,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_CONFLICTED        = 1 &lt;&lt; 7,
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_UNPACKED          = 1 &lt;&lt; 8,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_NEW_SKIP_WORKTREE = 1 &lt;&lt; 9,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">git_enum! {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub enum git_indxentry_flag_t {
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_EXTENDED = 0x4000,
+</span><span style="color:#a1000d;">-        GIT_IDXENTRY_VALID    = 0x8000,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_EXTENDED = 0x4000,
+</span><span style="color:#558f1f;">+        GIT_INDEX_ENTRY_VALID    = 0x8000,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="font-style:italic;color:#888888;">@@ -757,9 +757,9 @@</span><span style="color:#e8e8d3;"> pub struct git_index_entry {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub path: *const c_char,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-pub const GIT_IDXENTRY_NAMEMASK: u16 = 0xfff;
+</span><span style="color:#a1000d;">-pub const GIT_IDXENTRY_STAGEMASK: u16 = 0x3000;
+</span><span style="color:#a1000d;">-pub const GIT_IDXENTRY_STAGESHIFT: u16 = 12;
+</span><span style="color:#558f1f;">+pub const GIT_INDEX_ENTRY_NAMEMASK: u16 = 0xfff;
+</span><span style="color:#558f1f;">+pub const GIT_INDEX_ENTRY_STAGEMASK: u16 = 0x3000;
+</span><span style="color:#558f1f;">+pub const GIT_INDEX_ENTRY_STAGESHIFT: u16 = 12;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#[repr(C)]
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#[derive(Copy, Clone, Eq, PartialEq)]
+</span><span style="font-style:italic;color:#888888;">@@ -1719,10 +1719,10 @@</span><span style="color:#e8e8d3;"> extern {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn git_oid_streq(id: *const git_oid, str: *const c_char) -&gt; c_int;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn git_oid_iszero(id: *const git_oid) -&gt; c_int;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-    // giterr
+</span><span style="color:#a1000d;">-    pub fn giterr_last() -&gt; *const git_error;
+</span><span style="color:#a1000d;">-    pub fn giterr_clear();
+</span><span style="color:#a1000d;">-    pub fn giterr_set_str(error_class: c_int, string: *const c_char);
+</span><span style="color:#558f1f;">+    // git_error
+</span><span style="color:#558f1f;">+    pub fn git_error_last() -&gt; *const git_error;
+</span><span style="color:#558f1f;">+    pub fn git_error_clear();
+</span><span style="color:#558f1f;">+    pub fn git_error_set_str(error_class: c_int, string: *const c_char);
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// remote
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn git_remote_create(out: *mut *mut git_remote,
+</span><span style="font-style:italic;color:#888888;">@@ -2120,7 +2120,7 @@</span><span style="color:#e8e8d3;"> extern {
+</span><span style="color:#e8e8d3;">                                  </span><span style="color:#e8e8d3;">bld: *mut git_treebuilder) -&gt; c_int;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">// buf
+</span><span style="color:#a1000d;">-    pub fn git_buf_free(buffer: *mut git_buf);
+</span><span style="color:#558f1f;">+    pub fn git_buf_dispose(buffer: *mut git_buf);
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn git_buf_grow(buffer: *mut git_buf, target_size: size_t) -&gt; c_int;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn git_buf_set(buffer: *mut git_buf, data: *const c_void,
+</span><span style="color:#e8e8d3;">                        </span><span style="color:#e8e8d3;">datalen: size_t) -&gt; c_int;
+</span><span style="color:#e8e8d3;">diff --git a/src/buf.rs b/src/buf.rs
+</span><span style="color:#e8e8d3;">index 78e958e..9500443 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/buf.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/buf.rs
+</span><span style="font-style:italic;color:#888888;">@@ -68,6 +68,6 @@</span><span style="color:#e8e8d3;"> impl Binding for Buf {
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">impl Drop for Buf {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">fn drop(&amp;mut self) {
+</span><span style="color:#a1000d;">-        unsafe { raw::git_buf_free(&amp;mut self.raw) }
+</span><span style="color:#558f1f;">+        unsafe { raw::git_buf_dispose(&amp;mut self.raw) }
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">diff --git a/src/call.rs b/src/call.rs
+</span><span style="color:#e8e8d3;">index 3367275..701df5b 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/call.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/call.rs
+</span><span style="font-style:italic;color:#888888;">@@ -113,11 +113,11 @@</span><span style="color:#e8e8d3;"> mod impls {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">impl Convert&lt;raw::git_otype&gt; for ObjectType {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">fn convert(&amp;self) -&gt; raw::git_otype {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">match *self {
+</span><span style="color:#a1000d;">-                ObjectType::Any =&gt; raw::GIT_OBJ_ANY,
+</span><span style="color:#a1000d;">-                ObjectType::Commit =&gt; raw::GIT_OBJ_COMMIT,
+</span><span style="color:#a1000d;">-                ObjectType::Tree =&gt; raw::GIT_OBJ_TREE,
+</span><span style="color:#a1000d;">-                ObjectType::Blob =&gt; raw::GIT_OBJ_BLOB,
+</span><span style="color:#a1000d;">-                ObjectType::Tag =&gt; raw::GIT_OBJ_TAG,
+</span><span style="color:#558f1f;">+                ObjectType::Any =&gt; raw::GIT_OBJECT_ANY,
+</span><span style="color:#558f1f;">+                ObjectType::Commit =&gt; raw::GIT_OBJECT_COMMIT,
+</span><span style="color:#558f1f;">+                ObjectType::Tree =&gt; raw::GIT_OBJECT_TREE,
+</span><span style="color:#558f1f;">+                ObjectType::Blob =&gt; raw::GIT_OBJECT_BLOB,
+</span><span style="color:#558f1f;">+                ObjectType::Tag =&gt; raw::GIT_OBJECT_TAG,
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">diff --git a/src/error.rs b/src/error.rs
+</span><span style="color:#e8e8d3;">index 1e92b23..e342d6c 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/error.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/error.rs
+</span><span style="font-style:italic;color:#888888;">@@ -22,7 +22,7 @@</span><span style="color:#e8e8d3;"> impl Error {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// call. This code will later be returned from the `code` function.
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">///
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// Historically this function returned `Some` or `None` based on the return
+</span><span style="color:#a1000d;">-    /// value of `giterr_last` but nowadays it always returns `Some` so it&#39;s
+</span><span style="color:#558f1f;">+    /// value of `git_error_last` but nowadays it always returns `Some` so it&#39;s
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// safe to unwrap the return value. This API will change in the next major
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// version.
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn last_error(code: c_int) -&gt; Option&lt;Error&gt; {
+</span><span style="font-style:italic;color:#888888;">@@ -30,20 +30,20 @@</span><span style="color:#e8e8d3;"> impl Error {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">unsafe {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// Note that whenever libgit2 returns an error any negative value
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// indicates that an error happened. Auxiliary information is
+</span><span style="color:#a1000d;">-            // *usually* in `giterr_last` but unfortunately that&#39;s not always
+</span><span style="color:#558f1f;">+            // *usually* in `git_error_last` but unfortunately that&#39;s not always
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// the case. Sometimes a negative error code is returned from
+</span><span style="color:#a1000d;">-            // libgit2 *without* calling `giterr_set` internally to configure
+</span><span style="color:#558f1f;">+            // libgit2 *without* calling `git_error_set` internally to configure
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// the error.
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">//
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// To handle this case and hopefully provide better error messages
+</span><span style="color:#a1000d;">-            // on our end we unconditionally call `giterr_clear` when we&#39;re done
+</span><span style="color:#558f1f;">+            // on our end we unconditionally call `git_error_clear` when we&#39;re done
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// with an error. This is an attempt to clear it as aggressively as
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// possible when we can to ensure that error information from one
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// api invocation doesn&#39;t leak over to the next api invocation.
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">//
+</span><span style="color:#a1000d;">-            // Additionally if `giterr_last` returns null then we returned a
+</span><span style="color:#558f1f;">+            // Additionally if `git_error_last` returns null then we returned a
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">// canned error out.
+</span><span style="color:#a1000d;">-            let ptr = raw::giterr_last();
+</span><span style="color:#558f1f;">+            let ptr = raw::git_error_last();
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">let err = if ptr.is_null() {
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#e8e8d3;">let mut error = Error::from_str(&quot;an unknown git error occurred&quot;);
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#e8e8d3;">error.code = code;
+</span><span style="font-style:italic;color:#888888;">@@ -51,7 +51,7 @@</span><span style="color:#e8e8d3;"> impl Error {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">} else {
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#e8e8d3;">Error::from_raw(code, ptr)
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">};
+</span><span style="color:#a1000d;">-            raw::giterr_clear();
+</span><span style="color:#558f1f;">+            raw::git_error_clear();
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">Some(err)
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="font-style:italic;color:#888888;">@@ -65,11 +65,11 @@</span><span style="color:#e8e8d3;"> impl Error {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// Creates a new error from the given string as the error.
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">///
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// The error returned will have the code `GIT_ERROR` and the class
+</span><span style="color:#a1000d;">-    /// `GITERR_NONE`.
+</span><span style="color:#558f1f;">+    /// `GIT_ERROR_NONE`.
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn from_str(s: &amp;str) -&gt; Error {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">Error {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">code: raw::GIT_ERROR as c_int,
+</span><span style="color:#a1000d;">-            klass: raw::GITERR_NONE as c_int,
+</span><span style="color:#558f1f;">+            klass: raw::GIT_ERROR_NONE as c_int,
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">message: s.to_string(),
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="font-style:italic;color:#888888;">@@ -118,37 +118,37 @@</span><span style="color:#e8e8d3;"> impl Error {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// typically not directly actionable.
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn class(&amp;self) -&gt; ErrorClass {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">match self.raw_class() {
+</span><span style="color:#a1000d;">-            raw::GITERR_NONE =&gt; super::ErrorClass::None,
+</span><span style="color:#a1000d;">-            raw::GITERR_NOMEMORY =&gt; super::ErrorClass::NoMemory,
+</span><span style="color:#a1000d;">-            raw::GITERR_OS =&gt; super::ErrorClass::Os,
+</span><span style="color:#a1000d;">-            raw::GITERR_INVALID =&gt; super::ErrorClass::Invalid,
+</span><span style="color:#a1000d;">-            raw::GITERR_REFERENCE =&gt; super::ErrorClass::Reference,
+</span><span style="color:#a1000d;">-            raw::GITERR_ZLIB =&gt; super::ErrorClass::Zlib,
+</span><span style="color:#a1000d;">-            raw::GITERR_REPOSITORY =&gt; super::ErrorClass::Repository,
+</span><span style="color:#a1000d;">-            raw::GITERR_CONFIG =&gt; super::ErrorClass::Config,
+</span><span style="color:#a1000d;">-            raw::GITERR_REGEX =&gt; super::ErrorClass::Regex,
+</span><span style="color:#a1000d;">-            raw::GITERR_ODB =&gt; super::ErrorClass::Odb,
+</span><span style="color:#a1000d;">-            raw::GITERR_INDEX =&gt; super::ErrorClass::Index,
+</span><span style="color:#a1000d;">-            raw::GITERR_OBJECT =&gt; super::ErrorClass::Object,
+</span><span style="color:#a1000d;">-            raw::GITERR_NET =&gt; super::ErrorClass::Net,
+</span><span style="color:#a1000d;">-            raw::GITERR_TAG =&gt; super::ErrorClass::Tag,
+</span><span style="color:#a1000d;">-            raw::GITERR_TREE =&gt; super::ErrorClass::Tree,
+</span><span style="color:#a1000d;">-            raw::GITERR_INDEXER =&gt; super::ErrorClass::Indexer,
+</span><span style="color:#a1000d;">-            raw::GITERR_SSL =&gt; super::ErrorClass::Ssl,
+</span><span style="color:#a1000d;">-            raw::GITERR_SUBMODULE =&gt; super::ErrorClass::Submodule,
+</span><span style="color:#a1000d;">-            raw::GITERR_THREAD =&gt; super::ErrorClass::Thread,
+</span><span style="color:#a1000d;">-            raw::GITERR_STASH =&gt; super::ErrorClass::Stash,
+</span><span style="color:#a1000d;">-            raw::GITERR_CHECKOUT =&gt; super::ErrorClass::Checkout,
+</span><span style="color:#a1000d;">-            raw::GITERR_FETCHHEAD =&gt; super::ErrorClass::FetchHead,
+</span><span style="color:#a1000d;">-            raw::GITERR_MERGE =&gt; super::ErrorClass::Merge,
+</span><span style="color:#a1000d;">-            raw::GITERR_SSH =&gt; super::ErrorClass::Ssh,
+</span><span style="color:#a1000d;">-            raw::GITERR_FILTER =&gt; super::ErrorClass::Filter,
+</span><span style="color:#a1000d;">-            raw::GITERR_REVERT =&gt; super::ErrorClass::Revert,
+</span><span style="color:#a1000d;">-            raw::GITERR_CALLBACK =&gt; super::ErrorClass::Callback,
+</span><span style="color:#a1000d;">-            raw::GITERR_CHERRYPICK =&gt; super::ErrorClass::CherryPick,
+</span><span style="color:#a1000d;">-            raw::GITERR_DESCRIBE =&gt; super::ErrorClass::Describe,
+</span><span style="color:#a1000d;">-            raw::GITERR_REBASE =&gt; super::ErrorClass::Rebase,
+</span><span style="color:#a1000d;">-            raw::GITERR_FILESYSTEM =&gt; super::ErrorClass::Filesystem,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_NONE =&gt; super::ErrorClass::None,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_NOMEMORY =&gt; super::ErrorClass::NoMemory,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_OS =&gt; super::ErrorClass::Os,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_INVALID =&gt; super::ErrorClass::Invalid,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_REFERENCE =&gt; super::ErrorClass::Reference,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_ZLIB =&gt; super::ErrorClass::Zlib,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_REPOSITORY =&gt; super::ErrorClass::Repository,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_CONFIG =&gt; super::ErrorClass::Config,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_REGEX =&gt; super::ErrorClass::Regex,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_ODB =&gt; super::ErrorClass::Odb,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_INDEX =&gt; super::ErrorClass::Index,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_OBJECT =&gt; super::ErrorClass::Object,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_NET =&gt; super::ErrorClass::Net,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_TAG =&gt; super::ErrorClass::Tag,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_TREE =&gt; super::ErrorClass::Tree,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_INDEXER =&gt; super::ErrorClass::Indexer,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_SSL =&gt; super::ErrorClass::Ssl,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_SUBMODULE =&gt; super::ErrorClass::Submodule,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_THREAD =&gt; super::ErrorClass::Thread,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_STASH =&gt; super::ErrorClass::Stash,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_CHECKOUT =&gt; super::ErrorClass::Checkout,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_FETCHHEAD =&gt; super::ErrorClass::FetchHead,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_MERGE =&gt; super::ErrorClass::Merge,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_SSH =&gt; super::ErrorClass::Ssh,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_FILTER =&gt; super::ErrorClass::Filter,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_REVERT =&gt; super::ErrorClass::Revert,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_CALLBACK =&gt; super::ErrorClass::Callback,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_CHERRYPICK =&gt; super::ErrorClass::CherryPick,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_DESCRIBE =&gt; super::ErrorClass::Describe,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_REBASE =&gt; super::ErrorClass::Rebase,
+</span><span style="color:#558f1f;">+            raw::GIT_ERROR_FILESYSTEM =&gt; super::ErrorClass::Filesystem,
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">_ =&gt; super::ErrorClass::None,
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="font-style:italic;color:#888888;">@@ -194,41 +194,41 @@</span><span style="color:#e8e8d3;"> impl Error {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">macro_rules! check( ($($e:ident,)*) =&gt; (
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">$(if self.klass == raw::$e as c_int { raw::$e }) else *
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">else {
+</span><span style="color:#a1000d;">-                raw::GITERR_NONE
+</span><span style="color:#558f1f;">+                raw::GIT_ERROR_NONE
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">) );
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">check!(
+</span><span style="color:#a1000d;">-            GITERR_NONE,
+</span><span style="color:#a1000d;">-            GITERR_NOMEMORY,
+</span><span style="color:#a1000d;">-            GITERR_OS,
+</span><span style="color:#a1000d;">-            GITERR_INVALID,
+</span><span style="color:#a1000d;">-            GITERR_REFERENCE,
+</span><span style="color:#a1000d;">-            GITERR_ZLIB,
+</span><span style="color:#a1000d;">-            GITERR_REPOSITORY,
+</span><span style="color:#a1000d;">-            GITERR_CONFIG,
+</span><span style="color:#a1000d;">-            GITERR_REGEX,
+</span><span style="color:#a1000d;">-            GITERR_ODB,
+</span><span style="color:#a1000d;">-            GITERR_INDEX,
+</span><span style="color:#a1000d;">-            GITERR_OBJECT,
+</span><span style="color:#a1000d;">-            GITERR_NET,
+</span><span style="color:#a1000d;">-            GITERR_TAG,
+</span><span style="color:#a1000d;">-            GITERR_TREE,
+</span><span style="color:#a1000d;">-            GITERR_INDEXER,
+</span><span style="color:#a1000d;">-            GITERR_SSL,
+</span><span style="color:#a1000d;">-            GITERR_SUBMODULE,
+</span><span style="color:#a1000d;">-            GITERR_THREAD,
+</span><span style="color:#a1000d;">-            GITERR_STASH,
+</span><span style="color:#a1000d;">-            GITERR_CHECKOUT,
+</span><span style="color:#a1000d;">-            GITERR_FETCHHEAD,
+</span><span style="color:#a1000d;">-            GITERR_MERGE,
+</span><span style="color:#a1000d;">-            GITERR_SSH,
+</span><span style="color:#a1000d;">-            GITERR_FILTER,
+</span><span style="color:#a1000d;">-            GITERR_REVERT,
+</span><span style="color:#a1000d;">-            GITERR_CALLBACK,
+</span><span style="color:#a1000d;">-            GITERR_CHERRYPICK,
+</span><span style="color:#a1000d;">-            GITERR_DESCRIBE,
+</span><span style="color:#a1000d;">-            GITERR_REBASE,
+</span><span style="color:#a1000d;">-            GITERR_FILESYSTEM,
+</span><span style="color:#558f1f;">+            GIT_ERROR_NONE,
+</span><span style="color:#558f1f;">+            GIT_ERROR_NOMEMORY,
+</span><span style="color:#558f1f;">+            GIT_ERROR_OS,
+</span><span style="color:#558f1f;">+            GIT_ERROR_INVALID,
+</span><span style="color:#558f1f;">+            GIT_ERROR_REFERENCE,
+</span><span style="color:#558f1f;">+            GIT_ERROR_ZLIB,
+</span><span style="color:#558f1f;">+            GIT_ERROR_REPOSITORY,
+</span><span style="color:#558f1f;">+            GIT_ERROR_CONFIG,
+</span><span style="color:#558f1f;">+            GIT_ERROR_REGEX,
+</span><span style="color:#558f1f;">+            GIT_ERROR_ODB,
+</span><span style="color:#558f1f;">+            GIT_ERROR_INDEX,
+</span><span style="color:#558f1f;">+            GIT_ERROR_OBJECT,
+</span><span style="color:#558f1f;">+            GIT_ERROR_NET,
+</span><span style="color:#558f1f;">+            GIT_ERROR_TAG,
+</span><span style="color:#558f1f;">+            GIT_ERROR_TREE,
+</span><span style="color:#558f1f;">+            GIT_ERROR_INDEXER,
+</span><span style="color:#558f1f;">+            GIT_ERROR_SSL,
+</span><span style="color:#558f1f;">+            GIT_ERROR_SUBMODULE,
+</span><span style="color:#558f1f;">+            GIT_ERROR_THREAD,
+</span><span style="color:#558f1f;">+            GIT_ERROR_STASH,
+</span><span style="color:#558f1f;">+            GIT_ERROR_CHECKOUT,
+</span><span style="color:#558f1f;">+            GIT_ERROR_FETCHHEAD,
+</span><span style="color:#558f1f;">+            GIT_ERROR_MERGE,
+</span><span style="color:#558f1f;">+            GIT_ERROR_SSH,
+</span><span style="color:#558f1f;">+            GIT_ERROR_FILTER,
+</span><span style="color:#558f1f;">+            GIT_ERROR_REVERT,
+</span><span style="color:#558f1f;">+            GIT_ERROR_CALLBACK,
+</span><span style="color:#558f1f;">+            GIT_ERROR_CHERRYPICK,
+</span><span style="color:#558f1f;">+            GIT_ERROR_DESCRIBE,
+</span><span style="color:#558f1f;">+            GIT_ERROR_REBASE,
+</span><span style="color:#558f1f;">+            GIT_ERROR_FILESYSTEM,
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">diff --git a/src/index.rs b/src/index.rs
+</span><span style="color:#e8e8d3;">index 1071db3..9c618c7 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/index.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/index.rs
+</span><span style="font-style:italic;color:#888888;">@@ -112,12 +112,12 @@</span><span style="color:#e8e8d3;"> impl Index {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// libgit2 encodes the length of the path in the lower bits of the
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// `flags` entry, so mask those out and recalculate here to ensure we
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// don&#39;t corrupt anything.
+</span><span style="color:#a1000d;">-        let mut flags = entry.flags &amp; !raw::GIT_IDXENTRY_NAMEMASK;
+</span><span style="color:#558f1f;">+        let mut flags = entry.flags &amp; !raw::GIT_INDEX_ENTRY_NAMEMASK;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-        if entry.path.len() &lt; raw::GIT_IDXENTRY_NAMEMASK as usize {
+</span><span style="color:#558f1f;">+        if entry.path.len() &lt; raw::GIT_INDEX_ENTRY_NAMEMASK as usize {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">flags |= entry.path.len() as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">} else {
+</span><span style="color:#a1000d;">-            flags |= raw::GIT_IDXENTRY_NAMEMASK;
+</span><span style="color:#558f1f;">+            flags |= raw::GIT_INDEX_ENTRY_NAMEMASK;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">unsafe {
+</span><span style="font-style:italic;color:#888888;">@@ -169,12 +169,12 @@</span><span style="color:#e8e8d3;"> impl Index {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// libgit2 encodes the length of the path in the lower bits of the
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// `flags` entry, so mask those out and recalculate here to ensure we
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// don&#39;t corrupt anything.
+</span><span style="color:#a1000d;">-        let mut flags = entry.flags &amp; !raw::GIT_IDXENTRY_NAMEMASK;
+</span><span style="color:#558f1f;">+        let mut flags = entry.flags &amp; !raw::GIT_INDEX_ENTRY_NAMEMASK;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-        if entry.path.len() &lt; raw::GIT_IDXENTRY_NAMEMASK as usize {
+</span><span style="color:#558f1f;">+        if entry.path.len() &lt; raw::GIT_INDEX_ENTRY_NAMEMASK as usize {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">flags |= entry.path.len() as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">} else {
+</span><span style="color:#a1000d;">-            flags |= raw::GIT_IDXENTRY_NAMEMASK;
+</span><span style="color:#558f1f;">+            flags |= raw::GIT_INDEX_ENTRY_NAMEMASK;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">unsafe {
+</span><span style="font-style:italic;color:#888888;">@@ -608,8 +608,8 @@</span><span style="color:#e8e8d3;"> impl Binding for IndexEntry {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// libgit2 encodes the length of the path in the lower bits of `flags`,
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// but if the length exceeds the number of bits then the path is
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">// nul-terminated.
+</span><span style="color:#a1000d;">-        let mut pathlen = (flags &amp; raw::GIT_IDXENTRY_NAMEMASK) as usize;
+</span><span style="color:#a1000d;">-        if pathlen == raw::GIT_IDXENTRY_NAMEMASK as usize {
+</span><span style="color:#558f1f;">+        let mut pathlen = (flags &amp; raw::GIT_INDEX_ENTRY_NAMEMASK) as usize;
+</span><span style="color:#558f1f;">+        if pathlen == raw::GIT_INDEX_ENTRY_NAMEMASK as usize {
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">pathlen = CStr::from_ptr(path).to_bytes().len();
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">diff --git a/src/lib.rs b/src/lib.rs
+</span><span style="color:#e8e8d3;">index 7960bd8..09ce3d0 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/lib.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/lib.rs
+</span><span style="font-style:italic;color:#888888;">@@ -443,9 +443,9 @@</span><span style="color:#e8e8d3;"> bitflags! {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// Flags for the `flags` field of an IndexEntry.
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub struct IndexEntryFlag: u16 {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">/// Set when the `extended_flags` field is valid.
+</span><span style="color:#a1000d;">-        const EXTENDED = raw::GIT_IDXENTRY_EXTENDED as u16;
+</span><span style="color:#558f1f;">+        const EXTENDED = raw::GIT_INDEX_ENTRY_EXTENDED as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">/// &quot;Assume valid&quot; flag
+</span><span style="color:#a1000d;">-        const VALID = raw::GIT_IDXENTRY_VALID as u16;
+</span><span style="color:#558f1f;">+        const VALID = raw::GIT_INDEX_ENTRY_VALID as u16;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="font-style:italic;color:#888888;">@@ -458,34 +458,34 @@</span><span style="color:#e8e8d3;"> bitflags! {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// Flags for the `extended_flags` field of an IndexEntry.
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub struct IndexEntryExtendedFlag: u16 {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">/// An &quot;intent to add&quot; entry from &quot;git add -N&quot;
+</span><span style="color:#a1000d;">-        const INTENT_TO_ADD = raw::GIT_IDXENTRY_INTENT_TO_ADD as u16;
+</span><span style="color:#558f1f;">+        const INTENT_TO_ADD = raw::GIT_INDEX_ENTRY_INTENT_TO_ADD as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">/// Skip the associated worktree file, for sparse checkouts
+</span><span style="color:#a1000d;">-        const SKIP_WORKTREE = raw::GIT_IDXENTRY_SKIP_WORKTREE as u16;
+</span><span style="color:#558f1f;">+        const SKIP_WORKTREE = raw::GIT_INDEX_ENTRY_SKIP_WORKTREE as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">/// Reserved for a future on-disk extended flag
+</span><span style="color:#a1000d;">-        const EXTENDED2 = raw::GIT_IDXENTRY_EXTENDED2 as u16;
+</span><span style="color:#558f1f;">+        const EXTENDED2 = raw::GIT_INDEX_ENTRY_EXTENDED2 as u16;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const UPDATE = raw::GIT_IDXENTRY_UPDATE as u16;
+</span><span style="color:#558f1f;">+        const UPDATE = raw::GIT_INDEX_ENTRY_UPDATE as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const REMOVE = raw::GIT_IDXENTRY_REMOVE as u16;
+</span><span style="color:#558f1f;">+        const REMOVE = raw::GIT_INDEX_ENTRY_REMOVE as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const UPTODATE = raw::GIT_IDXENTRY_UPTODATE as u16;
+</span><span style="color:#558f1f;">+        const UPTODATE = raw::GIT_INDEX_ENTRY_UPTODATE as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const ADDED = raw::GIT_IDXENTRY_ADDED as u16;
+</span><span style="color:#558f1f;">+        const ADDED = raw::GIT_INDEX_ENTRY_ADDED as u16;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const HASHED = raw::GIT_IDXENTRY_HASHED as u16;
+</span><span style="color:#558f1f;">+        const HASHED = raw::GIT_INDEX_ENTRY_HASHED as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const UNHASHED = raw::GIT_IDXENTRY_UNHASHED as u16;
+</span><span style="color:#558f1f;">+        const UNHASHED = raw::GIT_INDEX_ENTRY_UNHASHED as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const WT_REMOVE = raw::GIT_IDXENTRY_WT_REMOVE as u16;
+</span><span style="color:#558f1f;">+        const WT_REMOVE = raw::GIT_INDEX_ENTRY_WT_REMOVE as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const CONFLICTED = raw::GIT_IDXENTRY_CONFLICTED as u16;
+</span><span style="color:#558f1f;">+        const CONFLICTED = raw::GIT_INDEX_ENTRY_CONFLICTED as u16;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const UNPACKED = raw::GIT_IDXENTRY_UNPACKED as u16;
+</span><span style="color:#558f1f;">+        const UNPACKED = raw::GIT_INDEX_ENTRY_UNPACKED as u16;
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">#[allow(missing_docs)]
+</span><span style="color:#a1000d;">-        const NEW_SKIP_WORKTREE = raw::GIT_IDXENTRY_NEW_SKIP_WORKTREE as u16;
+</span><span style="color:#558f1f;">+        const NEW_SKIP_WORKTREE = raw::GIT_INDEX_ENTRY_NEW_SKIP_WORKTREE as u16;
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="font-style:italic;color:#888888;">@@ -841,11 +841,11 @@</span><span style="color:#e8e8d3;"> impl ObjectType {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">/// Convert a raw git_otype to an ObjectType
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">pub fn from_raw(raw: raw::git_otype) -&gt; Option&lt;ObjectType&gt; {
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">match raw {
+</span><span style="color:#a1000d;">-            raw::GIT_OBJ_ANY =&gt; Some(ObjectType::Any),
+</span><span style="color:#a1000d;">-            raw::GIT_OBJ_COMMIT =&gt; Some(ObjectType::Commit),
+</span><span style="color:#a1000d;">-            raw::GIT_OBJ_TREE =&gt; Some(ObjectType::Tree),
+</span><span style="color:#a1000d;">-            raw::GIT_OBJ_BLOB =&gt; Some(ObjectType::Blob),
+</span><span style="color:#a1000d;">-            raw::GIT_OBJ_TAG =&gt; Some(ObjectType::Tag),
+</span><span style="color:#558f1f;">+            raw::GIT_OBJECT_ANY =&gt; Some(ObjectType::Any),
+</span><span style="color:#558f1f;">+            raw::GIT_OBJECT_COMMIT =&gt; Some(ObjectType::Commit),
+</span><span style="color:#558f1f;">+            raw::GIT_OBJECT_TREE =&gt; Some(ObjectType::Tree),
+</span><span style="color:#558f1f;">+            raw::GIT_OBJECT_BLOB =&gt; Some(ObjectType::Blob),
+</span><span style="color:#558f1f;">+            raw::GIT_OBJECT_TAG =&gt; Some(ObjectType::Tag),
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">_ =&gt; None,
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">diff --git a/src/remote_callbacks.rs b/src/remote_callbacks.rs
+</span><span style="color:#e8e8d3;">index 562d3a2..72e61a4 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/remote_callbacks.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/remote_callbacks.rs
+</span><span style="font-style:italic;color:#888888;">@@ -280,7 +280,7 @@</span><span style="color:#e8e8d3;"> extern fn credentials_cb(ret: *mut *mut raw::git_cred,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">callback(url, username_from_url, cred_type).map_err(|e| {
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#e8e8d3;">let s = CString::new(e.to_string()).unwrap();
+</span><span style="color:#a1000d;">-                raw::giterr_set_str(e.raw_code() as c_int, s.as_ptr());
+</span><span style="color:#558f1f;">+                raw::git_error_set_str(e.raw_code() as c_int, s.as_ptr());
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#e8e8d3;">e.raw_code() as c_int
+</span><span style="color:#e8e8d3;">             </span><span style="color:#e8e8d3;">})
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">});
+</span><span style="color:#e8e8d3;">diff --git a/src/transport.rs b/src/transport.rs
+</span><span style="color:#e8e8d3;">index d34db9f..56cef7a 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/transport.rs
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/transport.rs
+</span><span style="font-style:italic;color:#888888;">@@ -314,7 +314,7 @@</span><span style="color:#e8e8d3;"> extern fn stream_write(stream: *mut raw::git_smart_subtransport_stream,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">unsafe fn set_err(e: &amp;io::Error) {
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">let s = CString::new(e.to_string()).unwrap();
+</span><span style="color:#a1000d;">-    raw::giterr_set_str(raw::GITERR_NET as c_int, s.as_ptr())
+</span><span style="color:#558f1f;">+    raw::git_error_set_str(raw::GIT_ERROR_NET as c_int, s.as_ptr())
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">// callback used by smart transports to free a `SmartSubtransportStream`
+</span></pre>
+<p>Kind of an expected size since it is a wrapper, you can see it touches
+other areas that other packages don't. Like GIT_OBJ -&gt; GIT_OBJECT and
+GIT_IDXENTRY -&gt; GIT_INDEX_ENTRY.</p>
+<p>Now that we have created a new repo let's patch it in the cargo package
+Cargo.toml file.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/Cargo.toml b/Cargo.toml
+</span><span style="color:#e8e8d3;">index d2d48ff..8647870 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- Cargo.toml
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ Cargo.toml
+</span><span style="font-style:italic;color:#888888;">@@ -107,3 +107,8 @@</span><span style="color:#e8e8d3;"> doc = false
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">[features]
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">vendored-openssl = [&#39;openssl/vendored&#39;]
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pretty-env-logger = [&#39;pretty_env_logger&#39;]
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+[patch.crates-io]
+</span><span style="color:#558f1f;">+libgit2-sys = {git = &#39;https://github.com/maxice8/git2-rs&#39;, rev = &#39;23008957fec7a9479f27aa60e60c0614bf039137&#39;}
+</span><span style="color:#558f1f;">+git2 = {git = &#39;https://github.com/maxice8/git2-rs&#39;, rev = &#39;23008957fec7a9479f27aa60e60c0614bf039137&#39;}
+</span><span style="color:#558f1f;">+git2-curl = {git = &#39;https://github.com/maxice8/git2-rs&#39;, rev = &#39;23008957fec7a9479f27aa60e60c0614bf039137&#39;}
+</span></pre>
+<p>This sucks, we had to make a new repo to get a few patches in to change a few dependencies
+into the new libgit2 API.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg cargo
+</span><span style="color:#ffb964;">error[E0531]:</span><span style="color:#e8e8d3;"> cannot find unit struct/variant or constant `</span><span style="color:#ffb964;">GIT_OBJ_TAG</span><span style="color:#e8e8d3;">` in module `</span><span style="color:#ffb964;">raw</span><span style="color:#e8e8d3;">`
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">--</span><span style="color:#e8e8d3;">&gt; /tmp/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.7.5/src/lib.rs:846:18
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">|
+</span><span style="color:#ffb964;">846 </span><span style="color:#e8e8d3;">|             </span><span style="color:#ffb964;">raw::GIT_OBJ_TAG</span><span style="color:#e8e8d3;"> =&gt; Some(ObjectType::Tag)</span><span style="color:#ffb964;">,
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">|                  </span><span style="color:#ffb964;">^^^^^^^^^^^</span><span style="color:#e8e8d3;"> did you mean `</span><span style="color:#ffb964;">GIT_OBJECT_TAG</span><span style="color:#e8e8d3;">`?
+</span></pre>
+<p>Oh, it still fails, everything that uses git2 needs to be patched as well, oh well the rust
+people can figure this out and we can wait.</p>
+<h3 id="grv">grv</h3>
+<p>Ok, this one is not in rust like cargo, cargo-outdated and git-series, so it should be pretty
+safe to update, right ?</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg grv
+</span><span style="color:#ffb964;">WORK</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/tmp/go-build359986509
+</span><span style="color:#ffb964;">mkdir -p </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">WORK</span><span style="color:#e8e8d3;">/b065/
+</span><span style="color:#e8e8d3;">cd /builddir/grv/_build-grv-xbps/src/github.com/rgburke/grv/cmd/grv/vendor/gopkg.in/libgit2/git2go.v27
+</span><span style="color:#ffb964;">pkg-config --cflags</span><span style="color:#e8e8d3;"> -- libgit2
+</span><span style="color:#ffb964;">pkg-config --libs</span><span style="color:#e8e8d3;"> -- libgit2
+</span><span style="color:#ffb964;">CGO_LDFLAGS</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">&quot;-lgit2&quot;</span><span style="color:#556633;">&#39; </span><span style="color:#ffb964;">/usr/lib/go/pkg/tool/linux_amd64/cgo -objdir </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">WORK</span><span style="color:#e8e8d3;">/b065/</span><span style="color:#ffb964;"> -importpath</span><span style="color:#e8e8d3;"> github.com/rgburke/grv/cmd/grv/vendor/gopkg.in/libgit2/git2go.v27 -- -I $</span><span style="color:#ffb964;">WORK</span><span style="color:#e8e8d3;">/b065/ -mtune=generic -O2 -pipe ./blame.go ./blob.go ./branch.go ./checkout.go ./cherrypick.go ./clone.go ./commit.go ./config.go ./credentials.go ./describe.go ./diff.go ./features.go ./git.go ./git_dynamic.go ./graph.go ./handles.go ./ignore.go ./index.go ./merge.go ./note.go ./object.go ./odb.go ./packbuilder.go ./patch.go ./rebase.go ./refdb.go ./reference.go ./remote.go ./repository.go ./reset.go ./revparse.go ./settings.go ./signature.go ./stash.go ./status.go ./submodule.go ./tag.go ./tree.go ./walk.go
+</span><span style="color:#888888;"># github.com/rgburke/grv/cmd/grv/vendor/gopkg.in/libgit2/git2go.v27
+</span><span style="color:#ffb964;">_build-grv-xbps/src/github.com/rgburke/grv/cmd/grv/vendor/gopkg.in/libgit2/git2go.v27/git_dynamic.go:10:3:</span><span style="color:#e8e8d3;"> error: </span><span style="color:#888888;">#error &quot;Invalid libgit2 version; this git2go supports libgit2 v0.27&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#888888;"># error &quot;Invalid libgit2 version; this git2go supports libgit2 v0.27&quot;
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">^~~~~
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">grv-0.3.1_3:</span><span style="color:#e8e8d3;"> do_build: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">go get -x -tags &quot;${go_build_tags}&quot; -ldflags &quot;${go_ldflags}&quot; ${go_package}</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 2
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> do_build() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/build-style/go.sh:39
+</span></pre>
+<p>Ah nice, at least it fails with a good message, let's wait for upstream on that one.</p>
+<h2 id="finishing">Finishing</h2>
+<p>And that is all, we now wait for the hip languages to update their stuff so they can
+finally catch up with standard languages like C and C++.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

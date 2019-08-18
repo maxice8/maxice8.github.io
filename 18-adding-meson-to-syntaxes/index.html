@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/18-adding-meson-to-syntaxes/">Adding meson syntax highlighting</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-07
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/site/">#site</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/tutorial/">#tutorial</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>This is a small post/tutorial/diary about how i added meson
+syntax to my website.</p>
+<p>It is no surprise i use Zola to generate my website and besides a few
+hiccups it all works very well. One of those hiccups is that i like
+meson but Zola doesn't meet me halfway with meson highlighting.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="fetching">Fetching</h2>
+<p>Lucky for me, one can extend what syntaxes Zola can understand via
+configuration and the usage of .sublime-syntax files from the sublime
+editor.</p>
+<p>So we start by fetching the meson file from sublime,
+<a href="https://github.com/Salamandar/SublimeMeson/blob/master/Meson.sublime-syntax">here</a>
+is the link for syntax highlighting file, let's save on syntaxes in the root
+tree of my repo.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">.
+</span><span style="color:#e8e8d3;">├── config.toml
+</span><span style="color:#e8e8d3;">├── content
+</span><span style="color:#e8e8d3;">├── public
+</span><span style="color:#e8e8d3;">├── sass
+</span><span style="color:#e8e8d3;">├── static
+</span><span style="color:#e8e8d3;">├── syntaxes
+</span><span style="color:#e8e8d3;">└── templates
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">6 directories, 1 file
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">syntaxes/
+</span><span style="color:#e8e8d3;">└── Meson.sublime-syntax
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">0 directories, 1 file
+</span></pre><h2 id="configuring">Configuring</h2>
+<p>Ok now we need to edit the config.toml file and add the following key:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">extra_syntaxes </span><span style="color:#e8e8d3;">= [</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">syntaxes</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">]
+</span></pre>
+<p>That key is an array of directories to look for files ending in
+.sublime-syntax.</p>
+<h2 id="checking-it">Checking it</h2>
+<p>Let's check it out by highlighting an example available on the meson
+<a href="https://mesonbuild.com/Meson-sample.html">documentation</a>.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">project</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">simple</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">c</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">src = [</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">source1.c</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">source2.c</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">source3.c</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">]
+</span><span style="color:#e8e8d3;">exe = </span><span style="color:#ffb964;">executable</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">myexe</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, src)
+</span><span style="color:#ffb964;">test</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">simple test</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, exe)
+</span></pre>
+<p>Looks good, so this is how we add new syntaxes for Zola.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

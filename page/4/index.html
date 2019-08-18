@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+        <div class="posts">
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://maxice8.github.io/10-weighting-the-pages/">weighting the pages</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-04
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/site/">#site</a></span>
+    
+
+                    
+        <div class="post-content">
+            <h2 id="unplanned-carelessness">Unplanned carelessness</h2>
+<p>When i started this site i really didn't think through how to to organize the
+pages in the content section, i just went along with whatever the theme i was
+using at the time, in this case: evan.</p>
+<p>The result was less than optimal as evan used dates, which is ok if you write
+one article a day at best, but i write lots of small articles about Void Linux
+so the organisation was quickly thrown out of the window with weird filenames
+to be used as tie-breaker for sorting taking its place.</p>
+<p>So i decided one day to take the plunge and fix it before it got <strong>really</strong>
+out of hand.</p>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://maxice8.github.io/10-weighting-the-pages/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://maxice8.github.io/9-libgusb-meson-gir-cross/">libgusb: Meson, Gir, Cross face-off</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-03
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+                    
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>This is a shorter post, following up on the <a href="../8-cross-the-gir/#meson-1">Loose Ends</a>
+section of the <a href="../8-cross-the-gir">cross-the-gir</a>.</p>
+<p>After dealing with the fallout from merging gir support, there wasn't much to do,
+glibc-2.29 is still waiting. I decided to take some time to find out why libgusb
+is failing.</p>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://maxice8.github.io/9-libgusb-meson-gir-cross/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://maxice8.github.io/8-cross-the-gir/">Crossing the gir</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-02
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+                    
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>For those uninitiated, gir is <a href="https://gi.readthedocs.io/en/latest/">GObject Introspection</a>.
+A technology from GNOME that allows libraries to expose bindings to any language
+that can speak to C. It is the reason you can use lots of languages to write your
+GNOME and GTK applications while <a href="https://qt.io">Qt5</a> is mostly limited to C++
+and Python.</p>
+<p>On <a href="https://voidlinux.org">Void Linux</a> a high emphasis is placed into stuff being
+able to be cross compiled and for a long time gir has eluded us, with it's requirement
+of running stuff on the target system and using raw dumps of C structures.</p>
+<p>Now this is a river that is going to be crossed.</p>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://maxice8.github.io/8-cross-the-gir/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://maxice8.github.io/7-using-tmplgen/">Basic usage of tmplgen, a Void Linux template generator</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-02
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/tutorial/">#tutorial</a></span>
+    
+
+                    
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>Many modern languages (and some old ones) today have their own
+package manager ecosystem, where someone working on that language
+can easily get pieces of code written by other people that do
+their task for them.</p>
+<p>A few examples include:</p>
+<ul>
+<li><a href="https://metacpan.org/">meta::cpan</a> for Perl.</li>
+<li><a href="https://pypi.org/">PyPi</a> for Python.</li>
+<li><a href="https://rubygems.org/">RubyGems</a> for Ruby.</li>
+<li><a href="https://crates.io/">crates</a> for Rust.</li>
+</ul>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://maxice8.github.io/7-using-tmplgen/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://maxice8.github.io/6-new-site-scheme/">Follow up on &#x27;How this site is done&#x27;</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-02
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/site/">#site</a></span>
+    
+
+                    
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<blockquote>
+<p>This is a follow up on my previous post <a href="../3-how-its-done">How this site is done</a>.</p>
+</blockquote>
+<p>Starting as of 2019-02-02 this website now uses a forked version of the even theme
+for <code>zola</code> (the static site engine for this website).</p>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://maxice8.github.io/6-new-site-scheme/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            <div class="pagination">
+                <div class="pagination__buttons">
+                    <span class="button previous">
+                        <a href="https://maxice8.github.io/page/3/">
+                            <span class="button__icon">←</span>&nbsp;
+                            <span class="button__text">Newer posts</span>
+                        </a>
+                    </span>
+                
+                    <span class="button next">
+                        <a href="https://maxice8.github.io/page/5/">
+                            <span class="button__text">Older posts</span>&nbsp;
+                            <span class="button__icon">→</span>
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,89 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>maxice8-devel</title>
+        <link>https://maxice8.github.io</link>
+        <description></description>
+        <generator>Zola</generator>
+        <language>en</language>
+        <atom:link href="https://maxice8.github.io/tags/site/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Thu, 07 Feb 2019 00:00:00 +0000</lastBuildDate>
+        
+            <item>
+                <title>Adding meson syntax highlighting</title>
+                <pubDate>Thu, 07 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/18-adding-meson-to-syntaxes/</link>
+                <guid>https://maxice8.github.io/18-adding-meson-to-syntaxes/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a small post&#x2F;tutorial&#x2F;diary about how i added meson
+syntax to my website.&lt;&#x2F;p&gt;
+&lt;p&gt;It is no surprise i use Zola to generate my website and besides a few
+hiccups it all works very well. One of those hiccups is that i like
+meson but Zola doesn&#x27;t meet me halfway with meson highlighting.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>weighting the pages</title>
+                <pubDate>Mon, 04 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/10-weighting-the-pages/</link>
+                <guid>https://maxice8.github.io/10-weighting-the-pages/</guid>
+                <description>&lt;h2 id=&quot;unplanned-carelessness&quot;&gt;Unplanned carelessness&lt;&#x2F;h2&gt;
+&lt;p&gt;When i started this site i really didn&#x27;t think through how to to organize the
+pages in the content section, i just went along with whatever the theme i was
+using at the time, in this case: evan.&lt;&#x2F;p&gt;
+&lt;p&gt;The result was less than optimal as evan used dates, which is ok if you write
+one article a day at best, but i write lots of small articles about Void Linux
+so the organisation was quickly thrown out of the window with weird filenames
+to be used as tie-breaker for sorting taking its place.&lt;&#x2F;p&gt;
+&lt;p&gt;So i decided one day to take the plunge and fix it before it got &lt;strong&gt;really&lt;&#x2F;strong&gt;
+out of hand.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Second followup on &#x27;How its done&#x27;</title>
+                <pubDate>Mon, 04 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/13-second-followup-how-its-done/</link>
+                <guid>https://maxice8.github.io/13-second-followup-how-its-done/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;Some time back i asked &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;Cogitri&quot;&gt;Cogitri&lt;&#x2F;a&gt; to start writing
+about his exploits with his projects like &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;Cogitri&#x2F;gxi&quot;&gt;gxi&lt;&#x2F;a&gt;
+and &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;Cogitri&#x2F;tmplgen&quot;&gt;tmplgen&lt;&#x2F;a&gt;, he got around to it and
+started by looking at my setup.&lt;&#x2F;p&gt;
+&lt;p&gt;Needless to say we exchanged quite a few things and it got me into finishing
+the restructuring of my blog. So let&#x27;s start with the changes i have done
+before.&lt;&#x2F;p&gt;
+&lt;p&gt;This can be considered the third follow up with the second one being
+&lt;a href=&quot;..&#x2F;10-weighting-the-pages&#x2F;&quot;&gt;weighting the pages&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Follow up on &#x27;How this site is done&#x27;</title>
+                <pubDate>Sat, 02 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/6-new-site-scheme/</link>
+                <guid>https://maxice8.github.io/6-new-site-scheme/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is a follow up on my previous post &lt;a href=&quot;..&#x2F;3-how-its-done&quot;&gt;How this site is done&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;p&gt;Starting as of 2019-02-02 this website now uses a forked version of the even theme
+for &lt;code&gt;zola&lt;&#x2F;code&gt; (the static site engine for this website).&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>How this site is done</title>
+                <pubDate>Fri, 01 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/3-how-its-done/</link>
+                <guid>https://maxice8.github.io/3-how-its-done/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This small post will show all about how this site, which is hosted via &lt;a href=&quot;https:&#x2F;&#x2F;pages.github.com&#x2F;&quot;&gt;GitHub Pages&lt;&#x2F;a&gt;,
+and is for all intents and purposes a blog, is done.&lt;&#x2F;p&gt;
+&lt;p&gt;Hopefully this post can also be of help to users that want a similar setup.&lt;&#x2F;p&gt;
+&lt;p&gt;Without further ado.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+    </channel>
+</rss>

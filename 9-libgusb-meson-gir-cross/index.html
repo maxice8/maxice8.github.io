@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/9-libgusb-meson-gir-cross/">libgusb: Meson, Gir, Cross face-off</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-03
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>This is a shorter post, following up on the <a href="../8-cross-the-gir/#meson-1">Loose Ends</a>
+section of the <a href="../8-cross-the-gir">cross-the-gir</a>.</p>
+<p>After dealing with the fallout from merging gir support, there wasn't much to do,
+glibc-2.29 is still waiting. I decided to take some time to find out why libgusb
+is failing.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="diagnostics">Diagnostics</h2>
+<h3 id="error">error</h3>
+<p>First thing we need to do is to look at the error, we can re-use the error message from
+the last article. Let's take a look at where it actually errors out</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">In file included from /builddir/libgusb-0.3.0/build/g-ir-cpp-se2xrgqu.c:4:
+</span><span style="color:#e8e8d3;">/builddir/libgusb-0.3.0/build/gusb/gusb-version.h:31:2: error: #error &quot;Only &lt;gusb.h&gt; can be included directly.&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">#error &quot;Only &lt;gusb.h&gt; can be included directly.&quot;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">^~~~~
+</span></pre>
+<p>OK, we are hitting a #error directive in build/gusb/gusb-version.h, on line 31, let's take
+a peek at it and a few lines around.</p>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">#if</span><span style="color:#e8e8d3;"> !</span><span style="color:#8fbfdc;">defined</span><span style="color:#e8e8d3;"> (__GUSB_INSIDE__) &amp;&amp; !</span><span style="color:#8fbfdc;">defined</span><span style="color:#e8e8d3;"> (GUSB_COMPILATION)
+</span><span style="color:#8fbfdc;">#error </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Only &lt;gusb.h&gt; can be included directly.</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">#endif
+</span></pre>
+<p>Interesting, we need either __GUSB_INSIDE__ or GUSB_COMPILATION defined. But where is it
+defined ?</p>
+<blockquote>
+<p>meson.build</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">add_project_arguments</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DGUSB_COMPILATION</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, </span><span style="color:#ffb964;">language</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">c</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span></pre>
+<p>So it is added to the project CFLAGS, isn't it present in the args passed to it ? Let's
+check the build.ninja for it.</p>
+<blockquote>
+<p>build/build.ninja</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">build
+</span><span style="color:#e8e8d3;">gusb/GUsb-1.0.gir:
+</span><span style="color:#e8e8d3;">CUSTOM_COMMAND
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">|
+</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/bin/g-ir-scanner
+</span><span style="color:#e8e8d3;">gusb/libgusb.so.2.0.10
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">COMMAND
+</span><span style="color:#e8e8d3;">=
+</span><span style="color:#e8e8d3;">/usr/aarch64-linux-gnu/usr/bin/g-ir-scanner
+</span><span style="color:#e8e8d3;">-pthread
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include/gobject-introspection-1.0
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include/glib-2.0
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/lib/glib-2.0/include
+</span><span style="color:#e8e8d3;">--no-libtool
+</span><span style="color:#e8e8d3;">--namespace=GUsb
+</span><span style="color:#e8e8d3;">--nsversion=1.0
+</span><span style="color:#e8e8d3;">--warn-all
+</span><span style="color:#e8e8d3;">--output
+</span><span style="color:#e8e8d3;">gusb/GUsb-1.0.gir
+</span><span style="color:#e8e8d3;">--c-include=gusb.h
+</span><span style="color:#e8e8d3;">-I/builddir/libgusb-0.3.0/gusb
+</span><span style="color:#e8e8d3;">-I/builddir/libgusb-0.3.0/build/gusb
+</span><span style="color:#e8e8d3;">-I./.
+</span><span style="color:#e8e8d3;">-I../.
+</span><span style="color:#e8e8d3;">-I./gusb/.
+</span><span style="color:#e8e8d3;">-I../gusb/.
+</span><span style="color:#e8e8d3;">--filelist=/builddir/libgusb-0.3.0/build/gusb/bf6bc9e@@gusb@sha/GUsb_1.0_gir_filelist
+</span><span style="color:#e8e8d3;">-L/builddir/libgusb-0.3.0/build/gusb
+</span><span style="color:#e8e8d3;">--extra-library=gusb
+</span><span style="color:#e8e8d3;">--include=Gio-2.0
+</span><span style="color:#e8e8d3;">--include=GObject-2.0
+</span><span style="color:#e8e8d3;">--symbol-prefix=g_usb
+</span><span style="color:#e8e8d3;">--identifier-prefix=GUsb
+</span><span style="color:#e8e8d3;">--pkg-export=gusb
+</span><span style="color:#e8e8d3;">--cflags-begin
+</span><span style="color:#e8e8d3;">-I./.
+</span><span style="color:#e8e8d3;">-I../.
+</span><span style="color:#e8e8d3;">-I./gusb/.
+</span><span style="color:#e8e8d3;">-I../gusb/.
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include/libmount
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include/blkid
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include/uuid
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include/glib-2.0
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/lib/glib-2.0/include
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include/libusb-1.0
+</span><span style="color:#e8e8d3;">-D_FORTIFY_SOURCE=2
+</span><span style="color:#e8e8d3;">-I/usr/aarch64-linux-gnu/usr/include
+</span><span style="color:#e8e8d3;">--cflags-end
+</span><span style="color:#e8e8d3;">--library
+</span><span style="color:#e8e8d3;">gusb
+</span><span style="color:#e8e8d3;">-L/builddir/libgusb-0.3.0/build/gusb
+</span><span style="color:#e8e8d3;">-L/usr/aarch64-linux-gnu/usr/lib
+</span><span style="color:#e8e8d3;">--extra-library=gio-2.0
+</span><span style="color:#e8e8d3;">--extra-library=gobject-2.0
+</span><span style="color:#e8e8d3;">--extra-library=glib-2.0
+</span><span style="color:#e8e8d3;">--extra-library=usb-1.0
+</span></pre><h3 id="looking-at-atk">Looking at ATK</h3>
+<p>Taking a look at another package that uses both meson and generates gir, Atk.</p>
+<p>Let's check if they also have an equivalent to GUSB_COMPILATION, maybe
+ATK_COMPILATION ?</p>
+<blockquote>
+<p>atk/meson.build</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">atk_cflags = [
+</span><span style="color:#e8e8d3;">  </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DG_LOG_DOMAIN=&quot;Atk&quot;</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">  </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DG_LOG_USE_STRUCTURED=1</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">  </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DGLIB_DISABLE_DEPRECATION_WARNINGS</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">  </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DATK_DISABLE_DEPRECATION_WARNINGS</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">  </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DATK_COMPILATION</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">  </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DATK_LOCALEDIR=&quot;</span><span style="color:#7697d6;">@0@</span><span style="color:#99ad6a;">&quot;</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">.</span><span style="color:#ffb964;">format</span><span style="color:#e8e8d3;">(</span><span style="color:#ffb964;">join_paths</span><span style="color:#e8e8d3;">(atk_datadir, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">locale</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)),
+</span><span style="color:#e8e8d3;">]
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">if </span><span style="color:#ffb964;">get_option</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">introspection</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">gnome.</span><span style="color:#ffb964;">generate_gir</span><span style="color:#e8e8d3;">(libatk,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">sources</span><span style="color:#e8e8d3;">: atk_sources + atk_headers + [ atk_enum_h ] + [ atk_version_h ],
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">namespace</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">nsversion</span><span style="color:#e8e8d3;">: atk_api_version,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">identifier_prefix</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">symbol_prefix</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">export_packages</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">includes</span><span style="color:#e8e8d3;">: [ </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">GObject-2.0</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">],
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">install</span><span style="color:#e8e8d3;">: true,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">extra_args</span><span style="color:#e8e8d3;">: [
+</span><span style="color:#e8e8d3;">                       </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">--quiet</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                       </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">--c-include=atk/atk.h</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                       </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DATK_COMPILATION</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#e8e8d3;">])
+</span><span style="color:#8fbfdc;">endif
+</span></pre>
+<p>They do, and they pass it via extra_args, not add_project_arguments. Well then, let's
+modify libgusb to also do it.</p>
+<h2 id="fixing">Fixing</h2>
+<h3 id="patching">patching</h3>
+<p>Let's patch the package.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/gusb/meson.build b/gusb/meson.build
+</span><span style="color:#e8e8d3;">index 5276259..b6a04d5 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- gusb/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ gusb/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -113,6 +113,7 @@</span><span style="color:#e8e8d3;"> libgusb_girtarget = gnome.generate_gir(gusb,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">export_packages : &#39;gusb&#39;,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">extra_args : [
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">&#39;--c-include=gusb.h&#39;,
+</span><span style="color:#558f1f;">+    &#39;-DGUSB_COMPILATION&#39;,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">],
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">link_with : gusb,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">dependencies : [
+</span></pre><h3 id="building">building</h3>
+<p>Looks good enough, let's try building it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ xbps-src -f -a aarch64 pkg libgusb
+</span><span style="color:#e8e8d3;">=&gt; Registering new packages to /host/binpkgs/libgusb
+</span><span style="color:#e8e8d3;">index: added `libgusb-0.3.0_4&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: added `libgusb-devel-0.3.0_4&#39; (aarch64).
+</span><span style="color:#e8e8d3;">index: 2 packages registered.
+</span><span style="color:#e8e8d3;">$ env XBPS_TARGET_ARCH=aarch64 xls libgusb{,-devel} | grep -E &#39;,(gir|typelib)
+</span><span style="color:#e8e8d3;">/usr/lib/girepository-1.0/GUsb-1.0.typelib
+</span><span style="color:#e8e8d3;">/usr/share/gir-1.0/GUsb-1.0.gir
+</span></pre><h3 id="upstreaming">Upstreaming</h3>
+<p>A problem is rarely fixed unless it is upstream, so lets make a
+<a href="https://github.com/hughsie/libgusb/pull/14">pull request</a>.</p>
+<h2 id="closing-out">Closing out</h2>
+<p>This has been a very annoying bug, that is now fixed.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

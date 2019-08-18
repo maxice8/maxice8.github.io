@@ -1,0 +1,73 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>maxice8-devel</title>
+        <link>https://maxice8.github.io</link>
+        <description></description>
+        <generator>Zola</generator>
+        <language>en</language>
+        <atom:link href="https://maxice8.github.io/tags/distro/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Wed, 24 Jul 2019 00:00:00 +0000</lastBuildDate>
+        
+            <item>
+                <title>Alpine: workflow - updating a package</title>
+                <pubDate>Wed, 24 Jul 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/25-alpine-workflow/</link>
+                <guid>https://maxice8.github.io/25-alpine-workflow/</guid>
+                <description>&lt;h2 id=&quot;intro&quot;&gt;Intro&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a very important post. In it i will do a walkthrough of my workflow
+when contributing to &lt;a href=&quot;https:&#x2F;&#x2F;alpinelinux.org&quot;&gt;Alpine Linux&lt;&#x2F;a&gt;, in this specific
+post i will update the &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;HypothesisWorks&#x2F;hypothesis&quot;&gt;py-hypothesis&lt;&#x2F;a&gt;
+from 4.28.2 to 4.31.0.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Alpine: multiple branches and backports</title>
+                <pubDate>Tue, 23 Jul 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/24-multiple-branches/</link>
+                <guid>https://maxice8.github.io/24-multiple-branches/</guid>
+                <description>&lt;h2 id=&quot;intro&quot;&gt;Intro&lt;&#x2F;h2&gt;
+&lt;p&gt;One of the major differences between my previous distro, &lt;a href=&quot;https:&#x2F;&#x2F;voidlinux.org&quot;&gt;Void Linux&lt;&#x2F;a&gt;,
+and the distro i contribute to now, &lt;a href=&quot;https:&#x2F;&#x2F;alpinelinux.org&quot;&gt;Alpine Linux&lt;&#x2F;a&gt;, is the presence
+of multiple releases on the latter one.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;alpinelinux.org&quot;&gt;Alpine Linux&lt;&#x2F;a&gt; has multiple releases, the last is the 3.10.x branch
+which is on 3.10.1, on my desktop i run edge which is directly from master, and most of my
+contributions assumed that i would contribute only to the master branch.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Alpine: Moving In</title>
+                <pubDate>Tue, 23 Apr 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/22-alpine/</link>
+                <guid>https://maxice8.github.io/22-alpine/</guid>
+                <description>&lt;h2 id=&quot;intro&quot;&gt;Intro&lt;&#x2F;h2&gt;
+&lt;p&gt;Recently i switched to &lt;a href=&quot;https:&#x2F;&#x2F;alpinelinux.org&#x2F;&quot;&gt;Alpine Linux&lt;&#x2F;a&gt; a Linux
+distro based on musl libc and busybox with focus on security and being lightweight.&lt;&#x2F;p&gt;
+&lt;p&gt;This article will document the process of moving in from Void Linux to Alpine, how
+the uniqueness of using busybox for userland tooling was dealt with and how i got
+into contributing for it.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Reviewing GitHub pull requests in a terminal</title>
+                <pubDate>Tue, 23 Apr 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/23-pr-fetcher/</link>
+                <guid>https://maxice8.github.io/23-pr-fetcher/</guid>
+                <description>&lt;h2 id=&quot;intro&quot;&gt;Intro&lt;&#x2F;h2&gt;
+&lt;p&gt;I recently got into an accident with my notebook, letting it fall hard on the floor
+causing the motherboard frame to break a little and the AC connector to not plug
+in anymore since the piece that held it was falling inside the notebook.&lt;&#x2F;p&gt;
+&lt;p&gt;In the meantime of repairs I fetched my friend&#x27;s spare notebook (more like abandoned)
+which was a 2GB positivo with an Intel Atom CPU. This forced me into a hard situation,
+I can&#x27;t run heavy web browsers like Firefox and Chromium and even after settling with
+Luakit I found it still slugged when reviewing large pull requests.&lt;&#x2F;p&gt;
+&lt;p&gt;With no other choice I turned to the only thing that stays fast on such an underpowered
+machine: CLI and TUI. And did what I do decently well enough, wrote a shell script to
+make stuff bearable.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+    </channel>
+</rss>

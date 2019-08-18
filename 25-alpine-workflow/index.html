@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/25-alpine-workflow/">Alpine: workflow - updating a package</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-07-24
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/distro/">#distro</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="intro">Intro</h2>
+<p>This is a very important post. In it i will do a walkthrough of my workflow
+when contributing to <a href="https://alpinelinux.org">Alpine Linux</a>, in this specific
+post i will update the <a href="https://github.com/HypothesisWorks/hypothesis">py-hypothesis</a>
+from 4.28.2 to 4.31.0.</p>
+<p><a name="continue-reading"></a></p>
+<h3 id="creating-the-py-hypothesis-branch">Creating the py-hypothesis branch</h3>
+<p>First we need to create a branch where we work on, for it we use the <code>gbr</code> script
+which takes a single argument which is the name of the branch. If the branch name
+given exists it switches to it, otherwise it creates it and then switches to it</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> gbr py-hypothesis
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> git rev-parse</span><span style="color:#ffb964;"> --abbrev-ref</span><span style="color:#e8e8d3;"> HEAD
+</span><span style="color:#ffb964;">py-hypothesis
+</span></pre><h3 id="switch-the-version-and-regenerate-the-checksum">Switch the version and regenerate the checksum</h3>
+<p>First we switch the version from 4.28.2 to 4.31.0 on the APKBUILD, using the <code>ax</code>
+script, which take multiple different verbs, for it we will use the <code>g</code>,  <code>e</code> and
+<code>x</code> verbs.</p>
+<p>The first takes further arguments and shows their value in the APKBUILD, if you
+want to know the pkgver you want to run <code>ax g pkgver</code>. The second one opens
+the APKBUILD in your $EDITOR, falling back to vi.</p>
+<p>The third one runs <code>abuild checksum</code> against the APKBUILD, downloading the new
+tarball defined in the <code>source</code> variable and updating the values in the <code>sha512sums</code>
+variable.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> ax g pkgver sha512sums
+</span><span style="color:#ffb964;">4.28.2
+</span><span style="color:#ffb964;">3926d00d507345a179b47cace3554e3caf3310f669b27540dcea7e8d6d8433fcd45fdbba0c2149a9b968fdc7db8a25b51089ee467606f7a2b5073e964fe50933</span><span style="color:#e8e8d3;"> py-hypothesis-4.28.2.tar.gz
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> ax e
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> ax x
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> ax g pkgver sha512sums
+</span><span style="color:#ffb964;">4.31.0
+</span><span style="color:#ffb964;">9352544bf5f44d705c4cd358648791ecb6a9e81d57b27e8803bba068f2f2359bfb94aeac1a1decc5420320fff5b2dab39fcc3eb3c7e199c66856a294ad580f5c</span><span style="color:#e8e8d3;"> py-hypothesis-4.31.0.tar.gz
+</span></pre><h3 id="inspecting-hypothesis">Inspecting hypothesis</h3>
+<p>After making the changes necessary in the APKBUILD i then inspect the changelog, which
+most of the time is inside the source, for it i use <code>ax u</code> which opens my TUI file manager
+<a href="https://github.com/ranger/ranger">ranger</a> on the root of the extracted source code.</p>
+<p><img src="../25-file-manager.png" alt="File Manager" /></p>
+<h3 id="building-hypothesis">Building hypothesis</h3>
+<p>After inspecting that the changes are all OK i build the package using <code>ax t</code> which runs
+<code>dabuild</code> a docker instance of the Alpine Linux image, a preferable alternative to
+building against the system like <code>abuild</code> does by default as:</p>
+<ul>
+<li>It builds against a clean machine, not letting my workstation packages interfere</li>
+<li>It can be run with multiple parallel builds</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">$ ax t
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; py-hypothesis: Updating the community/x86_64 repository index...
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; py-hypothesis: Signing the index...
+</span></pre><h3 id="testing-hypothesis">Testing hypothesis</h3>
+<p>If the test suite for the package isn't run or there are changes that require manual
+testing then the package can be installed in the system:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> doas apk add py3-hypothesis
+</span></pre><h3 id="creating-and-pushing-commits">Creating and pushing commits</h3>
+<p>For creating the commits only git is used, for pushing the auxiliary <code>ax s</code> is used.</p>
+<p>For writing the commit messages a <a href="https://raw.githubusercontent.com/maxice8/meltryllis/master/alpinelinux/prepare-commit-msg">githook</a> is used, and if required manual changes are done. But for simple
+updates the githook is more than enough.</p>
+<p><img src="../25-commit.png" alt="commit" /></p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">commit 78f628f348ebb14380ca2cca225043532c13c164
+</span><span style="color:#e8e8d3;">Author: Leo &lt;thinkabit.ukim@gmail.com&gt;
+</span><span style="color:#e8e8d3;">Date:   Wed Jul 24 19:49:34 2019 -0300
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">community/py-hypothesis: upgrade to 4.31.0
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">diff --git a/community/py-hypothesis/APKBUILD b/community/py-hypothesis/APKBUILD
+</span><span style="color:#e8e8d3;">index b47837e022..f9a7ff60ad 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/community/py-hypothesis/APKBUILD
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/community/py-hypothesis/APKBUILD
+</span><span style="font-style:italic;color:#888888;">@@ -1,7 +1,7 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Contributor: Drew DeVault &lt;sir@cmpwn.com&gt;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Maintainer: Leo &lt;thinkabit.ukim@gmail.com&gt;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=py-hypothesis
+</span><span style="color:#a1000d;">-pkgver=4.28.2
+</span><span style="color:#558f1f;">+pkgver=4.31.0
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgrel=0
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgdesc=&quot;Advanced property-based (QuickCheck-like) testing for Python&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">url=&quot;https://hypothesis.works/&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -72,4 +72,4 @@</span><span style="color:#e8e8d3;"> _py() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">$_python setup.py install --prefix=/usr --root=&quot;$subpkgdir&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-sha512sums=&quot;3926d00d507345a179b47cace3554e3caf3310f669b27540dcea7e8d6d8433fcd45fdbba0c2149a9b968fdc7db8a25b51089ee467606f7a2b5073e964fe50933  py-hypothesis-4.28.2.tar.gz&quot;
+</span><span style="color:#558f1f;">+sha512sums=&quot;9352544bf5f44d705c4cd358648791ecb6a9e81d57b27e8803bba068f2f2359bfb94aeac1a1decc5420320fff5b2dab39fcc3eb3c7e199c66856a294ad580f5c  py-hypothesis-4.31.0.tar.gz&quot;
+</span></pre>
+<p>Then we push it, the <code>ax s</code> command does that automatically</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> ax s
+</span><span style="color:#ffb964;">Enumerating</span><span style="color:#e8e8d3;"> objects: 25, done.
+</span><span style="color:#ffb964;">Counting</span><span style="color:#e8e8d3;"> objects: 100% (25/25)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">Delta</span><span style="color:#e8e8d3;"> compression using up to 4 threads
+</span><span style="color:#ffb964;">Compressing</span><span style="color:#e8e8d3;"> objects: 100% (14/14)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">Writing</span><span style="color:#e8e8d3;"> objects: 100% (15/15)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 1.74 KiB | </span><span style="color:#ffb964;">1.74</span><span style="color:#e8e8d3;"> MiB/s, done.
+</span><span style="color:#ffb964;">Total</span><span style="color:#e8e8d3;"> 15 (delta 9)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> reused 0 (delta 0)
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;"> Resolving deltas: 100% (9/9)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> completed with 7 local objects.
+</span><span style="color:#ffb964;">remote:
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;"> Create a pull request for </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">py-hypothesis</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> on GitHub by visiting:
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;">      https://github.com/maxice8/aports/pull/new/py-hypothesis
+</span><span style="color:#ffb964;">remote:
+</span><span style="color:#ffb964;">To</span><span style="color:#e8e8d3;"> https://github.com/maxice8/aports
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">* </span><span style="color:#8fbfdc;">[</span><span style="color:#e8e8d3;">new branch</span><span style="color:#8fbfdc;">]</span><span style="color:#e8e8d3;">            py-hypothesis -&gt; py-hypothesis
+</span><span style="color:#ffb964;">Branch </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">py-hypothesis</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> set up to track remote branch </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">py-hypothesis</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> from </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">origin</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">.
+</span></pre><h3 id="making-the-pull-request">Making the pull request</h3>
+<p>For making the pull request we use the <code>mkpr</code> binary which uses the <code>hub</code> program
+that interacts with the <a href="https://developer.github.com/v3/">GitHub v3 API</a>.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> mkpr
+</span><span style="color:#ffb964;">https://github.com/alpinelinux/aports/pull/9673
+</span></pre>
+<p><img src="../25-pull-request.png" alt="Pull Request" /></p>
+<p>If we need to modify anything in the pull request body before creating it we can
+use the <code>-e</code> switch to tell mkpr to open the draft of the pull request in our editor.</p>
+<h3 id="merging-the-pull-request">Merging the pull request</h3>
+<p>To merge the pull request we just get it onto the master branch and push it to upstream.
+The <code>pr</code> binary gets a pr number and applies it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> gbr master
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> pr 9673
+</span><span style="color:#ffb964;">Applying:</span><span style="color:#e8e8d3;"> community/py-hypothesis: upgrade to 4.31.0
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> pullp
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;"> Enumerating objects: 47, done.
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;"> Counting objects: 100% (47/47)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;"> Compressing objects: 100% (33/33)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">remote:</span><span style="color:#e8e8d3;"> Total 36 (delta 20)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> reused 0 (delta 0)
+</span><span style="color:#ffb964;">Unpacking</span><span style="color:#e8e8d3;"> objects: 100% (36/36)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">From</span><span style="color:#e8e8d3;"> git.alpinelinux.org:aports
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">*</span><span style="color:#e8e8d3;"> branch                  master     -&gt; FETCH_HEAD
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">cd02476ae9..7fee7d2efb</span><span style="color:#e8e8d3;">  master     -&gt; upstream/master
+</span><span style="color:#ffb964;">First,</span><span style="color:#e8e8d3;"> rewinding head to replay your work on top of it...
+</span><span style="color:#ffb964;">Applying:</span><span style="color:#e8e8d3;"> community/py-hypothesis: upgrade to 4.31.0
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> push
+</span><span style="color:#ffb964;">Enumerating</span><span style="color:#e8e8d3;"> objects: 9, done.
+</span><span style="color:#ffb964;">Counting</span><span style="color:#e8e8d3;"> objects: 100% (9/9)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">Delta</span><span style="color:#e8e8d3;"> compression using up to 4 threads
+</span><span style="color:#ffb964;">Compressing</span><span style="color:#e8e8d3;"> objects: 100% (4/4)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> done.
+</span><span style="color:#ffb964;">Writing</span><span style="color:#e8e8d3;"> objects: 100% (5/5)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 572 bytes | </span><span style="color:#ffb964;">572.00</span><span style="color:#e8e8d3;"> KiB/s, done.
+</span><span style="color:#ffb964;">Total</span><span style="color:#e8e8d3;"> 5 (delta 3)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> reused 0 (delta 0)
+</span><span style="color:#ffb964;">To</span><span style="color:#e8e8d3;"> git.alpinelinux.org:aports
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">7fee7d2efb..162bc92425</span><span style="color:#e8e8d3;">  master -&gt; master
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> dlbr py-hypothesis
+</span><span style="color:#e8e8d3;">[  OK  ] </span><span style="color:#ffb964;">Deleted</span><span style="color:#e8e8d3;"> local </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">py-hypothesis</span><span style="color:#556633;">&#39;
+</span><span style="color:#e8e8d3;">[  OK  ] </span><span style="color:#ffb964;">Deleted</span><span style="color:#e8e8d3;"> remote </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">py-hypothesis</span><span style="color:#556633;">&#39;
+</span></pre>
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

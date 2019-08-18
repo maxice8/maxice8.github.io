@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/23-pr-fetcher/">Reviewing GitHub pull requests in a terminal</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-04-23
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/distro/">#distro</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="intro">Intro</h2>
+<p>I recently got into an accident with my notebook, letting it fall hard on the floor
+causing the motherboard frame to break a little and the AC connector to not plug
+in anymore since the piece that held it was falling inside the notebook.</p>
+<p>In the meantime of repairs I fetched my friend's spare notebook (more like abandoned)
+which was a 2GB positivo with an Intel Atom CPU. This forced me into a hard situation,
+I can't run heavy web browsers like Firefox and Chromium and even after settling with
+Luakit I found it still slugged when reviewing large pull requests.</p>
+<p>With no other choice I turned to the only thing that stays fast on such an underpowered
+machine: CLI and TUI. And did what I do decently well enough, wrote a shell script to
+make stuff bearable.</p>
+<p><a name="continue-reading"></a></p>
+<hr />
+<h2 id="pull-requests">pull requests</h2>
+<p>The first thing that needs to be done is to know what pull requests you're dealing it
+so for that I used <code>hub</code>, a CLI tool to work on GitHub repositories. Using it was simple
+enough, I just made it run whenever I called the script in certain situations.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># If the user executed pr-fetcher-daemon binary or invokes with the
+</span><span style="color:#888888;"># first arg as daemon then we execute a PRs fetching daemon, hub pr list
+</span><span style="color:#888888;"># takes a very long time, so run it every 5 minutes
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">0##</span><span style="color:#99ad6a;">*/}</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">= </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">pr-fetcher-daemon</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">] || [ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">= </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">daemon</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">while </span><span style="color:#ffb964;">true</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">output</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">output</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">hub</span><span style="color:#99ad6a;"> pr list</span><span style="color:#ffb964;"> -f </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">(%i) (%NC) %t by %au%n</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-z </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">output</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">] &amp;&amp; </span><span style="color:#8fbfdc;">continue
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">output</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&gt; </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">prfile</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">sleep</span><span style="color:#e8e8d3;"> 300
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span><span style="color:#8fbfdc;">fi
+</span></pre>
+<p>When I run pr-fetcher-daemon with my working directory set to a git repository it
+will fetch the pull requests present and put them neatly inside a file inside a
+temporary directory to be read later, doing that every 5 minutes (300 seconds)
+in a loop.</p>
+<hr />
+<h2 id="picking">picking</h2>
+<p>If the user doesn't start the daemon surely he wants to pick a pull request and
+work on it. This is where we use the <code>fzy</code> binary to provide them with a nice list
+to pick.</p>
+<p><img src="../23-pick-pr.png" alt="Picking a PR" /></p>
+<h2 id="checking">Checking</h2>
+<p>Before going into a pull request we need to check if the pull request has been
+reviewed before. For that we again use the <code>hub</code> command.</p>
+<p><img src="../23-check-pr.png" alt="Checking a PR" /></p>
+<h2 id="checking-out">Checking Out</h2>
+<p>If we have no previous reviews or if we say yes to the question of having a new
+review then we check out the PR</p>
+<p><img src="../23-check-out-pr.png" alt="Checking Out a PR" /></p>
+<p>The following is the code to check out the pull request on your repo:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Check if the pr is already fetched, if not fetch it and checkout it
+</span><span style="color:#8fbfdc;">if </span><span style="color:#ffb964;">git</span><span style="color:#e8e8d3;"> rev-parse</span><span style="color:#ffb964;"> --verify </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pr_num</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&gt;/dev/null </span><span style="color:#cf6a4c;">2</span><span style="color:#e8e8d3;">&gt;&amp;</span><span style="color:#cf6a4c;">1</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">msg</span><span style="color:#e8e8d3;"> Switching to branch </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pr_num</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">gbr </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pr_num</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># Check out the pr num with the name of the pr branch
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">msg</span><span style="color:#e8e8d3;"> Fetching and checking out branch </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pr_num</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">hub</span><span style="color:#e8e8d3;"> pr checkout </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pr_num</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pr_num</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&gt;/dev/null </span><span style="color:#cf6a4c;">2</span><span style="color:#e8e8d3;">&gt;&amp;</span><span style="color:#cf6a4c;">1 </span><span style="color:#e8e8d3;">&amp;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">msg</span><span style="color:#e8e8d3;"> Fetching commits for </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pr_num</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">commits</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">hub</span><span style="color:#99ad6a;"> api \
+</span><span style="color:#99ad6a;">               </span><span style="color:#ffb964;">/repos/${uuser}/${urepo}/pulls/${pr_num}/commits </span><span style="color:#99ad6a;">\
+</span><span style="color:#99ad6a;">               </span><span style="color:#99ad6a;">| </span><span style="color:#ffb964;">jq -r </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">.[].sha</span><span style="color:#556633;">&#39; </span><span style="color:#99ad6a;">&amp;)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">wait
+</span><span style="color:#8fbfdc;">fi
+</span></pre><h2 id="reviewing-a-commit">Reviewing a commit</h2>
+<p>First thing we do is to pick a commit to review, if there is only one commit we
+go straight into it.</p>
+<h3 id="picking-it">Picking it</h3>
+<p>We use <code>fzy</code> to pick a commit for us, we can pick any or just press ctrl-c to exit
+to the next step</p>
+<p><img src="../23-pick-commit.png" alt="Picking a commit" /></p>
+<h3 id="reviewing-it">Reviewing it</h3>
+<p>For review we read the file with <code>cat -n</code> then pipe it into <code>fzf</code> with lots of
+command line flags to make it bearable. Whatever is typed into the prompt and
+returned by pressing enter is included in the review, to finish it just return
+nothing by pressing enter directly.</p>
+<p><img src="../23-review-commit.png" alt="Reviewing a commit" /></p>
+<p>The follow is the code using to annotate a commit:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Temporary directory that holds the files that represents the comments and
+</span><span style="color:#888888;"># the commits
+</span><span style="color:#ffb964;">tempdir</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">mktemp -d</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Read comments for the PR until we have one that is just exit
+</span><span style="color:#8fbfdc;">while </span><span style="color:#ffb964;">true</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># If we have only one commit then just go to it instead of asking the user
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># what commit he wants to look at
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">commitcount</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">-eq</span><span style="color:#e8e8d3;"> 1 ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">annotate_commit </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">commits</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">tempdir</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">break
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># If the user has less than 3 commits then set lines to 3 since we can&#39;t have
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># a lower value to that
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">commitcount</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">-lt</span><span style="color:#e8e8d3;"> 3 ] &amp;&amp; </span><span style="color:#ffb964;">lines</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">3 </span><span style="color:#e8e8d3;">|| </span><span style="color:#ffb964;">lines</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">commitcount
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">tput</span><span style="color:#e8e8d3;"> clear </span><span style="color:#888888;"># Clear the terminal
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">yn</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> show $</span><span style="color:#ffb964;">commits -s --pretty</span><span style="color:#99ad6a;">=oneline | </span><span style="color:#ffb964;">fzy </span><span style="color:#99ad6a;">\
+</span><span style="color:#99ad6a;">                                                  </span><span style="color:#ffb964;">--lines</span><span style="color:#99ad6a;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">lines</span><span style="color:#556633;">&quot; </span><span style="color:#99ad6a;">\
+</span><span style="color:#99ad6a;">                                                  </span><span style="color:#ffb964;">--prompt</span><span style="color:#99ad6a;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">pick a commit: </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">yn</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">yn</span><span style="color:#556633;">&quot; </span><span style="color:#99ad6a;">| </span><span style="color:#ffb964;">cut -d </span><span style="color:#556633;">&#39; &#39;</span><span style="color:#ffb964;"> -f1</span><span style="color:#99ad6a;">)</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">yn</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">        </span><span style="color:#556633;">&#39;&#39;</span><span style="color:#8fbfdc;">) break </span><span style="color:#e8e8d3;">;; </span><span style="color:#888888;"># This is reached with &#39;fzy&#39; when the user presses ctrl-c
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">annotate_commit </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">yn</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">tempdir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;; 
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">esac
+</span><span style="color:#8fbfdc;">done
+</span></pre><h2 id="reviewing-a-file">Reviewing a file</h2>
+<p>After we are done reviewing individual commits, we can review files that were
+added and modified in the pull request, this is done to allow the reviewer to
+point out stuff that the commit missed.</p>
+<h3 id="picking-it-1">Picking it</h3>
+<p>We pick a file the same way we picked a pull request!</p>
+<p><img src="../23-pick-file.png" alt="Picking a file" /></p>
+<h3 id="reviewing-it-1">Reviewing it</h3>
+<p>Just like with the commit we pipe the file with <code>cat -n</code> to <code>fzf</code>!</p>
+<p><img src="../23-review-file.png" alt="Reviewing a file" /></p>
+<blockquote>
+<p>Because the code is very similar to the one to annotate commits I won't
+include it here.</p>
+</blockquote>
+<h2 id="working-on-it-locally">Working on it locally</h2>
+<p>After we review it we start a shell to work on it locally, doing stuff such
+as building the package and testing it at runtime.</p>
+<p><img src="../23-shell.png" alt="Shell" /></p>
+<h2 id="sending-review">Sending review</h2>
+<p>After we finish our work on our shell, <code>pr-fetcher</code> will write a review and
+put it up for us.</p>
+<h3 id="approved">Approved</h3>
+<p>If we didn't write anything to review then we consider it a success and
+approve the pull request</p>
+<p><img src="../23-approve.png" alt="Approved" /></p>
+<h3 id="request-changes">Request Changes</h3>
+<p>If we wrote anything back then we include it in the review where appropiate</p>
+<p><img src="../23-changes.png" alt="Changes" /></p>
+<p>And this is how it looks if someone sees it from the web interface</p>
+<p><img src="../23-review.png" alt="Review" /></p>
+<h2 id="todo">TODO:</h2>
+<p>There are a few things I'm still unhappy with and that I would like to be
+changed:</p>
+<ul>
+<li>Have a simple program that is a pager, for dealing with files and the
+commits, while having a simple input prompt. I asked (@Cogitri) to help
+deal with this.</li>
+<li>Have it ask for feedback after finishing the shell, currently there is
+no way to provide feedback if you find problems while testing it live.</li>
+</ul>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

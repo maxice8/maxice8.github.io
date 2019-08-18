@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/12-mk-changelog/">mk-changelog: small changelog script</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-04
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/shell/">#shell</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p><a href="https://github.com/Cogitri">Cogitri</a> approached me with a problem,
+he is writing amazing projects such as <a href="https://github.com/Cogitri/gxi">gxi</a>
+and <a href="https://github.com/Cogitri/tmplgen">tmplgen</a> and he is a big fan
+of the AngularJS git commit guidelines.</p>
+<p>So he adopted those guidelines for his projects and so far it has
+been working out fine for him, but he now wants to create release
+notes using those commits, but sadly all generators he found were
+heavyweight and feature-packed, he wanted something simple he
+could stick in his new release script and be done with it.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="requirements">Requirements</h2>
+<p>He asked me for it to be:</p>
+<ul>
+<li>Simple</li>
+<li>Light</li>
+<li>Apply to all commits between 2 tags or master and 1 tag</li>
+<li>Output content similar to markdown</li>
+<li>Easy to embed in his script</li>
+<li>Deal with the 'fix' and 'feat' fields only</li>
+</ul>
+<h2 id="writing-it-down">Writing it down</h2>
+<p>Seems easy enough, i decided to use <code>bash</code> and <code>git</code> to deal with it,
+knowing it would be run from his release scripts.</p>
+<h3 id="dealing-with-arguments">Dealing with arguments</h3>
+<p>I'm not going to assume a bad input will be sent, it is inside a script
+that will be called with known values.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/usr/bin/env bash
+</span><span style="color:#888888;">#
+</span><span style="color:#888888;"># Takes 2 tags and get all commits between them and turns
+</span><span style="color:#888888;"># it into a release notes based on AngularJS style
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-z </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Need a starting tag</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&gt;&amp;</span><span style="color:#cf6a4c;">2
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">exit 1
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">stag</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">ftag</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">ftag</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">master
+</span><span style="color:#8fbfdc;">fi
+</span></pre><h3 id="getting-all-the-commits">Getting all the commits</h3>
+<p>Now we get all the commit between the 2 tags and make use of the fact
+that AngularJS commit guidelines dictate what is written at the start
+to get the correct commit categories.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">commits</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> log</span><span style="color:#ffb964;"> --pretty</span><span style="color:#99ad6a;">=</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">%s</span><span style="color:#556633;">&#39; </span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">ftag</span><span style="color:#99ad6a;">}...${</span><span style="color:#ffb964;">stag</span><span style="color:#99ad6a;">})</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">feats</span><span style="color:#e8e8d3;">=() </span><span style="color:#888888;"># New Features
+</span><span style="color:#ffb964;">fixes</span><span style="color:#e8e8d3;">=() </span><span style="color:#888888;"># Fixes
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">while </span><span style="color:#e8e8d3;">read </span><span style="color:#ffb964;">-r</span><span style="color:#e8e8d3;"> c; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># Add all features to the array
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#ffb964;">grep -q </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">^feat(.*): </span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">&lt;&lt;&lt; </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">feats</span><span style="color:#e8e8d3;">+=(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">c#</span><span style="color:#99ad6a;">*feat}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">continue
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#ffb964;">grep -q </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">^fix(.*): </span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">&lt;&lt;&lt; </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">fixes</span><span style="color:#e8e8d3;">+=(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">c#</span><span style="color:#99ad6a;">*fix}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">continue
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#8fbfdc;">done </span><span style="color:#e8e8d3;">&lt;&lt;&lt; </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">commits</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>Notice the use of arrays and variable substitution, it is such a nice
+underused thing that saves a lot of writing and the fact bash can do
+a while-do-done loop without needing to create a subshell.</p>
+<h3 id="writing-it-out">Writing it out</h3>
+<p>We now write out the results in the markdown-like format it was required
+of us.</p>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ ${#</span><span style="color:#ffb964;">feats[@]</span><span style="color:#e8e8d3;">} </span><span style="color:#ffb964;">-eq</span><span style="color:#e8e8d3;"> 0 ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - No new features</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">for</span><span style="color:#e8e8d3;"> c </span><span style="color:#8fbfdc;">in </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">feats[@]</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;"> - $</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">## Bugfixes</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ ${#</span><span style="color:#ffb964;">fixes[@]</span><span style="color:#e8e8d3;">} </span><span style="color:#ffb964;">-eq</span><span style="color:#e8e8d3;"> 0 ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - No bugfixes</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">for</span><span style="color:#e8e8d3;"> c </span><span style="color:#8fbfdc;">in </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">fixes[@]</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;"> - $</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span><span style="color:#8fbfdc;">fi
+</span></pre><h2 id="commits-vs-results">Commits vs Results.</h2>
+<p>Here is a comparison of the commits to the result given to us.</p>
+<blockquote>
+<p>git log --pretty='%s' master...v0.4.6</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">feat(edit_view): add newline to end of the file if it doesn&#39;t terminate with one
+</span><span style="color:#e8e8d3;">chore(deps): bump serde{,_derive} from 1.0.86 to 1.0.87
+</span><span style="color:#e8e8d3;">feat(edit_view): only draw trailing spaces
+</span><span style="color:#e8e8d3;">fix(pref_storage): don&#39;t implement Clone for Config&lt;T&gt;
+</span><span style="color:#e8e8d3;">fix(main): fix loading config
+</span><span style="color:#e8e8d3;">fix(main): don&#39;t load config twice
+</span><span style="color:#e8e8d3;">chore(deps): bump serde_json from 1.0.37 to 1.0.38
+</span><span style="color:#e8e8d3;">chore(deps): bump serde_derive from 1.0.85 to 1.0.86
+</span><span style="color:#e8e8d3;">chore(deps): bump proc-macro2 from 0.4.26 to 0.4.27
+</span><span style="color:#e8e8d3;">chore(deps): bump rand_jitter from 0.1.1 to 0.1.2
+</span><span style="color:#e8e8d3;">fix(linecache): fix linecount for wrapped lines
+</span><span style="color:#e8e8d3;">chore(deps): bump serde from 1.0.85 to 1.0.86
+</span><span style="color:#e8e8d3;">fix(ui): re-enable word wrapping, it&#39;s pretty complete now
+</span><span style="color:#e8e8d3;">fix(pref_storage): DO NOT clone Config to make sure it&#39;s consistent across different windows
+</span><span style="color:#e8e8d3;">fix(edit_view): send &#39;resize&#39; to xi upon allocating a new size
+</span><span style="color:#e8e8d3;">fix(rpc): correctly handle measure_width
+</span><span style="color:#e8e8d3;">feat(shared_queue): also use for sending stuff to xi
+</span><span style="color:#e8e8d3;">feat(gettext): build against system gettext
+</span><span style="color:#e8e8d3;">chore(README): add travis build badge
+</span><span style="color:#e8e8d3;">fix(meson): only validate appstream if appstream-util is recent enough
+</span><span style="color:#e8e8d3;">chore(ci): use meson instead of cargo
+</span></pre>
+<blockquote>
+<p>mk-changelog v0.4.6</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">## </span><span style="color:#ffb964;">Feature changes
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (edit_view): add newline to end of the file if it doesn&#39;t terminate with one
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (edit_view): only draw trailing spaces
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (shared_queue): also use for sending stuff to xi
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (gettext): build against system gettext
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">## </span><span style="color:#ffb964;">Bugfixes
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (pref_storage): don&#39;t implement Clone for Config&lt;T&gt;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (main): fix loading config
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (main): don&#39;t load config twice
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (linecache): fix linecount for wrapped lines
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (ui): re-enable word wrapping, it&#39;s pretty complete now
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (pref_storage): DO NOT clone Config to make sure it&#39;s consistent across different windows
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (edit_view): send &#39;resize&#39; to xi upon allocating a new size
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (rpc): correctly handle measure_width
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">- (meson): only validate appstream if appstream-util is recent enough
+</span></pre>
+<p>Working just fine.</p>
+<h2 id="the-script">The script</h2>
+<p>Here is the whole script if you want it, i consider it done, unless bug appears
+i won't touch it, it is licensed under the MIT license.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#!/usr/bin/env bash
+</span><span style="color:#888888;">#
+</span><span style="color:#888888;"># Takes 2 tags and get all commits between them and turns
+</span><span style="color:#888888;"># it into a release notes based on AngularJS style
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-z </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Need a starting tag</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">&gt;&amp;</span><span style="color:#cf6a4c;">2
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">exit 1
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">stag</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">ftag</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">2</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">ftag</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">master
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">commits</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">git</span><span style="color:#99ad6a;"> log</span><span style="color:#ffb964;"> --pretty</span><span style="color:#99ad6a;">=</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">%s</span><span style="color:#556633;">&#39; </span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">ftag</span><span style="color:#99ad6a;">}...${</span><span style="color:#ffb964;">stag</span><span style="color:#99ad6a;">})</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">feats</span><span style="color:#e8e8d3;">=() </span><span style="color:#888888;"># New Features
+</span><span style="color:#ffb964;">fixes</span><span style="color:#e8e8d3;">=() </span><span style="color:#888888;"># Fixes
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">while </span><span style="color:#e8e8d3;">read </span><span style="color:#ffb964;">-r</span><span style="color:#e8e8d3;"> c; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># Add all features to the array
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#ffb964;">grep -q </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">^feat(.*): </span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">&lt;&lt;&lt; </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">feats</span><span style="color:#e8e8d3;">+=(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">c#</span><span style="color:#99ad6a;">*feat}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">continue
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#ffb964;">grep -q </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">^fix(.*): </span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">&lt;&lt;&lt; </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">fixes</span><span style="color:#e8e8d3;">+=(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">c#</span><span style="color:#99ad6a;">*fix}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">continue
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#8fbfdc;">done </span><span style="color:#e8e8d3;">&lt;&lt;&lt; </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">commits</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">## Feature changes</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ ${#</span><span style="color:#ffb964;">feats[@]</span><span style="color:#e8e8d3;">} </span><span style="color:#ffb964;">-eq</span><span style="color:#e8e8d3;"> 0 ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - No new features</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">for</span><span style="color:#e8e8d3;"> c </span><span style="color:#8fbfdc;">in </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">feats[@]</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;"> - $</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">## Bugfixes</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ ${#</span><span style="color:#ffb964;">fixes[@]</span><span style="color:#e8e8d3;">} </span><span style="color:#ffb964;">-eq</span><span style="color:#e8e8d3;"> 0 ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - No bugfixes</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">for</span><span style="color:#e8e8d3;"> c </span><span style="color:#8fbfdc;">in </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">fixes[@]</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">printf </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">%s\\n</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;"> - $</span><span style="color:#ffb964;">c</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span><span style="color:#8fbfdc;">fi
+</span></pre>
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

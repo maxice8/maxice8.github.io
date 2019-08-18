@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/15-wrapping-vala-follow-up/">Follow up on &#x27;Wrapping vala for cross with xbps-src&#x27;</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-05
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="preface">Preface</h2>
+<p>This is a small post making some corrections about the <a href="../14-wrapping-vala">previous</a>.
+It is heavily recommended you read that one before coming to this one.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="gnu-configure">gnu-configure</h2>
+<p>In the previous article we just modified the pkg-config file to modify a few variables
+including vapidir, vapidir_versioned and datadir, sadly this had the side-effect
+of where the packages would install stuff their generated vala bindings.</p>
+<p>Instead of installing to /usr/share/vala/vapi they would prefix them with the
+value of XBPS_CROSS_BASE, which is correct when <strong>searching</strong> for the vala
+bindings but not when <strong>installing</strong> them.</p>
+<h3 id="pkg-config">pkg-config</h3>
+<p>Let's take a look at the pkg-config file</p>
+<blockquote>
+<p>/usr/lib/pkgconfig/vapigen-0.42.pc</p>
+</blockquote>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">prefix=/usr
+</span><span style="color:#e8e8d3;">exec_prefix=${prefix}
+</span><span style="color:#e8e8d3;">libdir=${exec_prefix}/lib
+</span><span style="color:#e8e8d3;">bindir=/usr/bin
+</span><span style="color:#e8e8d3;">datarootdir=${prefix}/share
+</span><span style="color:#e8e8d3;">datadir=${datarootdir}
+</span><span style="color:#e8e8d3;">includedir=${prefix}/include
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">vapigen=${bindir}/vapigen-0.42
+</span><span style="color:#e8e8d3;">vapidir=${datadir}/vala/vapi
+</span><span style="color:#e8e8d3;">vapidir_versioned=${datadir}/vala-0.42/vapi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">Name: vapigen
+</span><span style="color:#e8e8d3;">Description: Vala API Generator
+</span><span style="color:#e8e8d3;">Version: 0.42.5
+</span></pre><h3 id="wrapper">wrapper</h3>
+<p>You can see it tries to use vapigen-0.42, if you remember our last wrapper it didn't
+account for packages using the versioned version of the executable directly. Let's
+fix that</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/common/hooks/pre-configure/02-script-wrapper.sh b/common/hooks/pre-configure/02-script-wrapper.sh
+</span><span style="color:#e8e8d3;">index 9eac4843ff..6b35ffffa2 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/common/hooks/pre-configure/02-script-wrapper.sh
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/common/hooks/pre-configure/02-script-wrapper.sh
+</span><span style="font-style:italic;color:#888888;">@@ -91,6 +91,7 @@</span><span style="color:#e8e8d3;"> exec /usr/bin/vapigen \\
+</span><span style="color:#e8e8d3;">     </span><span style="color:#a1000d;">--girdir=${XBPS_CROSS_BASE}/usr/share/gir-1.0 &quot;\$@&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">_EOF
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">chmod 755 ${XBPS_WRAPPERDIR}/vapigen
+</span><span style="color:#558f1f;">+	ln -sf vapigen ${XBPS_WRAPPERDIR}/vapigen-0.42
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">install_wrappers() {
+</span></pre>
+<p>Now our wrapper will also install a symlink from vapigen to vapigen-0.42, and with
+that we can remove the pkg-config changes in the package:</p>
+<h3 id="cleanup">cleanup</h3>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/srcpkgs/vala/template b/srcpkgs/vala/template
+</span><span style="color:#e8e8d3;">index aa02d8a432..d0a40a2b24 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/srcpkgs/vala/template
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/srcpkgs/vala/template
+</span><span style="font-style:italic;color:#888888;">@@ -1,7 +1,7 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;"># Template file for &#39;vala&#39;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">pkgname=vala
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">version=0.42.5
+</span><span style="color:#a1000d;">-revision=2
+</span><span style="color:#558f1f;">+revision=3
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">build_style=gnu-configure
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_args=&quot;--disable-graphviz&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">hostmakedepends=&quot;flex libxslt pkg-config automake libtool&quot;
+</span><span style="font-style:italic;color:#888888;">@@ -28,18 +28,6 @@</span><span style="color:#e8e8d3;"> pre_configure() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">autoreconf -fi
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-post_install() {
+</span><span style="color:#a1000d;">-	# Prefix the variables &#39;datadir&#39; &#39;vapidir&#39; and &#39;vapidir_versioned&#39;
+</span><span style="color:#a1000d;">-	# with pc_sysrootdir so it gets expanded to the value of
+</span><span style="color:#a1000d;">-	# PKG_CONFIG_SYSROOT_DIR, this is necessary for packages that
+</span><span style="color:#a1000d;">-	# query pkg-config for the variables as we need to return the
+</span><span style="color:#a1000d;">-	# values from the cross environment not the native one.
+</span><span style="color:#a1000d;">-	vsed -e &#39;s|^datadir=.*|datadir=${pc_sysrootdir}/${datarootdir}|g&#39; \
+</span><span style="color:#a1000d;">-		 -e &#39;s|^vapidir=.*|vapidir=${pc_sysrootdir}/${datadir}/vala/vapi|g&#39; \
+</span><span style="color:#a1000d;">-		 -e &#39;s|^vapidir_versioned=.*|vapidir_versioned=${pc_sysrootdir}/${datadir}/vala-0.42/vapi|g&#39; \
+</span><span style="color:#a1000d;">-		 -i ${DESTDIR}/usr/lib/pkgconfig/vapigen-0.42.pc
+</span><span style="color:#a1000d;">-}
+</span><span style="color:#a1000d;">-
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">libvala_package() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">short_desc+=&quot; - shared library&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">pkg_install() {
+</span></pre><h2 id="closing">Closing</h2>
+<p>In the end we now have a single wrapper for both meson and gnu-configure, which
+is less code to worry about and doesn't mess with upstream packages.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

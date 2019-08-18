@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/1-void-cpython3-cross-pt1/">Fixing cross CPython3 modules in Void Linux, pt. 1</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-01-31
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="context">Context</h2>
+<p>Last week i have been working on getting a particularly complex beast to be
+cross-compilable under Void Linux's <a href="https://github.com/void-linux/void-packages">xbps-src</a>:
+<a href="https://gi.readthedocs.io/en/latest/">GObject Introspection</a>.</p>
+<p>While work was done on xbps-src cross compilation of CPython3 modules, 2
+problems were found.</p>
+<p><a name="continue-reading"></a></p>
+<p>The first problem, which will be discussed and fixed in this topic, is that
+modules cross-compiled used the ABI extension tag in their .so files.
+Example: <code>.cpython-36m-x86_64-linux-gnu.so</code> for x86_64.</p>
+<p>That value is defined by the <a href="https://www.python.org/dev/peps/pep-3149/">PEP 3149</a>
+and conveniently is available as the EXT_SUFFIX variable in the sysconfig module.</p>
+<p>Examples for x86_64 and aarch64:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">sysconfig
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; sysconfig.get_config_var(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">EXT_SUFFIX</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">.cpython-36m-x86_64-linux-gnu.so</span><span style="color:#556633;">&#39;
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">sysconfig
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; sysconfig.get_config_var(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">EXT_SUFFIX</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">.cpython-36m-aarch64-linux-gnu.so</span><span style="color:#556633;">&#39;
+</span></pre><h2 id="problem">Problem</h2>
+<p>The problem occurs when cross compiling, the <code>python3</code> used belongs to the build
+system and not of the target system, consequently the EXT_SUFFIX used is the
+build system one, not of the target one as it should be.</p>
+<p>As an example, cross-compiling the python-yaml package with xbps-src will
+produce the binaries with the wrong name:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -a</span><span style="color:#e8e8d3;"> aarch64 pkg python-yaml
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> env XBPS_TARGET_ARCH=aarch64 xls python3-yaml | </span><span style="color:#ffb964;">grep</span><span style="color:#e8e8d3;"> .cpython
+</span><span style="color:#ffb964;">/usr/lib/python3.6/site-packages/_yaml.cpython-36m-x86_64-linux-gnu.so
+</span></pre>
+<p>See what's wrong ? A package compiled for aarch64 (ARM 64bits) has the
+prefix of x86_64. That's not right!</p>
+<p>Let's push this further and actually try to load another package that uses
+CPython on aarch64, python-bluez!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">bluetooth
+</span><span style="color:#ffb964;">Traceback</span><span style="color:#e8e8d3;"> (most recent call last):
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">&lt;stdin&gt;</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 1, in &lt;module&gt;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/home/terran/usr/src/void-packages/masterdir/usr/aarch64-linux-gnu/usr/lib/python3.6/site-packages/bluetooth/__init__.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 45, in &lt;module&gt;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">from</span><span style="color:#e8e8d3;"> bluetooth.bluez import *
+</span><span style="color:#e8e8d3;">  </span><span style="color:#ffb964;">File </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/home/terran/usr/src/void-packages/masterdir/usr/aarch64-linux-gnu/usr/lib/python3.6/site-packages/bluetooth/bluez.py</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">, line 10, in &lt;module&gt;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">import</span><span style="color:#e8e8d3;"> bluetooth._bluetooth as _bt
+</span><span style="color:#ffb964;">ModuleNotFoundError:</span><span style="color:#e8e8d3;"> No module named </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">bluetooth._bluetooth</span><span style="color:#556633;">&#39;
+</span></pre>
+<p>That is borked!, but do not despair, lets remove the EXT_SUFFIX.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> mv</span><span style="color:#ffb964;"> -v</span><span style="color:#e8e8d3;"> usr/lib/python3.6/site-packages/bluetooth/_bluetooth{.cpython-36m-x86_64-linux-gnu,}.so
+</span></pre>
+<p>And let's try again!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">bluetooth
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt;
+</span></pre>
+<p>Success! So our solution is simply to just remove the EXT_SUFFIX from all modules.</p>
+<h2 id="solving">Solving</h2>
+<p>For this xbps-src has a very nifty mechanism, hooks.</p>
+<p>Hooks are files with the .sh extension that provide a hook() function, depending
+on where the file is located it will be run during a specific stage of the package
+build process.</p>
+<p>As an example: hooks in common/hooks/post-install will run after the do_install()
+function is ran, these hooks are available for all major stages of building a package,
+before (pre-&lt;stage&gt;) during (do-&lt;stage&gt;) and after (post-&lt;stage&gt;).</p>
+<p>So let's just write a hook that does the renaming for us!</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># This hook executes the following tasks:
+</span><span style="color:#888888;">#	- renames cpython binding files to not include the arch-specific extension suffix
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">hook</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ ! </span><span style="color:#ffb964;">-d </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">PKGDESTDIR</span><span style="color:#e8e8d3;">}/${</span><span style="color:#ffb964;">py3_sitelib</span><span style="color:#e8e8d3;">} ]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">return</span><span style="color:#e8e8d3;"> 0
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">find </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">PKGDESTDIR</span><span style="color:#99ad6a;">}/${</span><span style="color:#ffb964;">py3_sitelib</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;</span><span style="color:#ffb964;"> -type</span><span style="color:#e8e8d3;"> f</span><span style="color:#ffb964;"> -executable -iname </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">*.cpython*.so</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">| </span><span style="color:#8fbfdc;">while </span><span style="color:#e8e8d3;">read </span><span style="color:#ffb964;">-r</span><span style="color:#e8e8d3;"> file; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">filename</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">file##</span><span style="color:#99ad6a;">*/}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">modulename</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">filename%%</span><span style="color:#99ad6a;">.*}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">msg_warn </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">pkgver</span><span style="color:#99ad6a;">}: renamed &#39;${</span><span style="color:#ffb964;">filename</span><span style="color:#99ad6a;">}&#39; to &#39;${</span><span style="color:#ffb964;">modulename</span><span style="color:#99ad6a;">}.so&#39;.\n</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">mv </span><span style="color:#e8e8d3;">${</span><span style="color:#ffb964;">file</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">file%</span><span style="color:#e8e8d3;">/*}/${</span><span style="color:#ffb964;">modulename</span><span style="color:#e8e8d3;">}.so
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Heh, looks good enough to me. Improvements can be made with a pull request to <a href="https://github.com/void-linux/void-packages">void-packages</a>.</p>
+<p>Let's try building our package again!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -a</span><span style="color:#e8e8d3;"> aarch64 pkg python-yaml
+</span><span style="color:#e8e8d3;">=&gt; WARNING: </span><span style="color:#ffb964;">python3-yaml-3.13_2:</span><span style="color:#e8e8d3;"> renamed </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">_yaml.cpython-36m-x86_64-linux-gnu.so</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> to </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">_yaml.so</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">.
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> env XBPS_TARGET_ARCH=aarch64 xls python3-yaml | </span><span style="color:#ffb964;">grep </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">.so$</span><span style="color:#556633;">&#39;
+</span><span style="color:#ffb964;">/usr/lib/python3.6/site-packages/_yaml.so
+</span></pre>
+<p>Nice! Our work here is done. Meet me up in pt. 2 for a similar story around another problem.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/3-how-its-done/">How this site is done</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-01
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/tutorial/">#tutorial</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/site/">#site</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>This small post will show all about how this site, which is hosted via <a href="https://pages.github.com/">GitHub Pages</a>,
+and is for all intents and purposes a blog, is done.</p>
+<p>Hopefully this post can also be of help to users that want a similar setup.</p>
+<p>Without further ado.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="ingredients">Ingredients</h2>
+<p>Just like baking a cake, this site also needs ingredients to be mixed together into the
+content you're seeing. Let's run down over some of them.</p>
+<h3 id="github-pages">GitHub Pages</h3>
+<p>Certainly the most important ingredient, it is it that provides the hosting for this site,
+without the resources from <code>GitHub</code> it would be much more inconvenient for me to set it all
+up.</p>
+<h3 id="zola">Zola</h3>
+<p>You expected <code>jekyll</code> to be your static site engine ? Too bad!</p>
+<p>It was me, <strike>dio</strike> <a href="https://www.getzola.org">zola</a>!</p>
+<p>Zola is a static site engine like any other, hugo, jekyll, werc, sw, etc, etc.
+There wasn't much thought put into it besides:</p>
+<ul>
+<li>It is available on <a href="https://voidlinux.org">Void Linux</a>.</li>
+<li>It seems easy to use.</li>
+</ul>
+<h3 id="travis-ci">Travis CI</h3>
+<p>Travis CI is a well know <code>Continous Integration</code> service provider, most importantly i picked it
+because <a href="https://voidlinux.org">Void Linux</a> uses it extensively to check pull requests from
+contributors before merging.</p>
+<p>So it felt like safe, familiar ground and just a natural choice. I never had any problems with
+it that were just for me, only the rare global slowdown, which is helpfully warned with their
+broadcasts feature.</p>
+<h3 id="ghp-import">ghp-import</h3>
+<p>This is the one i know least about, it just was suggested when i was trying to jam <code>zola</code> into
+GitHub Pages. It just worked, after the fair warning that it will nuke your gh-pages branch
+or any other branch you point it to completely useless.</p>
+<p>It is the one i have the least interaction with, actually i don't have any direct interaction, it
+is used solely by Travis CI.</p>
+<h3 id="maxice8-github-io">maxice8.github.io</h3>
+<p>This is the repo that host the blog source and the finished content you are reading right now.</p>
+<p>It extensively has 2 branches:</p>
+<ul>
+<li>devel -&gt; where i write stuff to</li>
+<li>master -&gt; where the final content is pushed and turned into a functional site</li>
+</ul>
+<hr />
+<h2 id="recipe">Recipe</h2>
+<p>Now to how we mix all the ingredients into an website!</p>
+<h3 id="zola-flow">Zola flow</h3>
+<p>I will spare the details of how to actually work with it, which is much better served by their
+<a href="https://www.getzola.org/documentation/getting-started/installation/">docs</a> which helped me
+get on my feet.</p>
+<p>I'm simple, so i simply picked a simple theme called <a href="https://github.com/getzola/even">even</a>,
+it was easy to configure, appeared to just work out of the box, and most importantly it fit
+the format i want this blog post to have. I write something based on date, publish and done.</p>
+<p>There isn't much in the way of workflow, i configured the initial configuration.toml with
+the theme i wanted, the syntax highlighting and even theme configuration options.</p>
+<p>After the initial setup is done, creating a new blog post is a matter of creating a new
+markdown file, filling the front-matter with:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">+++
+</span><span style="color:#e8e8d3;">title = &quot;TITLE&quot;
+</span><span style="color:#e8e8d3;">date = YYYY-MM-DD
+</span><span style="color:#e8e8d3;">+++
+</span></pre>
+<p>And write away! One thing i liked a lot was how nice working with <code>zola</code> was, running
+<code>zola serve --port 8080 --interface 0.0.0.0</code> allowed me to just see how my site would
+ultimately look and automatically refresh as i saved the markdown file that is the
+post being written, and it looks out for file changes so when you save, the site is
+refreshed automatically.</p>
+<h3 id="travis-ci-flow">Travis CI Flow</h3>
+<p>Most of the work is done by it, for the initial setup i had to create a token just for
+it with access to pushing to repos, and then went to travis-ci.org and set it to an
+environment variable called GH_TOKEN.</p>
+<p>This is my .travis.yml file at the time of writing this post.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">branches</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">only</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">- </span><span style="color:#99ad6a;">devel
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">before_script</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">  </span><span style="color:#888888;"># Download and unzip the zola executable
+</span><span style="color:#e8e8d3;">  </span><span style="color:#888888;"># Replace the version numbers in the URL by the version you want to use
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">- </span><span style="color:#99ad6a;">curl -s -L https://github.com/getzola/zola/releases/download/v0.5.1/zola-v0.5.1-x86_64-unknown-linux-gnu.tar.gz | sudo tar xvzf - -C /usr/local/bin
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">script</span><span style="color:#e8e8d3;">: </span><span style="color:#8fbfdc;">|
+</span><span style="color:#99ad6a;">  </span><span style="color:#99ad6a;">cd themes &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">git clone https://github.com/getzola/even.git &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">cd ../ &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">zola build
+</span><span style="color:#888888;"># If you are using a different folder than `public` for the output directory, you will
+</span><span style="color:#888888;"># need to change the `zola` command and the `ghp-import` path
+</span><span style="color:#ffb964;">after_success</span><span style="color:#e8e8d3;">: </span><span style="color:#8fbfdc;">|
+</span><span style="color:#99ad6a;">  </span><span style="color:#e8e8d3;">[ </span><span style="color:#99ad6a;">$TRAVIS_BRANCH = devel </span><span style="color:#e8e8d3;">] </span><span style="color:#8fbfdc;">&amp;</span><span style="color:#ffb964;">&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">zola build -o docs &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">sudo pip install ghp-import &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">ghp-import -n docs -b master &amp;&amp;
+</span><span style="color:#e8e8d3;">  </span><span style="color:#99ad6a;">git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git master
+</span></pre>
+<p>It does a few things, it downloads <code>zola</code> and tries to build the site. If it
+succeeds it will build the site again and use <code>ghp-import</code> to create a branch
+that is pushable, in this case master is being used, and then it is pushed
+to the repo.</p>
+<p>At the end of the day i just push to devel and the website is regenerated
+completely, i can even make fixes to previous posts.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

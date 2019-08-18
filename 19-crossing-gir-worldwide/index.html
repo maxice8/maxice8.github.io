@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/19-crossing-gir-worldwide/">Crossing the gir world</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-07
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>This is a small blog post with medium usage of numbers to show how much
+lines of patches and how many packages on xbps-src had gir enabled for
+cross arches.</p>
+<p>We will also look at how many fixes went upstream with links to each
+merge request and pull request that has been made and merged.</p>
+<p>The numbers are from the day this article is published.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="xbps-src">xbps-src</h2>
+<p>Let's start with a list of packages that have added gir:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">spice-gtk
+</span><span style="color:#e8e8d3;">gstreamer1
+</span><span style="color:#e8e8d3;">playerctl
+</span><span style="color:#e8e8d3;">geocode-glib
+</span><span style="color:#e8e8d3;">libhandy
+</span><span style="color:#e8e8d3;">jsonrpc-glib
+</span><span style="color:#e8e8d3;">libgit2-glib
+</span><span style="color:#e8e8d3;">libnice
+</span><span style="color:#e8e8d3;">gssdp
+</span><span style="color:#e8e8d3;">grilo
+</span><span style="color:#e8e8d3;">libxklavier
+</span><span style="color:#e8e8d3;">template-glib
+</span><span style="color:#e8e8d3;">gmime3
+</span><span style="color:#e8e8d3;">libgexiv2
+</span><span style="color:#e8e8d3;">accountsservice
+</span><span style="color:#e8e8d3;">gjs
+</span><span style="color:#e8e8d3;">gtksourceview4
+</span><span style="color:#e8e8d3;">zeitgeist
+</span><span style="color:#e8e8d3;">libgweather
+</span><span style="color:#e8e8d3;">rest
+</span><span style="color:#e8e8d3;">libsoup
+</span><span style="color:#e8e8d3;">telepathy-glib
+</span><span style="color:#e8e8d3;">tepl
+</span><span style="color:#e8e8d3;">colord
+</span><span style="color:#e8e8d3;">glade3
+</span><span style="color:#e8e8d3;">amtk
+</span><span style="color:#e8e8d3;">libgxps
+</span><span style="color:#e8e8d3;">libdazzle
+</span><span style="color:#e8e8d3;">libcloudproviders
+</span><span style="color:#e8e8d3;">appstream-glib
+</span><span style="color:#e8e8d3;">json-glib
+</span><span style="color:#e8e8d3;">libnotify
+</span><span style="color:#e8e8d3;">gtk+3
+</span><span style="color:#e8e8d3;">libosinfo
+</span><span style="color:#e8e8d3;">libxmlb
+</span><span style="color:#e8e8d3;">libgusb
+</span><span style="color:#e8e8d3;">pango
+</span><span style="color:#e8e8d3;">gdk-pixbuf
+</span><span style="color:#e8e8d3;">atk
+</span></pre>
+<p>That is 39 package is total, here is the same graph but the commit
+that introduced the change is now available</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">9b951d7960e4abebf296d92e5fd58ef415131958 -&gt; spice-gtk
+</span><span style="color:#e8e8d3;">5c7be9025dd072b5af762308630b64fead2f7775 -&gt; gstreamer1
+</span><span style="color:#e8e8d3;">42a9cf96c028a2dd089b72888e4fd005b0033a76 -&gt; playerctl
+</span><span style="color:#e8e8d3;">ddc4fcc572bdc9f8cf068897a7cd59b0c18d68cd -&gt; geocode-glib
+</span><span style="color:#e8e8d3;">20e11f9dfca2854c3782ab84880a956ec23aecbc -&gt; libhandy
+</span><span style="color:#e8e8d3;">729620aa9fe2c8281866d77a75de9bbb2d1d6c4d -&gt; jsonrpc-glib
+</span><span style="color:#e8e8d3;">953e7becaf6d7e92d0bdac8e8e62a78ff53b22ed -&gt; libgit2-glib
+</span><span style="color:#e8e8d3;">4b5fbbe1c150c52b811cd5b2f68e5c49c4f6c6ff -&gt; libnice
+</span><span style="color:#e8e8d3;">eb5382126d663509bdd9628adecebe6e5c567bb0 -&gt; gssdp
+</span><span style="color:#e8e8d3;">2c9f2a132807bd643e03d5a9ecb856e52d4ead9a -&gt; grilo
+</span><span style="color:#e8e8d3;">177ade5a7debafaf0eb5515922578f2dc72b4cc3 -&gt; libxklavier
+</span><span style="color:#e8e8d3;">ee7237b57b0861a98737ffd88bff25fae5c2756f -&gt; template-glib
+</span><span style="color:#e8e8d3;">f759d0d0e2f808e9d4bf7963cfacd4dd4ce1ff3c -&gt; gmime3
+</span><span style="color:#e8e8d3;">88abaa8e0313030ae70bbd21376c7d12bc051427 -&gt; libgexiv2
+</span><span style="color:#e8e8d3;">41187d4a49e542c60b0bbf98d8484203bced0f99 -&gt; accountsservice
+</span><span style="color:#e8e8d3;">f96911283997001258edc9405870e25f3dadff7b -&gt; gjs
+</span><span style="color:#e8e8d3;">dea969b6d0fec29f1b5b413ed5b01cb07511a926 -&gt; gtksourceview4
+</span><span style="color:#e8e8d3;">353cc52fcf56f94c795ad2db5674c3cb55a77d13 -&gt; zeitgeist
+</span><span style="color:#e8e8d3;">e8a4217ee36564096610a17d410cb7238995ac88 -&gt; libgweather
+</span><span style="color:#e8e8d3;">243e83d37f76535fbf9a2215e14ebad00a9d94e3 -&gt; rest
+</span><span style="color:#e8e8d3;">0e116f4377470d34dd657e2e095ac1b9a2487b35 -&gt; libsoup
+</span><span style="color:#e8e8d3;">3af5665004b3323af8cfef89b5517d5dbeba08a9 -&gt; telepathy-glib
+</span><span style="color:#e8e8d3;">5bc99ff6290d8821c7e7b880d71e7874f5346ec3 -&gt; tepl
+</span><span style="color:#e8e8d3;">818f76e8bc5fef7ef0a1e9aa7b7d1dbf8f1842e0 -&gt; colord
+</span><span style="color:#e8e8d3;">ff9ff93579ca06dbba712f28a1ae648b3fa1ab1e -&gt; glade3
+</span><span style="color:#e8e8d3;">942e0b9267e04bf3a09d9aeb981b2c11101763b2 -&gt; amtk
+</span><span style="color:#e8e8d3;">054f572ad817ce23685df4970fb77e4a7abfa56e -&gt; libgxps
+</span><span style="color:#e8e8d3;">50a9e6c46be7516bae18386237caa808072c4986 -&gt; libdazzle
+</span><span style="color:#e8e8d3;">0403ea836b7f2a419c22dcd516be820f160479f7 -&gt; libcloudproviders
+</span><span style="color:#e8e8d3;">03f3215e0f1b81493af7eb348b0d09d6d780d477 -&gt; appstream-glib
+</span><span style="color:#e8e8d3;">00a0a4ad948d9ea6c20b969d1c8a4e0abd8708b3 -&gt; json-glib
+</span><span style="color:#e8e8d3;">559964ebbffcc16e9b66e306953f2923a41db790 -&gt; libnotify
+</span><span style="color:#e8e8d3;">e6dd7107a70e8846cc577cb01c1b18a4c2f40d99 -&gt; gtk+3
+</span><span style="color:#e8e8d3;">960f3fc434e6e6470973961e8fd3435cf1168fe0 -&gt; libosinfo
+</span><span style="color:#e8e8d3;">c355b3498c0c3908f2258cc9980ca15ecafb19b6 -&gt; libxmlb
+</span><span style="color:#e8e8d3;">5c24610dd70bd6440287f968d8420f5635691270 -&gt; libgusb
+</span><span style="color:#e8e8d3;">d42494625cb1815c1d2699821da642f6bf7e4e54 -&gt; pango
+</span><span style="color:#e8e8d3;">c824a3abcccc012855d57f4b1479c13de03f235d -&gt; gdk-pixbuf
+</span><span style="color:#e8e8d3;">b3ff0a41e346f83ef7b2358a58d7272a01796439 -&gt; atk
+</span></pre>
+<p>That is 39 commits as well, one for each package. But
+not all commits are created equal, let's see what each changed.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">9b951d7960e4abebf296d92e5fd58ef415131958
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 17:17:50 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">spice-gtk: enable gir and vala
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/spice-gtk/template | 19 +++++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 11 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">5c7be9025dd072b5af762308630b64fead2f7775
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 17:04:51 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">gstreamer1: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/gstreamer1/template | 24 ++++++++++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 16 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">42a9cf96c028a2dd089b72888e4fd005b0033a76
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 16:15:52 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">playerctl: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/playerctl/patches/fix-gir-cross.patch | 13 +++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/playerctl/template                    | 16 +++++++++-------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 22 insertions(+), 7 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">ddc4fcc572bdc9f8cf068897a7cd59b0c18d68cd
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 16:04:10 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">geocode-glib: enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/geocode-glib/patches/fix-gir-cross.patch | 17 +++++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/geocode-glib/template                    | 18 ++++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 27 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">20e11f9dfca2854c3782ab84880a956ec23aecbc
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 11:25:45 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libhandy: </span><span style="color:#99ad6a;">enable gir, vala and glade
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libhandy/patches/fix-gir-cross.patch | 18 ++++++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libhandy/template                    | 15 +++++++++------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 27 insertions(+), 6 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">729620aa9fe2c8281866d77a75de9bbb2d1d6c4d
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 10:50:58 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">jsonrpc-glib: enable gir and vala
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/jsonrpc-glib/patches/fix-gir-cross.patch | 16 ++++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/jsonrpc-glib/template                    | 18 ++++++++++++------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 28 insertions(+), 6 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">953e7becaf6d7e92d0bdac8e8e62a78ff53b22ed
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 03:40:39 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libgit2-glib: enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgit2-glib/patches/fix-gir-cross.patch | 14 ++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgit2-glib/template                    | 23 ++++++++++++++---------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 28 insertions(+), 9 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">4b5fbbe1c150c52b811cd5b2f68e5c49c4f6c6ff
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 03:17:28 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libnice: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libnice/template | 17 ++++++++++-------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 10 insertions(+), 7 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">eb5382126d663509bdd9628adecebe6e5c567bb0
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 03:12:23 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">gssdp: </span><span style="color:#99ad6a;">enable gir and vapi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/gssdp/template | 15 ++++++++-------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 8 insertions(+), 7 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">2c9f2a132807bd643e03d5a9ecb856e52d4ead9a
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 03:02:54 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">grilo: </span><span style="color:#99ad6a;">enable gir and vapi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/grilo/template | 18 ++++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 10 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">177ade5a7debafaf0eb5515922578f2dc72b4cc3
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 02:21:59 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libxklavier: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libxklavier/template | 24 +++++++++++++++---------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 15 insertions(+), 9 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">ee7237b57b0861a98737ffd88bff25fae5c2756f
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 00:05:59 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">template-glib: enable gir, remove gir and vala build_option
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">Gobject introspection is hard required, so there is no reason
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">to avoid it with gir and vala
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/template-glib/patches/fix-gir-cross.patch | 17 +++++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/template-glib/template                    | 22 ++++++++++------------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 27 insertions(+), 12 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">f759d0d0e2f808e9d4bf7963cfacd4dd4ce1ff3c
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 02:10:51 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">gmime3: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/gmime3/template | 23 +++++++++++++----------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 13 insertions(+), 10 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">88abaa8e0313030ae70bbd21376c7d12bc051427
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Thu Feb 7 00:46:46 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libgexiv2: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgexiv2/template | 16 ++++++++++------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 10 insertions(+), 6 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">41187d4a49e542c60b0bbf98d8484203bced0f99
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Wed Feb 6 23:30:07 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">accountsservice: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/accountsservice/template | 16 +++++++++++-----
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 11 insertions(+), 5 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">f96911283997001258edc9405870e25f3dadff7b
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Wed Feb 6 23:07:45 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">gjs: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/gjs/template | 21 +++++++++++++++++++--
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 19 insertions(+), 2 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">dea969b6d0fec29f1b5b413ed5b01cb07511a926
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Tue Feb 5 15:28:14 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">gtksourceview4: </span><span style="color:#99ad6a;">enable gir and add vala build_option
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/gtksourceview4/template | 27 +++++++++++++++++----------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 17 insertions(+), 10 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">353cc52fcf56f94c795ad2db5674c3cb55a77d13
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Tue Feb 5 18:25:13 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">zeitgeist: </span><span style="color:#99ad6a;">enable gir, add vala build option
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/zeitgeist/template | 33 +++++++++++++++++++--------------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 19 insertions(+), 14 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">e8a4217ee36564096610a17d410cb7238995ac88
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Tue Feb 5 15:55:14 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libgweather: </span><span style="color:#99ad6a;">enable gir and vala
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgweather/patches/fix-gir-cross.patch | 17 +++++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgweather/template                    | 17 +++++++++++------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 28 insertions(+), 6 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">243e83d37f76535fbf9a2215e14ebad00a9d94e3
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Tue Feb 5 20:33:12 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">rest: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">depends: </span><span style="color:#99ad6a;">#8223
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/rest/template | 26 ++++++++++++++++----------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 16 insertions(+), 10 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">0e116f4377470d34dd657e2e095ac1b9a2487b35
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">Rasmus Thomsen &lt;</span><span style="color:#ffb964;">rasmus.thomsen@protonmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Tue Feb 5 18:59:49 2019 +0100
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libsoup: </span><span style="color:#99ad6a;">enable gir, add vala option
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">closes </span><span style="color:#7697d6;">#8223
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">Co-authored-by: maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#e8e8d3;">&gt;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libsoup/template | 24 +++++++++++++++---------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 15 insertions(+), 9 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">3af5665004b3323af8cfef89b5517d5dbeba08a9
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Tue Feb 5 18:23:52 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">telepathy-glib: enable gir add vala build option
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/telepathy-glib/template | 32 ++++++++++++++++----------------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 16 insertions(+), 16 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">5bc99ff6290d8821c7e7b880d71e7874f5346ec3
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 14:57:25 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">tepl: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/tepl/template | 14 +++++++++-----
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 9 insertions(+), 5 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">818f76e8bc5fef7ef0a1e9aa7b7d1dbf8f1842e0
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 18:02:49 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">colord: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/colord/patches/fix-gir-cross.patch | 28 +++++++++++++++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/colord/template                    | 31 ++++++++++++++++--------------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 45 insertions(+), 14 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">ff9ff93579ca06dbba712f28a1ae648b3fa1ab1e
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 15:05:11 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">glade3: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/glade3/template | 22 +++++++++++-----------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 11 insertions(+), 11 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">942e0b9267e04bf3a09d9aeb981b2c11101763b2
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 02:24:28 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">amtk: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/amtk/template | 16 ++++++++++------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 10 insertions(+), 6 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">054f572ad817ce23685df4970fb77e4a7abfa56e
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 12:35:29 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libgxps: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgxps/patches/fix-gir-cross.patch | 14 ++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgxps/template                    | 24 ++++++++++++++----------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 28 insertions(+), 10 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">50a9e6c46be7516bae18386237caa808072c4986
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 08:51:53 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libdazzle: </span><span style="color:#99ad6a;">enable gir, split vala build_option
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libdazzle/patches/fix-cross-gir.patch | 14 ++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libdazzle/template                    | 22 ++++++++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 28 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">0403ea836b7f2a419c22dcd516be820f160479f7
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 08:36:00 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libcloudproviders: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libcloudproviders/template | 15 +++++++++------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 9 insertions(+), 6 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">03f3215e0f1b81493af7eb348b0d09d6d780d477
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 08:30:22 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">appstream-glib: enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">.../patches/0003-fix-as-compilation.patch               | 15 +++++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/appstream-glib/template                         | 17 +++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 24 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">00a0a4ad948d9ea6c20b969d1c8a4e0abd8708b3
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 02:02:51 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">json-glib: enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/json-glib/template | 16 +++++++++-------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 9 insertions(+), 7 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">559964ebbffcc16e9b66e306953f2923a41db790
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 02:19:55 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libnotify: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libnotify/template | 22 +++++++++++++---------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 13 insertions(+), 9 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">e6dd7107a70e8846cc577cb01c1b18a4c2f40d99
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 02:33:10 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">gtk+3: enable gir
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">required for amtk
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/gtk+3/template | 17 +++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 9 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">960f3fc434e6e6470973961e8fd3435cf1168fe0
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 02:08:55 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libosinfo: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libosinfo/template | 21 +++++++++++++--------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 13 insertions(+), 8 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">c355b3498c0c3908f2258cc9980ca15ecafb19b6
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Mon Feb 4 00:42:41 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libxmlb: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libxmlb/template | 14 +++++++++-----
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 9 insertions(+), 5 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">5c24610dd70bd6440287f968d8420f5635691270
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Sun Feb 3 15:33:22 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">libgusb: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgusb/patches/fix-cross-gir.patch | 13 +++++++++++++
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/libgusb/template                    | 29 ++++++++++++++++++-----------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">2 files changed, 31 insertions(+), 11 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">d42494625cb1815c1d2699821da642f6bf7e4e54
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Sun Feb 3 00:37:15 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">pango: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/pango/template | 20 +++++++++++---------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 11 insertions(+), 9 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">c824a3abcccc012855d57f4b1479c13de03f235d
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Sun Feb 3 00:18:19 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">gdk-pixbuf: enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/gdk-pixbuf/template | 14 +++++++++-----
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 9 insertions(+), 5 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">commit </span><span style="color:#cf6a4c;">b3ff0a41e346f83ef7b2358a58d7272a01796439
+</span><span style="color:#e8e8d3;">Author: </span><span style="color:#99ad6a;">maxice8 &lt;</span><span style="color:#ffb964;">thinkabit.ukim@gmail.com</span><span style="color:#99ad6a;">&gt;
+</span><span style="color:#e8e8d3;">Date:   </span><span style="color:#99ad6a;">Sat Feb 2 23:53:11 2019 -0200
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">atk: </span><span style="color:#99ad6a;">enable gir
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">srcpkgs/atk/template | 17 ++++++++++-------
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">1 file changed, 10 insertions(+), 7 deletions(-)
+</span><span style="color:#e8e8d3;">
+</span></pre>
+<p>Looks good, we added 671 lines and removed 328 lines, now lets
+see how much we needed to send fixes to upstream.</p>
+<h2 id="upstream">Upstream</h2>
+<p>The good news is that not many required changes, here is a list
+of the package and the Pull Request, Merge Request made to it.</p>
+<h3 id="colord">colord</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/hughsie/colord  
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Merged  
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/hughsie/colord/pull/86
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">4
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">0
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/lib/colord/meson.build b/lib/colord/meson.build
+</span><span style="color:#e8e8d3;">index a46ca184..61f0518d 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/lib/colord/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/lib/colord/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -186,6 +186,7 @@</span><span style="color:#e8e8d3;"> libcolord_girtarget = gnome.generate_gir(colord,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">export_packages : &#39;colord&#39;,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">extra_args : [
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">&#39;--c-include=colord.h&#39;,
+</span><span style="color:#558f1f;">+    &#39;-DCD_COMPILATION&#39;,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">],
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">link_with : colordprivate,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">dependencies : [
+</span><span style="color:#e8e8d3;">diff --git a/lib/colorhug/meson.build b/lib/colorhug/meson.build
+</span><span style="color:#e8e8d3;">index e5556731..ba59f7dc 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/lib/colorhug/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/lib/colorhug/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -101,6 +101,9 @@</span><span style="color:#e8e8d3;"> libcolorhug_gir = gnome.generate_gir(colorhug,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">&#39;GUsb-1.0&#39;,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">libcolord_gir,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">],
+</span><span style="color:#558f1f;">+  extra_args : [
+</span><span style="color:#558f1f;">+    &#39;-DCD_COMPILATION&#39;,
+</span><span style="color:#558f1f;">+  ],
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">install : true
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">)
+</span></pre><h3 id="geocode-glib">geocode-glib</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/GNOME/geocode-glib
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Open
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/GNOME/geocode-glib/pull/2
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">2 
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/geocode-glib/meson.build b/geocode-glib/meson.build
+</span><span style="color:#e8e8d3;">index 8bc2bfc..0377535 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/geocode-glib/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/geocode-glib/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -69,10 +69,9 @@</span><span style="color:#e8e8d3;"> pkgconf.generate(libraries: libgcglib,
+</span><span style="color:#e8e8d3;">                  </span><span style="color:#e8e8d3;">])
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">gir = find_program(&#39;g-ir-scanner&#39;, required: false)
+</span><span style="color:#a1000d;">-cross_build = meson.is_cross_build()
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">enable_gir = get_option(&#39;enable-introspection&#39;)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-if gir.found() and not cross_build and enable_gir
+</span><span style="color:#558f1f;">+if gir.found() and enable_gir
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">gir_args = [
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">&#39;--quiet&#39;,
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">&#39;--c-include=geocode-glib/geocode-glib.h&#39;
+</span></pre><h3 id="template-glib">template-glib</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/template-glib
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Merged
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/template-glib/merge_requests/4
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">4
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/src/meson.build b/src/meson.build
+</span><span style="color:#e8e8d3;">index 08d325b7e83b2c3a021aefeab18e3eea58ca9254..5adef727c7d00e3f8cd4c841205e3f44dc7015c2 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -174,7 +174,10 @@</span><span style="color:#e8e8d3;"> if get_option(&#39;with_introspection&#39;)
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#e8e8d3;">install: true,
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">install_dir_gir: girdir,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">install_dir_typelib: typelibdir,
+</span><span style="color:#a1000d;">-             extra_args: [ &#39;--c-include=tmpl-glib.h&#39; ],
+</span><span style="color:#558f1f;">+             extra_args: [
+</span><span style="color:#558f1f;">+               &#39;--c-include=tmpl-glib.h&#39;,
+</span><span style="color:#558f1f;">+               &#39;-DTMPL_GLIB_COMPILATION&#39;,
+</span><span style="color:#558f1f;">+             ],
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">if get_option(&#39;with_vapi&#39;)
+</span></pre><h3 id="libgusb">libgusb</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/hughsie/libgusb
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Merged
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/hughsie/libgusb/pull/14
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">0
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/gusb/meson.build b/gusb/meson.build
+</span><span style="color:#e8e8d3;">index 7c25d51..36d21dd 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/gusb/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/gusb/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -106,6 +106,7 @@</span><span style="color:#e8e8d3;"> libgusb_girtarget = gnome.generate_gir(gusb,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">export_packages : &#39;gusb&#39;,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">extra_args : [
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">&#39;--c-include=gusb.h&#39;,
+</span><span style="color:#558f1f;">+    &#39;-DGUSB_COMPILATION&#39;,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">],
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">link_with : gusb,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">dependencies : [
+</span></pre><h3 id="jsonrpc-glib">jsonrpc-glib</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/jsonrpc-glib
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Open
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/jsonrpc-glib/merge_requests/4
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">4
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/src/meson.build b/src/meson.build
+</span><span style="color:#e8e8d3;">index 12f8e32b19d777fe2c66604b9d8e1cd783746e8a..3366e96149f5fb66eeec4f9baa06605f7d30e755 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -79,7 +79,10 @@</span><span style="color:#e8e8d3;"> if get_option(&#39;with_introspection&#39;)
+</span><span style="color:#e8e8d3;">                 </span><span style="color:#e8e8d3;">install: true,
+</span><span style="color:#e8e8d3;">         </span><span style="color:#e8e8d3;">install_dir_gir: girdir,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">install_dir_typelib: typelibdir,
+</span><span style="color:#a1000d;">-             extra_args: [ &#39;--c-include=jsonrpc-glib.h&#39; ],
+</span><span style="color:#558f1f;">+             extra_args: [
+</span><span style="color:#558f1f;">+                 &#39;--c-include=jsonrpc-glib.h&#39;,
+</span><span style="color:#558f1f;">+                 &#39;-DJSONRPC_GLIB_COMPILATION&#39;,
+</span><span style="color:#558f1f;">+             ],
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">if get_option(&#39;with_vapi&#39;)
+</span></pre><h3 id="libgit2-glib">libgit2-glib</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/libgit2-glib
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Open
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/libgit2-glib/merge_requests/9
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/meson.build b/meson.build
+</span><span style="color:#e8e8d3;">index bdcc0b3bcd9ae8078483d0ded5b7a42cc2c4bedf..e56dd1165a39575ababc334cf2e5f316b25a9fd3 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -124,7 +124,7 @@</span><span style="color:#e8e8d3;"> libgit2_dep = dependency(&#39;libgit2&#39;, version: &#39;&gt;=&#39; + git2_req)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">enable_gir = get_option(&#39;introspection&#39;)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">if enable_gir
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;"># XXX: Not nice, but probably our best option
+</span><span style="color:#a1000d;">-  enable_gir = find_program(&#39;g-ir-scanner&#39;, required: false).found() and not meson.is_cross_build()
+</span><span style="color:#558f1f;">+  enable_gir = find_program(&#39;g-ir-scanner&#39;, required: false).found()
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">endif
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">enable_vapi = get_option(&#39;vapi&#39;)
+</span></pre><h3 id="libgweather">libgweather</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/libgweather
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Closed (merged manually)
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/libgweather/merge_requests/18
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">4
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/libgweather/meson.build b/libgweather/meson.build
+</span><span style="color:#e8e8d3;">index 47a154760538e2923fdb660c32ce2932c0ef2562..301e7e870c77dc27ecf1339e48937fc7fce61507 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/libgweather/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/libgweather/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -75,7 +75,10 @@</span><span style="color:#e8e8d3;"> gweather_gir = gnome.generate_gir(lib_libgweather,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">identifier_prefix: &#39;GWeather&#39;,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">export_packages: &#39;gweather-3.0&#39;,
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">header: &#39;libgweather/gweather.h&#39;,
+</span><span style="color:#a1000d;">-  extra_args: [&#39;--warn-all&#39;],
+</span><span style="color:#558f1f;">+  extra_args: [
+</span><span style="color:#558f1f;">+    &#39;--warn-all&#39;,
+</span><span style="color:#558f1f;">+    &#39;-DGWEATHER_COMPILATION&#39;,
+</span><span style="color:#558f1f;">+  ],
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">install: true,
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span></pre><h3 id="libgxps">libgxps</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/libgxps
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Open
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://gitlab.gnome.org/GNOME/libgxps/merge_requests/2
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/meson.build b/meson.build
+</span><span style="color:#e8e8d3;">index a34a6161a9ce34c9555f472cf9c9a13b4f30bd7f..2d6eb1ed3ad49cc8aacf5349fc875335273339a8 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -131,7 +131,7 @@</span><span style="color:#e8e8d3;"> libm_dep = cc.find_library(&#39;m&#39;, required: false)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">gnome = import(&#39;gnome&#39;)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">gir = find_program(&#39;g-ir-scanner&#39;, required: false)
+</span><span style="color:#a1000d;">-build_gir = gir.found() and not meson.is_cross_build() and not get_option(&#39;disable-introspection&#39;)
+</span><span style="color:#558f1f;">+build_gir = gir.found() and not get_option(&#39;disable-introspection&#39;)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_file(output: &#39;config.h&#39;, configuration: cdata)
+</span></pre><h3 id="libhandy">libhandy</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://source.puri.sm/Librem5/libhandy
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Open
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://source.puri.sm/Librem5/libhandy/merge_requests/223
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">5
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/src/meson.build b/src/meson.build
+</span><span style="color:#e8e8d3;">index bf52dafa01dc1e257c29a4f587c9370a5671fc45..6346d7ac857a45d7d2384889907991ba8ce92ae0 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/src/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/src/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -198,7 +198,11 @@</span><span style="color:#e8e8d3;"> if introspection
+</span><span style="color:#e8e8d3;">                  </span><span style="color:#e8e8d3;">install: true,
+</span><span style="color:#e8e8d3;">          </span><span style="color:#e8e8d3;">install_dir_gir: girdir,
+</span><span style="color:#e8e8d3;">      </span><span style="color:#e8e8d3;">install_dir_typelib: typelibdir,
+</span><span style="color:#a1000d;">-              extra_args: [ &#39;--c-include=handy.h&#39;, &#39;--quiet&#39; ],
+</span><span style="color:#558f1f;">+              extra_args: [
+</span><span style="color:#558f1f;">+                  &#39;--c-include=handy.h&#39;,
+</span><span style="color:#558f1f;">+                  &#39;--quiet&#39;,
+</span><span style="color:#558f1f;">+                  &#39;-DHANDY_COMPILATION&#39;,
+</span><span style="color:#558f1f;">+              ],
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">if get_option(&#39;vapi&#39;)
+</span></pre><h3 id="playerctl">playerctl</h3>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">Upstream</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/acrisci/playerctl
+</span><span style="color:#ffb964;">Status</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">Merged
+</span><span style="color:#ffb964;">PR</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">https://github.com/acrisci/playerctl/pull/120
+</span><span style="color:#ffb964;">lines-added</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">1
+</span><span style="color:#ffb964;">lines-removed</span><span style="color:#e8e8d3;">: </span><span style="color:#cf6a4c;">0
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/playerctl/meson.build b/playerctl/meson.build
+</span><span style="color:#e8e8d3;">index ccace6a..22a6ec1 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/playerctl/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/playerctl/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -95,6 +95,7 @@</span><span style="color:#e8e8d3;"> if get_option(&#39;introspection&#39;)
+</span><span style="color:#e8e8d3;">       </span><span style="color:#e8e8d3;">&#39;playerctl-player.c&#39;,
+</span><span style="color:#e8e8d3;">       </span><span style="color:#e8e8d3;">&#39;playerctl-player.h&#39;,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">],
+</span><span style="color:#558f1f;">+    extra_args : [ &#39;-DPLAYERCTL_COMPILATION&#39; ],
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">nsversion: playerctl_major_version + &#39;.0&#39;,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">namespace: &#39;Playerctl&#39;,
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">includes: [&#39;GObject-2.0&#39;],
+</span></pre><h2 id="conclusion">Conclusion</h2>
+<p>And that is all, those fixes should be upstream in the next release and the number
+of lines added in xbps-src should drop dramatically.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

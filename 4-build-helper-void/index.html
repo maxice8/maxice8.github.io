@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/4-build-helper-void/">build_helper in xbps-src and what it can do for you</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-01
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>On 2019-01-20, starting with this <a href="https://github.com/void-linux/void-packages/commit/78333e638f5224bf0458183fa7d04c8f5f06bf6d">commit</a>, the groundwork was laid for a new mechanism inside
+xbps-src that will prove to be immensely helpful in tackling new challenges like, cross
+compiling <a href="https://rust-lang.org">rust</a> and <a href="https://gi.readthedocs.io/en/latest/">GObject Introspection</a>.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="overview">Overview</h2>
+<h3 id="on-its-own">On its own</h3>
+<p>build_helper is a mechanism to source files location in common/build-helper that end with
+.sh. A template just needs to include it by setting the build_helper variable, like so:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">foo bar</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>This will make the files foo.sh and bar.sh be sourced, variables exported are going on the
+global environment and can affect the behaviour of applications, as we will see in the examples.</p>
+<h3 id="vs-build-style">vs. build_style</h3>
+<p>build_helper can be thought of as a less powerful version of the commonly used build_style
+with the advantage that multiple build_helper can be used on the same template.</p>
+<p>While build_style can define functions for the stages of packaging, like do_build(),
+do_install(), do_fech(), etc. build_helper can only define environment variables
+and template specific variables like hostmakedepends.</p>
+<p>In a sense, build_helpers act as an capsule for complex and/or repetitive behaviour
+that is not needed all the time, costly operations that are specific to one domain like
+cross compiling <a href="https://rust-lang.org">rust</a></p>
+<h2 id="creation">Creation</h2>
+<h3 id="solving-a-problem">Solving a problem</h3>
+<p>A long time ago we started making rust cross compilable, we split rust-std into its own package,
+which can be installed on makedepends and be built with the <code>cargo</code> and <code>rustc</code> from hostmakedepends.</p>
+<p>At that time most of the rust code that was being cross compiled as present solely in the form of
+crates we could fetch with <code>cargo</code>.</p>
+<p>Simple enough, we would just create the cargo build_style, define some fancy functions to
+do all the work with <code>cargo</code> and getting it to compile by exporting some variables.</p>
+<p>It was done and everything was happily thereafter, all packages that were pure-rust and used
+<code>cargo</code> were now cross compilable.</p>
+<p>But then we ran into mixed code, people liked <a href="https://rust-lang.org">rust</a> and people were
+slowly rewriting their programs in rust, <a href="https://hacks.mozilla.org/2017/11/entering-the-quantum-era-how-firefox-got-fast-again-and-where-its-going-to-get-faster/">Firefox</a> as the sponsors of the language
+were also the front-runners, but other projects like <a href="https://people.gnome.org/%7Efederico/news-2016-10.html#25">librsvg</a>, a very important library that is dependended by a lot of packages.
+And <a href="https://github.com/newsboat/newsboat/issues/286">newsboat</a> a small RSS reader i happen
+to be the <a href="https://voidlinux.org">Void Linux</a> maintainer of also started rewriting.</p>
+<p>With the mixed code we couldn't just plug in the cargo build_style, those packages had
+their own build systems that demanded their own build_style, librsvg uses gnu-configure
+, newsboat uses configure and Firefox has their own &quot;thing&quot;.</p>
+<p>We needed to export lots of variables to affect behaviour, luckily they all used <code>cargo</code>
+under the hood to compile the rust code so we could make use of cargo's <a href="https://doc.rust-lang.org/cargo/reference/config.html#environment-variables">environment configuration variables</a>.</p>
+<h3 id="first-attempt">First attempt</h3>
+<p>The first <a href="https://github.com/void-linux/void-packages/pull/7372">attempt</a> was with
+expanding the scope of build_style, instead of sourcing files in
+common/environment/build-style/&lt;build_style&gt;.sh it would now have its own directory
+and would source all the files inside.</p>
+<p>It could now have different files for functions and for environment variables and the latter
+could be shared via symlinks, suddenly the cargo build_style could share the environment
+variables it was using with the gnu-configure one for newsboat and librsvg.</p>
+<p>This idea came crashing down when a very inherent flaw was pointed out by another Void dev</p>
+<blockquote>
+<p>I don't think build styles need to be more complex.</p>
+<p>The cargo configuration shouldn't depend on the build_style because at the
+end any buildstyle could need it, librsvg and firefox are examples that use
+no build_style and gnu-configure.</p>
+</blockquote>
+<h3 id="second-attempt">second attempt</h3>
+<p>With the first implementation soundly destroyed, a second attempt was drafted.</p>
+<p>One important objective of the second attempt was to isolate the complexity, we
+needed the complexity because we were tackling complex problems but we also wanted
+to avoid it whenever we were not tackling those complex problems.</p>
+<p>The solution came after someone suggested creating a build_style but for specific
+environments on the #xbps IRC freenode. And thus build_helper was born, with this
+<a href="https://github.com/void-linux/void-packages/pull/7505">pull request</a> as implementation.</p>
+<h2 id="example">Example</h2>
+<h3 id="getting-rusty">Getting rusty</h3>
+<p>This is the rust build_helper, it defines some important variables to us, like the
+target which we will build it for and other variables that allow us to build -sys crates,
+those crates are built using the system components provided by <a href="https://voidlinux.org">Void Linux</a>.</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Define equivalent of TOML config in environment
+</span><span style="color:#888888;"># [build]
+</span><span style="color:#888888;"># jobs = $XBPS_MAKEJOBS
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">CARGO_BUILD_JOBS</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_MAKEJOBS</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CROSS_BUILD</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># Define equivalent of TOML config in environment
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># [target.${RUST_TARGET}]
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># linker = ${CC}
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">_XBPS_CROSS_RUST_TARGET_ENV</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_RUST_TARGET^^</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">_XBPS_CROSS_RUST_TARGET_ENV</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">_XBPS_CROSS_RUST_TARGET_ENV</span><span style="color:#99ad6a;">/</span><span style="color:#ffb964;">/</span><span style="color:#99ad6a;">-/_}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">CARGO_TARGET_${_XBPS_CROSS_RUST_TARGET_ENV}_LINKER</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CC</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">unset _XBPS_CROSS_RUST_TARGET_ENV
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># Define equivalent of TOML config in environment
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># [build]
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># target = ${RUST_TARGET}
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">CARGO_BUILD_TARGET</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">RUST_TARGET</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># For cross-compiling rust -sys crates
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">PKG_CONFIG_ALLOW_CROSS</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># libgit2-sys
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">LIBGIT2_SYS_USE_PKG_CONFIG</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># gettext-rs
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">GETTEXT_BIN_DIR</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/usr/bin
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">GETTEXT_LIB_DIR</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/lib/gettext</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">GETTEXT_INCLUDE_DIR</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/include</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># libssh2-sys
+</span><span style="color:#8fbfdc;">export </span><span style="color:#ffb964;">LIBSSH2_SYS_USE_PKG_CONFIG</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1 
+</span></pre>
+<p>Before it existed all that complexity was either tied to the <code>cargo build_style</code>
+or was polluting the <a href="https://github.com/void-linux/void-packages/blob/027cdb5bb8153102ef77ab595a07a44d7dc1f2e9/common/xbps-src/shutils/common.sh#L535">global environment</a>.</p>
+<p>This is the <a href="https://github.com/void-linux/void-packages/blob/59e4d0deb17b373cdbe996d503a490fa534ab724/srcpkgs/newsboat/template">newsboat template</a></p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;newsboat&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">newsboat
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">r2.14
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">configure
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">rust</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_script</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">./config.sh</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">make_build_target</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">all doc</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">make_install_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">prefix=/usr</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">asciidoc pkg-config cargo</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">json-c-devel libcurl-devel libxml2-devel sqlite-devel stfl-devel
+</span><span style="color:#99ad6a;"> </span><span style="color:#99ad6a;">rust-std</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checkdepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">ncurses-base</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Newsboat is a fork of Newsbeuter the Mutt of RSS feed readers</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">maxice8 &lt;thinkabit.ukim@gmail.com&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">MIT</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://www.newsboat.org</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">changelog</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://raw.githubusercontent.com/newsboat/newsboat/master/CHANGELOG.md</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">distfiles</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://github.com/newsboat/newsboat/archive/${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}.tar.gz</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">57176071b0c777ddba237f95f684e36bf2ddf271e84ac5c9e3eec8f1afc0b133
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">CXXFLAGS</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> -Wno-error=sign-compare</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CROSS_BUILD</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">LDFLAGS</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-L./target/${</span><span style="color:#ffb964;">RUST_TARGET</span><span style="color:#99ad6a;">}/release</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">pre_configure</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CROSS_BUILD</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">cd doc
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">g++ -o</span><span style="color:#e8e8d3;"> generate generate.cpp
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">g++ -o</span><span style="color:#e8e8d3;"> generate2 generate2.cpp
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">g++ -o</span><span style="color:#e8e8d3;"> gen-example-config gen-example-config.cpp
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">do_check</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">rm -f</span><span style="color:#e8e8d3;"> test/rss.cpp
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">make</span><span style="color:#e8e8d3;"> test
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">(cd test &amp;&amp; </span><span style="color:#ffb964;">TERM</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">TERM TMPDIR</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">/dev/shm </span><span style="color:#ffb964;">./test</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">post_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vlicense</span><span style="color:#e8e8d3;"> LICENSE
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vsconf</span><span style="color:#e8e8d3;"> doc/example-bookmark-plugin.sh bookmark-plugin.sh
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">mv </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#99ad6a;">}/usr/share/doc/$</span><span style="color:#ffb964;">pkgname</span><span style="color:#99ad6a;">/examples/config</span><span style="color:#556633;">&quot; &quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">DESTDIR</span><span style="color:#99ad6a;">}/usr/share/examples/${</span><span style="color:#ffb964;">pkgname</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>As you can see with the rust build_helper, the only thing we needed was to pass
+an extra location to LDFLAGS to search find the newsboat static archive. Under
+the hood all the magic needed to compile rust code to another architecture and
+to use system components when building -sys crates was dealt with.</p>
+<h3 id="future-introspection">Future Introspection</h3>
+<p>Another use case that is being dealt with is cross compiling with GObject Introspection.</p>
+<p>It isn't available as of the time this blog post was written but is instead
+held up in this <a href="https://github.com/void-linux/void-packages/pull/7888">pull request</a>.</p>
+<p>Cross compiling deserves a post on their own (wink wink), so only the build_helper
+being introduced to help it, gir, is going to be gleaned over.</p>
+<p>Have at it:</p>
+<pre style="background-color:#151515;">
+<span style="color:#888888;">#
+</span><span style="color:#888888;"># gir - build-helper for gobject-introspection
+</span><span style="color:#888888;">#
+</span><span style="color:#888888;"># This build-helper is used for packages that make use of
+</span><span style="color:#888888;"># the GObject introspection middleware layer.
+</span><span style="color:#888888;"># 
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Check if the &#39;gir&#39; build_option is set or if there is no
+</span><span style="color:#888888;"># &#39;gir&#39; build_option.
+</span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">] || [[ $</span><span style="color:#ffb964;">build_options </span><span style="color:#e8e8d3;">!= *</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">* ]]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># Provide the host tooling, g-ir-scanner, g-ir-compiler and its
+</span><span style="color:#e8e8d3;">    </span><span style="color:#888888;"># wrappers.
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gobject-introspection</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CROSS_BUILD</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># Required for running binaries produced from g-ir-compiler
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># via g-ir-scanner-qemuwrapper
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> qemu-user-static</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># Required for running the g-ir-scanner-lddwrapper
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> prelink-cross</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># Provide basic .gir types like GLib, GObject, DBus, Gio, cairo
+</span><span style="color:#e8e8d3;">        </span><span style="color:#888888;"># and tooling like g-ir-compiler
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gobject-introspection</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#8fbfdc;">fi
+</span></pre>
+<p>As observable, the build_helper will gladly add all the dependencies required
+for both native and cross compilation, it will even be careful to not add them
+if we have a <code>build_option</code> called gir it also needs to be enabled.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

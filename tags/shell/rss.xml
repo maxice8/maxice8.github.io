@@ -1,0 +1,30 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>maxice8-devel</title>
+        <link>https://maxice8.github.io</link>
+        <description></description>
+        <generator>Zola</generator>
+        <language>en</language>
+        <atom:link href="https://maxice8.github.io/tags/shell/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Mon, 04 Feb 2019 00:00:00 +0000</lastBuildDate>
+        
+            <item>
+                <title>mk-changelog: small changelog script</title>
+                <pubDate>Mon, 04 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/12-mk-changelog/</link>
+                <guid>https://maxice8.github.io/12-mk-changelog/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;Cogitri&quot;&gt;Cogitri&lt;&#x2F;a&gt; approached me with a problem,
+he is writing amazing projects such as &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;Cogitri&#x2F;gxi&quot;&gt;gxi&lt;&#x2F;a&gt;
+and &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;Cogitri&#x2F;tmplgen&quot;&gt;tmplgen&lt;&#x2F;a&gt; and he is a big fan
+of the AngularJS git commit guidelines.&lt;&#x2F;p&gt;
+&lt;p&gt;So he adopted those guidelines for his projects and so far it has
+been working out fine for him, but he now wants to create release
+notes using those commits, but sadly all generators he found were
+heavyweight and feature-packed, he wanted something simple he
+could stick in his new release script and be done with it.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+    </channel>
+</rss>

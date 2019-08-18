@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/5-foray-into-common-shlibs/">xbps-src shlib tracking and bumping</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-01
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>If you used <a href="https://voidlinux.org">Void Linux</a> for some amount of time you
+probably ran into these types of errors when updating packages:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">foo-1.0.0_1:</span><span style="color:#e8e8d3;"> broken, unresolvable shlib </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">libbar.so.2</span><span style="color:#556633;">&#39;
+</span></pre>
+<p>Annoying as it is, it is part of a very important part of <a href="https://voidlinux.org">Void Linux</a>
+and its QA, today we will look at how xbps-src cooperates with xbps.
+to make shlibs work.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="shared-libraries">Shared Libraries</h2>
+<blockquote>
+<p>If you're already familiar with shared libraries you can skip to the next section</p>
+</blockquote>
+<p>Shared libraries are a collection of code that is loaded by programs when they start, after
+a program starts all other programs that also need that library will also use it automatically
+without needing to load it.</p>
+<p>Knowing what libraries a programs needs is simple, <code>ldd</code> from glibc can be used. In this case
+we will use <code>lddtree</code> from pax-utils since it provides us with a nice tree output:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> lddtree /usr/bin/cat
+</span><span style="color:#ffb964;">cat</span><span style="color:#e8e8d3;"> =&gt; /usr/bin/cat (interpreter =&gt; /lib/ld-linux-x86-64.so.2)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">libc.so.6</span><span style="color:#e8e8d3;"> =&gt; /usr/lib/libc.so.6
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">ld-linux-x86-64.so.2</span><span style="color:#e8e8d3;"> =&gt; /lib/ld-linux-x86-64.so.2
+</span></pre>
+<p>The files after the arrow (=&gt;) are the libraries to be loaded when the program starts.</p>
+<p>Let's take a look at <code>python3</code>:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> lddtree /usr/bin/python3
+</span><span style="color:#ffb964;">python3</span><span style="color:#e8e8d3;"> =&gt; /usr/bin/python3 (interpreter =&gt; /lib/ld-linux-x86-64.so.2)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">libpython3.6m.so.1.0</span><span style="color:#e8e8d3;"> =&gt; /usr/lib/libpython3.6m.so.1.0
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">libdl.so.2</span><span style="color:#e8e8d3;"> =&gt; /usr/lib/libdl.so.2
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">ld-linux-x86-64.so.2</span><span style="color:#e8e8d3;"> =&gt; /lib/ld-linux-x86-64.so.2
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">libutil.so.1</span><span style="color:#e8e8d3;"> =&gt; /usr/lib/libutil.so.1
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">libm.so.6</span><span style="color:#e8e8d3;"> =&gt; /usr/lib/libm.so.6
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">libpthread.so.0</span><span style="color:#e8e8d3;"> =&gt; /usr/lib/libpthread.so.0
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">libc.so.6</span><span style="color:#e8e8d3;"> =&gt; /usr/lib/libc.so.6
+</span></pre>
+<p>Interesting, it loads <code>/usr/lib/libpython3.6m.so.1.0</code>, Let's remove it to see how it breaks!</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">\# </span><span style="color:#ffb964;">rm</span><span style="color:#e8e8d3;"> /usr/lib/libpython3.6m.so.1.0
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#ffb964;">/usr/bin/python3:</span><span style="color:#e8e8d3;"> error while loading shared libraries: libpython3.6m.so.1.0: cannot open shared object file: No such file or directory
+</span></pre>
+<p>Oh, it can't load the library and thus it can't start. Well now we know the importance of
+shared libraries and that you shouldn't go around deleting them.</p>
+<h2 id="xbps-src-shlibs">xbps-src shlibs</h2>
+<p>Shared libraries are of great interest to <a href="https://voidlinux.org">Void Linux</a> and the
+grand majority of the software shipped makes use of those. So a great deal of time and
+manpower has been invested into xbps-src and the surrounding infrastructure to make
+sure that it works.</p>
+<p>xbps-src has the shlibs mechanism, it tries to detect all libraries that are used
+by every executable on the package and will add it to the dependencies of the package.
+To know what library belongs to what package it makes use of the ever-expanding, and
+rarely retracting common/shlibs file.</p>
+<p>Since the file is too big to throw down here lets grab only a few entries:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">libreadline.so.8 libreadline8-8.0_1
+</span><span style="color:#e8e8d3;">libudev.so.1 eudev-libudev-1.6_1
+</span><span style="color:#e8e8d3;">libLLVM-7.so libllvm7-7.0.0_1
+</span></pre>
+<p>The first field tells the name of the library file and the second the package which
+provides it, this information is used to generate runtime dependencies of packages
+automatically.</p>
+<p>Example: a packages that has an executable that depends on <code>libudev.so.1</code> will have
+a dependency on <code>eudev-libudev-1.6_1</code> or greater.</p>
+<p>Let's see it in action, the 04-generate-runtime-deps.sh hook that is on
+common/hooks/pre-pkg is the one that runs all the logic for producing it, let's
+build a package that has library dependencies and see it work!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg rlwrap
+</span><span style="color:#e8e8d3;">=&gt; rlwrap-0.43_2: </span><span style="color:#ffb964;">running</span><span style="color:#e8e8d3;"> pre-pkg hook: 04-generate-runtime-deps ...
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">SONAME:</span><span style="color:#e8e8d3;"> libutil.so.1 &lt;-&gt; glibc&gt;=2.28_1
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">SONAME:</span><span style="color:#e8e8d3;"> libreadline.so.8 &lt;-&gt; libreadline8&gt;=8.0_1
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">SONAME:</span><span style="color:#e8e8d3;"> libncursesw.so.6 &lt;-&gt; ncurses-libs&gt;=5.8_1
+</span><span style="color:#e8e8d3;">   </span><span style="color:#ffb964;">SONAME:</span><span style="color:#e8e8d3;"> libc.so.6 &lt;-&gt; glibc&gt;=2.28_1
+</span></pre>
+<p>Let's take a look at the dependencies!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-query</span><span style="color:#ffb964;"> --repository</span><span style="color:#e8e8d3;">=hostdir/binpkgs</span><span style="color:#ffb964;"> -x</span><span style="color:#e8e8d3;"> rlwrap
+</span><span style="color:#ffb964;">perl</span><span style="color:#99ad6a;">&gt;=0
+</span><span style="color:#ffb964;">glibc</span><span style="color:#99ad6a;">&gt;=2.28_1
+</span><span style="color:#ffb964;">libreadline8</span><span style="color:#99ad6a;">&gt;=8.0_1
+</span><span style="color:#ffb964;">ncurses-libs</span><span style="color:#99ad6a;">&gt;=5.8_1
+</span></pre>
+<p>Neat, we guarantee that all dependencies of a package that are libraries are fulfilled.</p>
+<h2 id="shlib-bumps">shlib bumps!</h2>
+<p>But the world of FOSS libraries is not static, on the contrary it moves quite a lot when
+compared to proprietary vendors.</p>
+<p>So when a library writer makes an incompatible change, what happens ? The soname is
+bumped!</p>
+<p>As an example, recently <code>readline-8.0</code> was released and changed its soname from
+<code>libreadline.so.7</code> to <code>libreadline.so.8</code>.</p>
+<p>What happens when that file change the name ? Same result as if we remove the library
+the executables won't be able to start anymore since they can't load the required shared
+library.</p>
+<p>When that happens it is up for distributions like <a href="https://voidlinux.org">Void Linux</a> to
+rebuild all packages that use that library to use the new one.</p>
+<p>Thankfully xbps-src is always ever helpful with that, let's take a look at what it
+print outs when it detects a soname bump.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src pkg libtirpc
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">libtirpc-1.1.4_1:</span><span style="color:#e8e8d3;"> SONAME bump detected: libtirpc.so.2 -&gt; libtirpc.so.3
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">libtirpc-1.1.4_1:</span><span style="color:#e8e8d3;"> please update common/shlibs with this line: </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">libtirpc.so.3 libtirpc-1.1.4_1</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">libtirpc-1.1.4_1:</span><span style="color:#e8e8d3;"> all reverse dependencies should also be revbumped to be rebuilt against libtirpc.so.3:
+</span><span style="color:#e8e8d3;">=&gt; ERROR:    </span><span style="color:#ffb964;">autofs-5.1.5_2
+</span><span style="color:#e8e8d3;">=&gt; ERROR:    </span><span style="color:#ffb964;">nfs-utils-1.3.4_6
+</span><span style="color:#e8e8d3;">=&gt; ERROR:    </span><span style="color:#ffb964;">quota-4.04_3
+</span><span style="color:#e8e8d3;">=&gt; ERROR:    </span><span style="color:#ffb964;">rpcbind-1.2.5_1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:    </span><span style="color:#ffb964;">zfs-0.7.12_1
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">libtirpc-1.1.4_1:</span><span style="color:#e8e8d3;"> cannot continue with installation!
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">libtirpc-1.1.4_1:</span><span style="color:#e8e8d3;"> pre-pkg_99-pkglint: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">grep -E &quot;${_pattern}&quot; $mapshlibs</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> hook() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/hooks/pre-pkg/99-pkglint.sh:108
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> run_func() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/xbps-src/shutils/common.sh:21
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> run_pkg_hooks() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/xbps-src/shutils/common.sh:251
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> main() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/xbps-src/libexec/xbps-src-prepkg.sh:47
+</span></pre>
+<p>Neatly helpful, it tells us to update the common/shlibs entry, and even tells us the packages
+we need to revbump.</p>
+<blockquote>
+<p>revbump means bumping the revision= field by 1 in the template, so the package is rebuilt and
+is considered an update to users.</p>
+</blockquote>
+<p>For doing revbumps we can make use of xtools, a package of shell script utilities for dealing
+with xbps-src and <a href="https://voidlinux.org">Void Linux</a> systems in general, today we are going
+to use <code>xrevbump</code>.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xrevbump </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">rebuild against libtirpc.so.3</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> autofs fs-utils quota rpcbind zfs
+</span><span style="color:#ffb964;">srcpkgs/autofs/template:</span><span style="color:#e8e8d3;"> bump to revision 3
+</span><span style="color:#ffb964;">[revbump-libtirpc</span><span style="color:#e8e8d3;"> 866c9c8c80] autofs: rebuild against libtirpc.so.3
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">1</span><span style="color:#e8e8d3;"> file changed, 1 insertion(+)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 1 deletion(-)
+</span><span style="color:#ffb964;">srcpkgs/fs-utils/template:</span><span style="color:#e8e8d3;"> bump to revision 2
+</span><span style="color:#ffb964;">[revbump-libtirpc</span><span style="color:#e8e8d3;"> 4fd6e3e9be] fs-utils: rebuild against libtirpc.so.3
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">1</span><span style="color:#e8e8d3;"> file changed, 1 insertion(+)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 1 deletion(-)
+</span><span style="color:#ffb964;">srcpkgs/quota/template:</span><span style="color:#e8e8d3;"> bump to revision 4
+</span><span style="color:#ffb964;">[revbump-libtirpc</span><span style="color:#e8e8d3;"> b6ce2d7c02] quota: rebuild against libtirpc.so.3
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">1</span><span style="color:#e8e8d3;"> file changed, 1 insertion(+)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 1 deletion(-)
+</span><span style="color:#ffb964;">srcpkgs/rpcbind/template:</span><span style="color:#e8e8d3;"> bump to revision 2
+</span><span style="color:#ffb964;">[revbump-libtirpc</span><span style="color:#e8e8d3;"> 9a8fe973cb] rpcbind: rebuild against libtirpc.so.3
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">1</span><span style="color:#e8e8d3;"> file changed, 1 insertion(+)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 1 deletion(-)
+</span><span style="color:#ffb964;">srcpkgs/zfs/template:</span><span style="color:#e8e8d3;"> bump to revision 2
+</span><span style="color:#ffb964;">[revbump-libtirpc</span><span style="color:#e8e8d3;"> 52104e587f] zfs: rebuild against libtirpc.so.3
+</span><span style="color:#e8e8d3;"> </span><span style="color:#ffb964;">1</span><span style="color:#e8e8d3;"> file changed, 1 insertion(+)</span><span style="color:#ffb964;">,</span><span style="color:#e8e8d3;"> 1 deletion(-)
+</span></pre>
+<p>Done!, we just need to build the packages and test them, and after that the commits can be pushed
+to the master branch, after which the <a href="https://voidlinux.org">Void Linux</a> builders will pick them
+up and build them and make them available for the end users.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

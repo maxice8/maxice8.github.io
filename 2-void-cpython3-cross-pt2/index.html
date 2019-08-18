@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/2-void-cpython3-cross-pt2/">Fixing cross CPython3 modules in Void Linux, pt. 2</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-01
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="context">Context</h2>
+<p>After fixing the problem discussed in <a href="https://maxice8.github.io/1-void-cpython3-cross-pt1/">part 1</a>. Another bug was hit.</p>
+<p><a name="continue-reading"></a></p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">bluetooth
+</span><span style="color:#ffb964;">ImportError:</span><span style="color:#e8e8d3;"> /usr/lib/python3.6/site-packages/bluetooth/_bluetooth.so: undefined symbol: PyString_FromStringAndSize
+</span></pre>
+<p>After googling that specific error i was made aware that PyString_FromStringAndSize
+is not available on <code>python3</code>.</p>
+<p>But why then ? Why did it get included in the <code>python3</code> build ? Let's take a
+look at the source.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -I</span><span style="color:#e8e8d3;"> extract python-bluez
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> cd masterdir/builddir/pybluez-0.22
+</span><span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> rg</span><span style="color:#ffb964;"> --no-ignore</span><span style="color:#e8e8d3;"> PyString_FromStringAndSize 
+</span><span style="color:#ffb964;">bluez/btmodule.c
+</span><span style="color:#ffb964;">664:</span><span style="color:#e8e8d3;">        PyObject *buf = PyString_FromStringAndSize((char *)</span><span style="color:#ffb964;">NULL,</span><span style="color:#e8e8d3;"> buflen);
+</span><span style="color:#ffb964;">1073:</span><span style="color:#e8e8d3;">	buf = PyString_FromStringAndSize((char *) </span><span style="color:#ffb964;">0,</span><span style="color:#e8e8d3;"> len);
+</span><span style="color:#ffb964;">1123:</span><span style="color:#e8e8d3;">	buf = PyString_FromStringAndSize((char *) </span><span style="color:#ffb964;">0,</span><span style="color:#e8e8d3;"> len);
+</span><span style="color:#ffb964;">1949:</span><span style="color:#e8e8d3;">    return PyString_FromStringAndSize(rparam, req.rlen);
+</span><span style="color:#ffb964;">2124:</span><span style="color:#e8e8d3;">    return PyString_FromStringAndSize(param, len); \
+</span><span style="color:#ffb964;">2153:</span><span style="color:#e8e8d3;">    return PyString_FromStringAndSize(param, len); \
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">port3/port3.h
+</span><span style="color:#ffb964;">5:    </span><span style="color:#888888;">#define PyString_FromStringAndSize PyBytes_FromStringAndSize
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">osx/_osxbt.c
+</span><span style="color:#ffb964;">190:</span><span style="color:#e8e8d3;">    buf = PyString_FromStringAndSize((char*)</span><span style="color:#ffb964;">0,</span><span style="color:#e8e8d3;"> datalen);
+</span><span style="color:#ffb964;">456:</span><span style="color:#e8e8d3;">            rawrecord = PyString_FromStringAndSize( qs-&gt;lpBlob-&gt;pBlobData,
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">msbt/_msbt.c
+</span><span style="color:#ffb964;">292:</span><span style="color:#e8e8d3;">    buf = PyString_FromStringAndSize((char*)</span><span style="color:#ffb964;">0,</span><span style="color:#e8e8d3;"> datalen);
+</span><span style="color:#ffb964;">646:</span><span style="color:#e8e8d3;">            rawrecord = PyString_FromStringAndSize( qs-&gt;lpBlob-&gt;pBlobData,
+</span></pre>
+<p>Interesting results, specially that <code>port/port3.h</code>, let's take a closer look</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> cat port3/port3.h
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">#if</span><span style="color:#e8e8d3;"> PY_MAJOR_VERSION &gt;= 3
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyInt_FromLong</span><span style="color:#e8e8d3;"> PyLong_FromLong
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyString_FromString</span><span style="color:#e8e8d3;"> PyUnicode_FromString
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyString_FromStringAndSize</span><span style="color:#e8e8d3;"> PyBytes_FromStringAndSize
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">_PyString_Resize</span><span style="color:#e8e8d3;"> _PyBytes_Resize
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyString_AS_STRING</span><span style="color:#e8e8d3;"> PyBytes_AS_STRING
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyInt_AsLong</span><span style="color:#e8e8d3;"> PyLong_AsLong
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyString_AsString</span><span style="color:#e8e8d3;"> PyBytes_AsString
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyInt_Check</span><span style="color:#e8e8d3;"> PyLong_Check
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">PyInt_AS_LONG</span><span style="color:#e8e8d3;"> PyLong_AS_LONG
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">BYTES_FORMAT_CHR </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">y#</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">#else
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#ifndef</span><span style="color:#e8e8d3;"> Py_TYPE
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">#define </span><span style="color:#fad07a;">Py_TYPE</span><span style="color:#e8e8d3;">(</span><span style="color:#ffb964;">ob</span><span style="color:#e8e8d3;">) (((PyObject*)(ob))-&gt;ob_type)
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#endif
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">BYTES_FORMAT_CHR </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">s#</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">#endif
+</span></pre>
+<p>So for some reason, PY_MAJOR_VERSION is not set correctly. After some
+googling it was revealed that PY_MAJOR_VERSION is defined by python headers,
+more specifically the <a href="https://github.com/python/cpython/blob/master/Include/patchlevel.h">patchlevel.h</a>
+header.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> rg</span><span style="color:#ffb964;"> --no-ignore</span><span style="color:#e8e8d3;"> PY_MAJOR_VERSION /usr/include/python3.6m
+</span><span style="color:#ffb964;">/usr/include/python3.6m/patchlevel.h
+</span><span style="color:#ffb964;">19:#define</span><span style="color:#e8e8d3;"> PY_MAJOR_VERSION	3
+</span><span style="color:#ffb964;">31:#define</span><span style="color:#e8e8d3;"> PY_VERSION_HEX ((PY_MAJOR_VERSION &lt;&lt; </span><span style="color:#cf6a4c;">24</span><span style="color:#e8e8d3;">) | \
+</span></pre><h2 id="problem">Problem</h2>
+<p>Well, let's take a look at our include directives, maybe the correct one isn't
+being included. Let's see the build logs.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">aarch64-linux-gnu-gcc -pthread -fstack-clash-protection -D_FORTIFY_SOURCE=2 -O2 -pipe -march=armv8-a -I/usr/aarch64-linux-gnu/usr/include -I/usr/aarch64-linux-gnu/include/python2.7 -I/usr/aarch64-linux-gnu/usr/include -I/usr/aarch64-linux-gnu/include/python3.6m -I/usr/aarch64-linux-gnu/usr/include -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -L/usr/aarch64-linux-gnu/usr/lib -L/usr/aarch64-linux-gnu/lib/python2.7 -L/usr/aarch64-linux-gnu/usr/lib -L/usr/aarch64-linux-gnu/lib/python3.6 -L/usr/aarch64-linux-gnu/usr/lib -DNDEBUG -g -fwrapv -O3 -Wall -fstack-clash-protection -D_FORTIFY_SOURCE=2 -O2 -pipe -march=armv8-a -I/usr/aarch64-linux-gnu/usr/include -I/usr/aarch64-linux-gnu/include/python2.7 -I/usr/aarch64-linux-gnu/usr/include -I/usr/aarch64-linux-gnu/include/python3.6m -I/usr/aarch64-linux-gnu/usr/include -fPIC -I./port3 -I/usr/include/python3.6m -c bluez/btsdp.c -o build-3.6/temp.linux-x86_64-3.6/bluez/btsdp.o
+</span></pre>
+<p>This has too much content, lets remove everything but the include directives,
+remove duplicates and break one per line to better examine them.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">aarch64-linux-gnu-gcc
+</span><span style="color:#ffb964;">-I/usr/aarch64-linux-gnu/usr/include
+</span><span style="color:#ffb964;">-I/usr/aarch64-linux-gnu/include/python2.7
+</span><span style="color:#ffb964;">-I/usr/aarch64-linux-gnu/include/python3.6m
+</span><span style="color:#ffb964;">-I./port3
+</span></pre>
+<p>Much clearer, and it is now visible why the wrong header was included.
+The <code>python2</code> headers are being included before the <code>python3</code> ones,
+PY_MAJOR_VERSION is always being set to 2.</p>
+<p>To find out why includes meant for <code>python2</code> are getting inserted into the <code>python3</code>
+build i turned to the build style.</p>
+<p>For those uninitiated, build styles are snippets in shell that define functions
+and environment variables for dealing with specific build systems, like cmake
+and meson and specific languages like go and python.</p>
+<p>In the case of python-bluez the build style being used is python-module,
+which builds the package for <code>python2</code> and <code>python3</code> in separate build directories.</p>
+<p>Let's then take a peek into <a href="https://github.com/void-linux/void-packages/blob/2014e03dacd32a6ed3596d3da2b6a23cdda1c05d/common/build-style/python-module.sh">common/build-style/python-module</a>.</p>
+<pre style="background-color:#151515;">
+<span style="color:#fad07a;">do_build</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">: ${</span><span style="color:#ffb964;">python_versions</span><span style="color:#e8e8d3;">:=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">2.7 $</span><span style="color:#ffb964;">py3_ver</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">local </span><span style="color:#ffb964;">pyver</span><span style="color:#e8e8d3;">= </span><span style="color:#ffb964;">pysufx</span><span style="color:#e8e8d3;">=
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">for</span><span style="color:#e8e8d3;"> pyver </span><span style="color:#8fbfdc;">in </span><span style="color:#e8e8d3;">$</span><span style="color:#ffb964;">python_versions</span><span style="color:#e8e8d3;">; </span><span style="color:#8fbfdc;">do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#ffb964;">-n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CROSS_BUILD</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">PYPREFIX</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">pyver</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">!= </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">2.7</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">                </span><span style="color:#ffb964;">pysufx</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">m
+</span><span style="color:#e8e8d3;">            </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">CFLAGS</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> -I${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/include/python${</span><span style="color:#ffb964;">pyver</span><span style="color:#99ad6a;">}${</span><span style="color:#ffb964;">pysufx</span><span style="color:#99ad6a;">} -I${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/include</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">LDFLAGS</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> -L${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/lib/python${</span><span style="color:#ffb964;">pyver</span><span style="color:#99ad6a;">} -L${</span><span style="color:#ffb964;">XBPS_CROSS_BASE</span><span style="color:#99ad6a;">}/usr/lib</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">CC</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">XBPS_CROSS_TRIPLET</span><span style="color:#99ad6a;">}-gcc -pthread $</span><span style="color:#ffb964;">CFLAGS </span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">LDFLAGS</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">LDSHARED</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">CC</span><span style="color:#99ad6a;">} -shared $</span><span style="color:#ffb964;">LDFLAGS</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">env</span><span style="color:#e8e8d3;"> CC=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CC</span><span style="color:#556633;">&quot;</span><span style="color:#e8e8d3;"> LDSHARED=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">LDSHARED</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">                </span><span style="color:#ffb964;">PYPREFIX</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">PYPREFIX</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">CFLAGS</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">CFLAGS</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">\
+</span><span style="color:#e8e8d3;">                </span><span style="color:#ffb964;">LDFLAGS</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">LDFLAGS</span><span style="color:#556633;">&quot; </span><span style="color:#ffb964;">python${pyver}</span><span style="color:#e8e8d3;"> setup.py \
+</span><span style="color:#e8e8d3;">                    </span><span style="color:#ffb964;">build --build-base</span><span style="color:#e8e8d3;">=build-${</span><span style="color:#ffb964;">pyver</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_args</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">else
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">python${pyver}</span><span style="color:#e8e8d3;"> setup.py build</span><span style="color:#ffb964;"> --build-base</span><span style="color:#e8e8d3;">=build-${</span><span style="color:#ffb964;">pyver</span><span style="color:#e8e8d3;">} ${</span><span style="color:#ffb964;">make_build_args</span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#8fbfdc;">done
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<p>Noticed it ?, <code>CFLAGS</code> and <code>LDFLAGS</code> are being appended. But they are global variables
+and will not reset between each loop. That means that after building for <code>python2</code> it
+will have a polluted environment for building for <code>python3</code>!</p>
+<h2 id="solution">Solution</h2>
+<p>This should be an easy fix... Just store the <code>CFLAGS</code> and <code>LDFLAGS</code> at the start of the
+function as another variable and reset between each loop!</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/common/build-style/python-module.sh b/common/build-style/python-module.sh
+</span><span style="color:#e8e8d3;">index 57ec8c73831..d3c93de38ca 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/common/build-style/python-module.sh
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/common/build-style/python-module.sh
+</span><span style="font-style:italic;color:#888888;">@@ -4,10 +4,13 @@
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">do_build() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">: ${python_versions:=&quot;2.7 $py3_ver&quot;}
+</span><span style="color:#a1000d;">-   local pyver= pysufx=
+</span><span style="color:#558f1f;">+   local pyver= pysufx= tmp_cflags=&quot;$CFLAGS&quot; tmp_ldflags=&quot;$LDFLAGS&quot;
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">for pyver in $python_versions; do
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">if [ -n &quot;$CROSS_BUILD&quot; ]; then
+</span><span style="color:#558f1f;">+           CFLAGS=&quot;$tmp_cflags&quot;
+</span><span style="color:#558f1f;">+           LDFLAGS=&quot;$tmp_ldflags&quot;
+</span><span style="color:#558f1f;">+
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">PYPREFIX=&quot;$XBPS_CROSS_BASE&quot;
+</span><span style="color:#e8e8d3;">            </span><span style="color:#e8e8d3;">if [ &quot;$pyver&quot; != &quot;2.7&quot; ]; then
+</span><span style="color:#e8e8d3;">                </span><span style="color:#e8e8d3;">pysufx=m
+</span><span style="color:#e8e8d3;">
+</span></pre>
+<p>And done, let's build it again and take a look at the build logs and perform
+the same cleanup done as the first time for readability.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">aarch64-linux-gnu-gcc
+</span><span style="color:#ffb964;">-I/usr/aarch64-linux-gnu/usr/include
+</span><span style="color:#ffb964;">-I/usr/aarch64-linux-gnu/include/python3.6m
+</span><span style="color:#ffb964;">-I./port3
+</span></pre>
+<p>And let's run the module again and see what happens</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> python3
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt; import </span><span style="color:#ffb964;">bluetooth
+</span><span style="color:#e8e8d3;">&gt;&gt;&gt;
+</span></pre>
+<p>Success! Another bug squashed! With this the path to having python-gobject
+available to cross arches almost complete! Onwards to making gobject-introspection
+cross!</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

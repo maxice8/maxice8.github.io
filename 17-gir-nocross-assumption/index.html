@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/17-gir-nocross-assumption/">Assuming gir is nocross</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-07
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>A while back i wrote an article about making gir be cross compilable on
+<a href="https://voidlinux.org">Void Linux</a>, called <a href="../8-cross-the-gir">crossing the gir</a>.</p>
+<p>This article post is a small rant about a thankfully uncommon problem
+but that sadly still annoys me greatly, it is an anti-pattern born
+out of an outdated assumption that at best cause unhelpful error
+messages and at worst silently fail much later on.</p>
+<p>This is the story of assuming gir is not cross compilable.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="atk">atk</h2>
+<p>We start like i started, the first package i had this problem.</p>
+<h3 id="template">Template</h3>
+<p>Let's take a look at the template to see if it all correct, here
+is a checklist of what we need:</p>
+<ul>
+<li>[ ] gir build_helper set</li>
+<li>[ ] gir build_option declared</li>
+<li>[ ] gir in the build_options_default</li>
+<li>[ ] vmove /usr/share/gir-1.0 to -devel package</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;atk&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">atk
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">2.30.0
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">2
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">meson
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-Dintrospection=$(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> gir true false)</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">pkg-config glib-devel</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">libglib-devel</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Set of interfaces for accessibility</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Juan RP &lt;xtraeme@voidlinux.org&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">LGPL-2.1-or-later</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">http://www.gtk.org/</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">distfiles</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">GNOME_SITE</span><span style="color:#99ad6a;">}/atk/${</span><span style="color:#ffb964;">version%</span><span style="color:#99ad6a;">.*}/atk-${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}.tar.xz</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">dd4d90d4217f2a0c1fee708a555596c2c19d26fef0952e1ead1938ab632c027b
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Package build options
+</span><span style="color:#ffb964;">build_options</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">atk-devel_package</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">makedepends</span><span style="color:#99ad6a;">} atk&gt;=${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}_${</span><span style="color:#ffb964;">revision</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - development files</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#fad07a;">pkg_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/include
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/lib/pkgconfig
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">usr/lib/*.so</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">vmove </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">usr/share/gir-*</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<ul>
+<li>[x] gir build_helper set</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">meson
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-Dintrospection=$(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> gir true false)</span><span style="color:#556633;">&quot;
+</span></pre>
+<ul>
+<li>[x] gir build_option declared</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Package build options
+</span><span style="color:#ffb964;">build_options</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span></pre>
+<ul>
+<li>[x] gir in the build_options_default</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span></pre>
+<blockquote>
+<p>The above covers all arches that we support gir in, all except cross musl ones.</p>
+</blockquote>
+<ul>
+<li>[x] vmove /usr/share/gir-1.0 to -devel package</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vmove </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">usr/share/gir-*</span><span style="color:#556633;">&quot;
+</span><span style="color:#8fbfdc;">fi
+</span></pre><h3 id="error">Error</h3>
+<p>Alright we are all set!, Let's build it!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg atk
+</span><span style="color:#e8e8d3;">=&gt; atk-devel-2.30.0_2: </span><span style="color:#ffb964;">running</span><span style="color:#e8e8d3;"> pkg_install ...
+</span><span style="color:#ffb964;">mv:</span><span style="color:#e8e8d3;"> cannot stat </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">/destdir/aarch64-linux-gnu/atk-2.30.0/usr/share/gir-*</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">: No such file or directory
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">atk-devel-2.30.0_2:</span><span style="color:#e8e8d3;"> pkg_install: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">mv ${_destdir}/$files ${_pkgdestdir}/${_targetdir}</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> _vmove() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/environment/setup/install.sh:231
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> _noglob_helper() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/environment/setup/install.sh:12
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> pkg_install() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> srcpkgs/atk-devel/template:34
+</span></pre>
+<p>Wait, what ?, the files aren't there!, why? It works on native compilations...</p>
+<h3 id="inspecting">Inspecting</h3>
+<p>I'll save the time i ran around like a headless chicken looking at everything, here
+is the problem, this is atk's meson.build file, the section shown is the part that
+generates gir.</p>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">not meson.</span><span style="color:#ffb964;">is_cross_build</span><span style="color:#e8e8d3;">() and </span><span style="color:#ffb964;">get_option</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">introspection</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">gnome.</span><span style="color:#ffb964;">generate_gir</span><span style="color:#e8e8d3;">(libatk,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">sources</span><span style="color:#e8e8d3;">: atk_sources + atk_headers + [ atk_enum_h ] + [ atk_version_h ],
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">namespace</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">nsversion</span><span style="color:#e8e8d3;">: atk_api_version,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">identifier_prefix</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">symbol_prefix</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">export_packages</span><span style="color:#e8e8d3;">: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">atk</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">includes</span><span style="color:#e8e8d3;">: [ </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">GObject-2.0</span><span style="color:#556633;">&#39; </span><span style="color:#e8e8d3;">],
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">install</span><span style="color:#e8e8d3;">: true,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#ffb964;">extra_args</span><span style="color:#e8e8d3;">: [
+</span><span style="color:#e8e8d3;">                       </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">--quiet</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                       </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">--c-include=atk/atk.h</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                       </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">-DATK_COMPILATION</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">,
+</span><span style="color:#e8e8d3;">                     </span><span style="color:#e8e8d3;">])
+</span><span style="color:#8fbfdc;">endif
+</span></pre>
+<p>See it ? Let's enhance!</p>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">not meson.</span><span style="color:#ffb964;">is_cross_build</span><span style="color:#e8e8d3;">() and </span><span style="color:#ffb964;">get_option</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">introspection</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span></pre>
+<p>That is_cross_build check! It guts the gir generation and we left with a super unhelpful
+message, not even from meson and the project, but from xbps-src, telling us that we don't
+have the gir directory.</p>
+<h3 id="fixing">Fixing</h3>
+<p>Let's remove it and try again:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/atk/meson.build b/atk/meson.build
+</span><span style="color:#e8e8d3;">index 616a3e6..941ded8 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- atk/meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ atk/meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -137,7 +137,7 @@</span><span style="color:#e8e8d3;"> libatk_dep = declare_dependency(link_with: libatk,
+</span><span style="color:#e8e8d3;">                                 </span><span style="color:#e8e8d3;">dependencies: gobject_dep,
+</span><span style="color:#e8e8d3;">                                 </span><span style="color:#e8e8d3;">sources: atk_enum_h)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-if not meson.is_cross_build() and get_option(&#39;introspection&#39;)
+</span><span style="color:#558f1f;">+if get_option(&#39;introspection&#39;)
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">gnome.generate_gir(libatk,
+</span><span style="color:#e8e8d3;">                      </span><span style="color:#e8e8d3;">sources: atk_sources + atk_headers + [ atk_enum_h ] + [ atk_version_h ],
+</span><span style="color:#e8e8d3;">                      </span><span style="color:#e8e8d3;">namespace: &#39;Atk&#39;,
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg atk
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/atk
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">atk-2.30.0_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (aarch64).
+</span><span style="color:#99ad6a;">index: added `atk-devel-2.30.0_2</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> (aarch64).
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> 2 packages registered.
+</span></pre>
+<p>All good, let's send it to upstream, i filled a
+<a href="https://gitlab.gnome.org/GNOME/atk/merge_requests/12">merge request</a> on atk's
+gitlab.</p>
+<h2 id="libgxps">libgxps</h2>
+<p>And we continue like i continued, this is the second package i ran
+across that had this kind of problem. Let's apply all the same methodology
+that we applied to atk.</p>
+<h3 id="template-1">Template</h3>
+<p>Here is your usual checklist</p>
+<ul>
+<li>[ ] gir build_helper set</li>
+<li>[ ] gir build_option declared</li>
+<li>[ ] gir in the build_options_default</li>
+<li>[ ] vmove /usr/share/gir-1.0 to -devel package</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;libgxps&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">libgxps
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">0.3.1
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">2
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">meson
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-Denable-test=false
+</span><span style="color:#99ad6a;"> </span><span style="color:#99ad6a;">-Ddisable-introspection=$(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> gir false true)</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">pkg-config</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">cairo-devel libglib-devel libjpeg-turbo-devel libpng-devel
+</span><span style="color:#99ad6a;"> </span><span style="color:#99ad6a;">tiff-devel lcms2-devel libarchive-devel freetype-devel</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">GObject base library for XPS documents</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Rasmus Thomsen &lt;rasmus.thomsen@protonmail.com&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">LGPL-2.1-or-later</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://wiki.gnome.org/Projects/libgxps</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">distfiles</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">GNOME_SITE</span><span style="color:#99ad6a;">}/${</span><span style="color:#ffb964;">pkgname</span><span style="color:#99ad6a;">}/${</span><span style="color:#ffb964;">version%</span><span style="color:#99ad6a;">.*}/${</span><span style="color:#ffb964;">pkgname</span><span style="color:#99ad6a;">}-${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}.tar.xz</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1a939fc8fcea9471b7eca46b1ac90cff89a30d26f65c7c9a375a4bf91223fa94
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#888888;"># Package build options
+</span><span style="color:#ffb964;">build_options</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">libgxps-devel_package</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">cairo-devel libglib-devel libarchive-devel
+</span><span style="color:#99ad6a;">     </span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">sourcepkg</span><span style="color:#99ad6a;">}-${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}_${</span><span style="color:#ffb964;">revision</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - development files</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#fad07a;">pkg_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/include
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">usr/lib/*.so</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/lib/pkgconfig
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/share/gir-1.0
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<ul>
+<li>[x] gir build_helper set</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">meson
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-Denable-test=false
+</span></pre>
+<ul>
+<li>[x] gir build_option declared</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Package build options
+</span><span style="color:#ffb964;">build_options</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span></pre>
+<ul>
+<li>[x] gir in the build_options_default</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span></pre>
+<ul>
+<li>[x] vmove /usr/share/gir-1.0 to -devel package</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/share/gir-1.0
+</span><span style="color:#8fbfdc;">fi
+</span></pre>
+<p>Looks all fine to me</p>
+<h3 id="error-1">Error</h3>
+<p>Let's build it</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg libgxps
+</span><span style="color:#e8e8d3;">=&gt; libgxps-devel-0.3.1_2: </span><span style="color:#ffb964;">running</span><span style="color:#e8e8d3;"> pkg_install ...
+</span><span style="color:#ffb964;">mv:</span><span style="color:#e8e8d3;"> cannot stat </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">/destdir/aarch64-linux-gnu/libgxps-0.3.1/usr/share/gir-1.0</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">: No such file or directory
+</span><span style="color:#e8e8d3;">=&gt; ERROR: </span><span style="color:#ffb964;">libgxps-devel-0.3.1_2:</span><span style="color:#e8e8d3;"> pkg_install: </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">mv ${_destdir}/$files ${_pkgdestdir}/${_targetdir}</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> exited with 1
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> _vmove() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/environment/setup/install.sh:231
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> _noglob_helper() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> common/environment/setup/install.sh:12
+</span><span style="color:#e8e8d3;">=&gt; ERROR:   </span><span style="color:#ffb964;">in</span><span style="color:#e8e8d3;"> pkg_install() </span><span style="color:#ffb964;">at</span><span style="color:#e8e8d3;"> srcpkgs/libgxps-devel/template:37
+</span></pre>
+<p>Ah, it is even the same error!, missing  directory!</p>
+<h3 id="inspecting-1">Inspecting</h3>
+<p>Let's not beat around the bush, find that cross build!</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">gir = </span><span style="color:#ffb964;">find_program</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">g-ir-scanner</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, </span><span style="color:#ffb964;">required</span><span style="color:#e8e8d3;">: false)
+</span><span style="color:#e8e8d3;">build_gir = gir.</span><span style="color:#ffb964;">found</span><span style="color:#e8e8d3;">() and not meson.</span><span style="color:#ffb964;">is_cross_build</span><span style="color:#e8e8d3;">() and not </span><span style="color:#ffb964;">get_option</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">disable-introspection</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span></pre>
+<p>Found it, again dreams of a cross gir world are gutted by an assumption.</p>
+<h3 id="fixing-1">Fixing</h3>
+<p>Let's patch it out</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/meson.build b/meson.build
+</span><span style="color:#e8e8d3;">index a34a616..2d6eb1e 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -131,7 +131,7 @@</span><span style="color:#e8e8d3;"> libm_dep = cc.find_library(&#39;m&#39;, required: false)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">gnome = import(&#39;gnome&#39;)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">gir = find_program(&#39;g-ir-scanner&#39;, required: false)
+</span><span style="color:#a1000d;">-build_gir = gir.found() and not meson.is_cross_build() and not get_option(&#39;disable-introspection&#39;)
+</span><span style="color:#558f1f;">+build_gir = gir.found() and not get_option(&#39;disable-introspection&#39;)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">configure_file(output: &#39;config.h&#39;, configuration: cdata)
+</span></pre>
+<p>And build it:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg libgxps
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgxps
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">libgxps-0.3.1_2</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (aarch64).
+</span><span style="color:#99ad6a;">index: added `libgxps-devel-0.3.1_2</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> (aarch64).
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> 2 packages registered.
+</span></pre>
+<p>All good again, a
+<a href="https://gitlab.gnome.org/GNOME/libgxps/merge_requests/2">merge request</a>
+has been made in libgxps' gitlab.</p>
+<h2 id="libgit2-glib">libgit2-glib</h2>
+<p>This is the most interesting one, and the one that drove me over the edge into
+writing this article, it is the one that provides the most helpful yet useless
+debug message and it is all because of the same assumption as above, mixed with
+vala.</p>
+<h3 id="template-2">Template</h3>
+<p>Never forget your handy checklist:</p>
+<ul>
+<li>[ ] gir build_helper set</li>
+<li>[ ] gir build_option declared</li>
+<li>[ ] gir in the build_options_default</li>
+<li>[ ] vmove /usr/share/gir-1.0 to -devel package</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#888888;"># Template file for &#39;libgit2-glib&#39;
+</span><span style="color:#ffb964;">pkgname</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">libgit2-glib
+</span><span style="color:#ffb964;">version</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">0.27.7
+</span><span style="color:#ffb964;">revision</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">1
+</span><span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">meson
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-Dintrospection=$(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> gir true false)
+</span><span style="color:#99ad6a;"> </span><span style="color:#99ad6a;">-Dvapi=$(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> vala true false)</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">pkg-config glib-devel $(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> vala vala)</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">libglib-devel libgit2-devel python-gobject-devel</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Glib wrapper library around libgit2</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">maintainer</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Juan RP &lt;xtraeme@voidlinux.org&gt;</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">license</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">LGPL-2.1-or-later</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">homepage</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">https://github.com/GNOME/${</span><span style="color:#ffb964;">pkgname</span><span style="color:#99ad6a;">}</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">distfiles</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">homepage</span><span style="color:#99ad6a;">}/archive/v${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}.tar.gz</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">checksum</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">224a0bc1d902729b42ca9424db545c460ff8aaeb08addc2b0a01bf235b4c9d6e
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">build_options</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir vala</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir vala</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir vala</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#fad07a;">libgit2-glib-devel_package</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">${</span><span style="color:#ffb964;">sourcepkg</span><span style="color:#99ad6a;">}&gt;=${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}_${</span><span style="color:#ffb964;">revision</span><span style="color:#99ad6a;">} libglib-devel libgit2-devel</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - development files</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#fad07a;">pkg_install</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">usr/lib/*.so</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/include
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/lib/pkgconfig
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_vala</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/share/vala
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">            </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/share/gir-1.0
+</span><span style="color:#e8e8d3;">        </span><span style="color:#8fbfdc;">fi
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">}
+</span><span style="color:#e8e8d3;">}
+</span></pre>
+<ul>
+<li>[x] gir build_helper set</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">build_style</span><span style="color:#e8e8d3;">=</span><span style="color:#99ad6a;">meson
+</span><span style="color:#ffb964;">build_helper</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">configure_args</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">-Dintrospection=$(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> gir true false)
+</span></pre>
+<ul>
+<li>[x] gir build_option declared</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">build_options</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">gir vala</span><span style="color:#556633;">&quot;
+</span></pre>
+<ul>
+<li>[x] gir in the build_options_default</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">case </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">XBPS_TARGET_MACHINE</span><span style="color:#556633;">&quot; </span><span style="color:#8fbfdc;">in
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">x86_64-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir vala</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*-musl</span><span style="color:#8fbfdc;">) </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">*</span><span style="color:#8fbfdc;">) </span><span style="color:#ffb964;">build_options_default</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> gir vala</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">;;
+</span><span style="color:#8fbfdc;">esac
+</span></pre>
+<ul>
+<li>[x] vmove /usr/share/gir-1.0 to -devel package</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#8fbfdc;">if </span><span style="color:#e8e8d3;">[ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_gir</span><span style="color:#556633;">&quot; </span><span style="color:#e8e8d3;">]; </span><span style="color:#8fbfdc;">then
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">vmove</span><span style="color:#e8e8d3;"> usr/share/gir-1.0
+</span><span style="color:#8fbfdc;">fi
+</span></pre>
+<p>Looks fine as always.</p>
+<h3 id="error-2">Error</h3>
+<p>OK, let's build it!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg libgit2-glib
+</span></pre><pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">meson.build:</span><span style="color:#cf6a4c;">132</span><span style="color:#e8e8d3;">:</span><span style="color:#cf6a4c;">2</span><span style="color:#e8e8d3;">: ERROR:  Assert failed: vapi support was requested, but introspection support is mandatory.
+</span></pre><h3 id="inspecting-2">Inspecting</h3>
+<p>That looks different. More helpful, let's go to that line in the meson.build!</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">assert</span><span style="color:#e8e8d3;">(enable_gir, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">vapi support was requested, but introspection support is mandatory.</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span></pre>
+<p>The code above will error out if enable_gir is false, let's find out where this
+enable_gir is set up, Lucky for up it was in the code block above:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">enable_gir = </span><span style="color:#ffb964;">get_option</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">introspection</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">)
+</span><span style="color:#8fbfdc;">if</span><span style="color:#e8e8d3;"> enable_gir
+</span><span style="color:#e8e8d3;">  </span><span style="color:#888888;"># XXX: Not nice, but probably our best option
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">enable_gir = </span><span style="color:#ffb964;">find_program</span><span style="color:#e8e8d3;">(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">g-ir-scanner</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;">, </span><span style="color:#ffb964;">required</span><span style="color:#e8e8d3;">: false).</span><span style="color:#ffb964;">found</span><span style="color:#e8e8d3;">() and not meson.</span><span style="color:#ffb964;">is_cross_build</span><span style="color:#e8e8d3;">()
+</span><span style="color:#8fbfdc;">endif
+</span></pre>
+<p>Yet again, is_cross_build checks cause problems, enable_gir is always false
+when cross compiling because of it.</p>
+<h3 id="fixing-2">Fixing</h3>
+<p>Let's patch it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/meson.build b/meson.build
+</span><span style="color:#e8e8d3;">index e1e9fde..63b958a 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- meson.build
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ meson.build
+</span><span style="font-style:italic;color:#888888;">@@ -124,7 +124,7 @@</span><span style="color:#e8e8d3;"> libgit2_dep = dependency(&#39;libgit2&#39;, version: &#39;&gt;=&#39; + git2_req)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">enable_gir = get_option(&#39;introspection&#39;)
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">if enable_gir
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;"># XXX: Not nice, but probably our best option
+</span><span style="color:#a1000d;">-  enable_gir = find_program(&#39;g-ir-scanner&#39;, required: false).found() and not meson.is_cross_build()
+</span><span style="color:#558f1f;">+  enable_gir = find_program(&#39;g-ir-scanner&#39;, required: false).found()
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">endif
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">enable_vapi = get_option(&#39;vapi&#39;)
+</span></pre>
+<p>And build it:</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">$</span><span style="color:#e8e8d3;"> xbps-src</span><span style="color:#ffb964;"> -f -a</span><span style="color:#e8e8d3;"> aarch64 pkg libgit2-glib
+</span><span style="color:#e8e8d3;">=&gt; Registering </span><span style="color:#ffb964;">new</span><span style="color:#e8e8d3;"> packages to /host/binpkgs/libgit2-glib
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> added `</span><span style="color:#ffb964;">libgit2-glib-0.27.7_1</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;"> (aarch64).
+</span><span style="color:#99ad6a;">index: added `libgit2-glib-devel-0.27.7_1</span><span style="color:#556633;">&#39;</span><span style="color:#e8e8d3;"> (aarch64).
+</span><span style="color:#ffb964;">index:</span><span style="color:#e8e8d3;"> 2 packages registered.&lt;Paste&gt;
+</span></pre>
+<p>And it works, as expected, and also it is expected that a
+<a href="https://gitlab.gnome.org/GNOME/libgit2-glib/merge_requests/9">merge request</a>
+is filled in libgit2-glib's gitlab.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>All these errors would not happen if it were not for developers making an
+assumption that <strong>might</strong> have been true at their time. I say might because
+it is entirely possible they made that assumption after buildroot/yocto
+added support to cross compiling gir. In that case the assumption is just
+plain wrong.</p>
+<p>The end result is:</p>
+<h3 id="silent-errors">Silent errors</h3>
+<p>The errors of atk and libgxps wouldn't be caught without a package building
+system like xbps-src, if it weren't for xbps-src trying to move usr/share/gir-*
+and /usr/share/gir-1.0, on atk and libgxps respectively, it would never fail
+and the package would be silently generated without the gir objects.</p>
+<h3 id="unhelpful-messages">Unhelpful messages</h3>
+<p>The message from libgit2-glib was only helpful because in the back of my mind
+this sentence was running:</p>
+<blockquote>
+<p>It is that cross_build check thingie, isn't it ? it is right ?!!!</p>
+</blockquote>
+<p>It took a grand total of a few seconds from opening the meson.build file to
+fixing it.</p>
+<h2 id="psa">PSA</h2>
+<blockquote>
+<p>GIR IS CROSS COMPILABLE DON'T GATEKEEP GIR GENERATION BEHIND is_cross_build()!</p>
+</blockquote>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

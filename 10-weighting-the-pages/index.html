@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/10-weighting-the-pages/">weighting the pages</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-04
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/site/">#site</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="unplanned-carelessness">Unplanned carelessness</h2>
+<p>When i started this site i really didn't think through how to to organize the
+pages in the content section, i just went along with whatever the theme i was
+using at the time, in this case: evan.</p>
+<p>The result was less than optimal as evan used dates, which is ok if you write
+one article a day at best, but i write lots of small articles about Void Linux
+so the organisation was quickly thrown out of the window with weird filenames
+to be used as tie-breaker for sorting taking its place.</p>
+<p>So i decided one day to take the plunge and fix it before it got <strong>really</strong>
+out of hand.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="the-past-suck">The past suck</h2>
+<p>This is how the tree was before i got myself into fixing it.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">content
+</span><span style="color:#e8e8d3;">├── 2-foray-into-common-shlibs.md
+</span><span style="color:#e8e8d3;">├── 3-build-helper-void.md
+</span><span style="color:#e8e8d3;">├── 4-how-its-done.md
+</span><span style="color:#e8e8d3;">├── 996-libgusb-meson-gir-cross.md
+</span><span style="color:#e8e8d3;">├── 997-cross-the-gir.md
+</span><span style="color:#e8e8d3;">├── 998-using-tmplgen.md
+</span><span style="color:#e8e8d3;">├── 999-new-site-scheme.md
+</span><span style="color:#e8e8d3;">├── _index.md
+</span><span style="color:#e8e8d3;">├── pages
+</span><span style="color:#e8e8d3;">│   ├── _index.md
+</span><span style="color:#e8e8d3;">│   └── about.md
+</span><span style="color:#e8e8d3;">├── void-cpython3-cross-pt1.md
+</span><span style="color:#e8e8d3;">└── void-cpython3-cross-pt2.md
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">1 directory, 12 files
+</span></pre>
+<p>2, 3, 4, 996, 997, 998, 999 ?!</p>
+<p>2 files without numbering ?!</p>
+<p>Wait until you hear that the bigger the number it means they are before
+and not after, so 999 comes before 998 and 4 comes before 2.</p>
+<h2 id="the-current-neat">The current neat</h2>
+<p>To get an idea, this is how my files are currently named.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">content
+</span><span style="color:#e8e8d3;">├── 1-void-cpython3-cross-pt1.md
+</span><span style="color:#e8e8d3;">├── 2-void-cpython3-cross-pt2.md
+</span><span style="color:#e8e8d3;">├── 3-how-its-done.md
+</span><span style="color:#e8e8d3;">├── 4-build-helper-void.md
+</span><span style="color:#e8e8d3;">├── 5-foray-into-common-shlibs.md
+</span><span style="color:#e8e8d3;">├── 6-new-site-scheme.md
+</span><span style="color:#e8e8d3;">├── 7-using-tmplgen.md
+</span><span style="color:#e8e8d3;">├── 8-cross-the-gir.md
+</span><span style="color:#e8e8d3;">├── 9-libgusb-meson-gir-cross.md
+</span><span style="color:#e8e8d3;">├── 10-weighting-the-pages.md
+</span><span style="color:#e8e8d3;">├── _index.md
+</span><span style="color:#e8e8d3;">└── pages
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">├── _index.md
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">└── about.md
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;">1 directory, 13 files
+</span></pre>
+<p>Pretty neat isn't it ? You have _index which holds some pretty simple info,
+inside pages you have the about me page that can be reached by clicking at
+the top.</p>
+<p>And the most neat part is that each article is ordered by the order in which
+i wrote them, 1 being the first and the latest being whatever has the highest
+number by the time one looks there.</p>
+<h2 id="the-road-taken">The road taken</h2>
+<p>The one big change that allowed me to do that was changing the sort_by key
+in _index.md from date to weight.</p>
+<p>With date it is really hard to keep filenames organized if you write more
+than 1 post a day, since pages with the same date have a tie-break resolved
+by their names.</p>
+<p>That wouldn't be bad except that they sort it alphabetically and a lower
+number puts it after one of a higher number, so to make it work you would
+have to write it from the highest to the lowest.</p>
+<p>Switching to weights still has the highest to lowest problem but now it
+it can be solved by just starting from 999999999 and working down from
+there.</p>
+<p>Won't they run out ? Assuming 1 post a day we will have 2737851 years
+before we run out, 1368925 years for 2 articles a day. That should
+be enough, in any case we just add another 9 at the end and we get an
+extra 24640659 years to work it out.</p>
+<h2 id="breakage">Breakage</h2>
+<p>Sadly this breaks everyone that linked to a specific post of my blog,
+which is why this should have been done much earlier, thankfully the
+breakage is limited to <a href="https://voidlinux.org">Void Linux</a> sections.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

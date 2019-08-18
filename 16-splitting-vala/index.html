@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/16-splitting-vala/">Splitting and understanding Vala&#x27;s place in xbps-src</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-06
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/xbps-src/">#xbps-src</a>&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/cross/">#cross</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>A while back Void Linux started cross compiling GObject Introspection data
+using a combniation of qemu-user-static for running resulting binaries
+prelink and patches from Yocto.</p>
+<p>A nice side-effect of having gir cross compilable is that now we can also
+generate vala bindings (vapi), with that in mind i started working on
+cleaning up the templates that generate vala bindings and making them
+appropriate for cross compilation.</p>
+<p><a name="continue-reading"></a></p>
+<h2 id="spltting-vala">Spltting Vala</h2>
+<p>The currently vala package is confused at best and willingly inefficient
+at worst, the separation is haphazard and we have no clue what goes
+where.</p>
+<p>Let's put each part of Vala where it belongs.</p>
+<h3 id="libvala">libvala</h3>
+<p>This package will hold the libvala library for us, packages that link
+to libvala are:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">gnome-builder-3.30.3_2: libvala-0.42.so.0 
+</span><span style="color:#e8e8d3;">io.elementary.code-3.0.2_1: libvala-0.42.so.0
+</span><span style="color:#e8e8d3;">vala-0.42.5_1: libvala-0.42.so.0
+</span></pre>
+<p>Yeah, not much packages need it.</p>
+<p>These are the files:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">/usr/lib/libvala-0.42.so.0.0.0
+</span><span style="color:#e8e8d3;">/usr/lib/libvala-0.42.so.0 -&gt; /usr/lib/libvala-0.42.so.0.0.0
+</span></pre>
+<blockquote>
+<p>installed_size is an attribute that can be queried with xbps-query -S</p>
+</blockquote>
+<p>installed_size: 1691KB</p>
+<h3 id="vala">vala</h3>
+<p>This is the main package, it will hold: vala, valac, vapigen, the common
+libraries on <code>/usr/share/vala-0.42/vapi</code> and the Makefile.vapigen from
+<code>/usr/share/vala/Makefile.vapigen</code></p>
+<p>This is all the contents we need to include to make vala usable to generate
+vapi bindings, packages can simply include it in hostmakedepends and their
+job is done.</p>
+<p>Here are the files:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">/usr/bin/vala-gen-introspect-0.42
+</span><span style="color:#e8e8d3;">/usr/bin/valac-0.42
+</span><span style="color:#e8e8d3;">/usr/bin/vapigen-0.42
+</span><span style="color:#e8e8d3;">/usr/lib/pkgconfig/vapigen-0.42.pc
+</span><span style="color:#e8e8d3;">/usr/lib/vala-0.42/gen-introspect-0.42
+</span><span style="color:#e8e8d3;">/usr/lib/vala-0.42/libvalaccodegen.so
+</span><span style="color:#e8e8d3;">/usr/share/man/man1/vala-gen-introspect-0.42.1
+</span><span style="color:#e8e8d3;">/usr/share/man/man1/valac-0.42.1
+</span><span style="color:#e8e8d3;">/usr/share/man/man1/vapigen-0.42.1
+</span><span style="color:#e8e8d3;">/usr/share/vala/Makefile.vapigen
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/alsa.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/alsa.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/atk.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/atspi-2.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/atspi-2.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/avahi-client.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/avahi-gobject.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/avahi-gobject.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/bzlib.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/cairo-xcb.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/cairo-xcb.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/cairo.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/ccss-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gdk-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gdk-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gst-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gst-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gst-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gst-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gtk-0.10.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gtk-0.10.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gtk-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-gtk-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-x11-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/clutter-x11-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/cogl-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/cogl-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/cogl-pango-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/cogl-pango-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/curses.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/dbus-glib-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/enchant.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/fuse.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/fuse.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gconf-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdesktopenums-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-pixbuf-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-pixbuf-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-x11-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-x11-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-x11-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdk-x11-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdl-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdl-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdl-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gdl-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gedit-2.20.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gedit-2.20.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/geocode-glib-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/geocode-glib-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gio-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gio-unix-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gio-unix-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gio-windows-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gio-windows-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/glib-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gmodule-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnet-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnet-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnome-desktop-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnome-desktop-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnome-desktop-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnome-desktop-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnome-vfs-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gnutls.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gobject-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gobject-introspection-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/goocanvas.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/goocanvas.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/graphene-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/graphene-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gsl.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gst-editing-services-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gst-editing-services-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-allocators-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-allocators-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-app-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-app-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-audio-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-audio-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-bad-allocators-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-bad-allocators-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-base-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-base-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-check-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-check-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-controller-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-controller-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-fft-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-fft-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-net-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-net-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-pbutils-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-pbutils-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-player-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-player-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-riff-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-riff-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-rtp-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-rtp-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-rtsp-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-rtsp-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-rtsp-server-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-rtsp-server-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-sdp-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-sdp-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-tag-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-tag-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-video-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-video-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-webrtc-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gstreamer-webrtc-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-4.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-4.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-unix-print-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-unix-print-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-unix-print-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-unix-print-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-unix-print-4.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtk+-unix-print-4.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtkmozembed.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtkmozembed.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtksourceview-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gtksourceview-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gudev-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/gudev-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/hal.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/hal.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/hildon-1.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/hildon-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/hildon-fm-2.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/hildon-fm-2.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/javascriptcoregtk-4.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/json-glib-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/json-glib-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libarchive.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libarchive.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libbonoboui-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libdaemon.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libepc-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libesmtp.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libftdi.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libftdi.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgeoclue-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgeoclue-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libglade-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libglade-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgnome-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgnome-menu-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgnome-menu-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgnome-menu.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgnomeui-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgnomeui-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgrss.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgrss.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgsf-1.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgsf-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libgvc.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libmagic.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libnl-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libnl-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libnl-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libnl-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libnl-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libnotify.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libnotify.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/liboobs-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libosso.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libpanelapplet-2.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libpanelapplet-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libpeas-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libpeas-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libpeas-gtk-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libpeas-gtk-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libpq.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libsexy.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libsexy.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libsoup-2.4.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libsoup-2.4.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libusb-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libusb-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libusb.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libwnck-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libwnck-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libwnck-3.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libwnck-3.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/libxml-2.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/linux.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/linux.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/loudmouth-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/lua.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/mysql.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/orc-0.4.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/packagekit-glib2.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/packagekit-glib2.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/pango.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/pango.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/pangocairo.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/pangocairo.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/pixman-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/polkit-agent-1.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/polkit-agent-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/polkit-gobject-1.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/polkit-gobject-1.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/poppler-glib.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/poppler-glib.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/posix.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/purple.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/purple.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/raptor.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/rasqal.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/rasqal.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/readline.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/rest-0.7.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/rest-0.7.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/rest-extras-0.7.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/rest-extras-0.7.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-gfx.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-gfx.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-image.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-image.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-mixer.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-mixer.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-net.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-net.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-ttf.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl-ttf.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sdl.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/sqlite3.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/taglib_c.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/tiff.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/tokyocabinet.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/udisks2.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/udisks2.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/unique-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/unique-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/v4l2.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/vte-2.90.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/vte-2.90.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/vte.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/vte.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/webkit-1.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/webkit-1.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/webkit2gtk-4.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/webkit2gtk-4.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/webkit2gtk-web-extension-4.0.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/webkit2gtk-web-extension-4.0.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/x11.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/xcb-icccm.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/xcb-icccm.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/xcb.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/xtst.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/xtst.vapi
+</span><span style="color:#e8e8d3;">/usr/share/vala-0.42/vapi/zlib.vapi
+</span><span style="color:#e8e8d3;">/usr/bin/vala -&gt; /usr/bin/vala-0.42
+</span><span style="color:#e8e8d3;">/usr/bin/vala-0.42 -&gt; /usr/bin/valac-0.42
+</span><span style="color:#e8e8d3;">/usr/bin/vala-gen-introspect -&gt; /usr/bin/vala-gen-introspect-0.42
+</span><span style="color:#e8e8d3;">/usr/bin/valac -&gt; /usr/bin/valac-0.42
+</span><span style="color:#e8e8d3;">/usr/bin/vapigen -&gt; /usr/bin/vapigen-0.42
+</span><span style="color:#e8e8d3;">/usr/lib/pkgconfig/vapigen.pc -&gt; /usr/lib/pkgconfig/vapigen-0.42.pc
+</span><span style="color:#e8e8d3;">/usr/share/man/man1/vala-gen-introspect.1 -&gt; /usr/share/man/man1/vala-gen-introspect-0.42.1
+</span><span style="color:#e8e8d3;">/usr/share/man/man1/valac.1 -&gt; /usr/share/man/man1/valac-0.42.1
+</span><span style="color:#e8e8d3;">/usr/share/man/man1/vapigen.1 -&gt; /usr/share/man/man1/vapigen-0.42.1
+</span></pre>
+<p>installed_size: 8640KB</p>
+<h3 id="valadoc">valadoc</h3>
+<p>This package includes the libvaladoc library (like libvala) and also the utilities
+for generate vala documentation, the valadoc-0.42 executable, the assets on
+<code>/usr/share/valadoc/icons</code> and some helper internal libraries/plugins.</p>
+<p>There isn't a split between valadoc and libvaladoc like there is between from vala
+and libvala because nobody uses valadoc.</p>
+<p>Here are packages that link to libvaladoc:</p>
+<pre style="background-color:#151515;">
+</pre>
+<p>Your eyes aren't deceived, your page didn't fail to load, it is nothing, considering
+that let's keep this away from everyone else.</p>
+<p>install_size: 1388KB</p>
+<h3 id="vala-devel">vala-devel</h3>
+<p>This is a development package that holds the headers, some m4 stuff and other stuff
+required for linking against libvala itself, if you remember from <a href="https://maxice8.github.io/16-splitting-vala/#libvala">above</a>
+only vala needs it and 2 IDEs, gnome-builder and io.elementary.code.</p>
+<p>These are the files:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">/usr/include/vala-0.42/vala.h
+</span><span style="color:#e8e8d3;">/usr/include/vala-0.42/valagee.h
+</span><span style="color:#e8e8d3;">/usr/lib/pkgconfig/libvala-0.42.pc
+</span><span style="color:#e8e8d3;">/usr/share/aclocal/vala.m4
+</span><span style="color:#e8e8d3;">/usr/share/aclocal/vapigen.m4
+</span><span style="color:#e8e8d3;">/usr/share/vala/vapi/libvala-0.42.vapi
+</span><span style="color:#e8e8d3;">/usr/lib/libvala-0.42.so -&gt; /usr/lib/libvala-0.42.so.0.0.0&lt;Paste&gt;
+</span></pre>
+<p>Lots of package wrongly depend on vala-devel because it used to hold Makefile.vapigen.</p>
+<p>installed_size: 516KB</p>
+<h3 id="valadoc-devel">valadoc-devel</h3>
+<p>This is the same as vala-devel but for linking against valadoc which manages to match
+the uselessness of Aqua, nobody even links against libvaladoc, we just split it here
+because somebody in the future might do it and it is encouraged in Void.</p>
+<p>Files:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">/usr/include/valadoc-0.42/valadoc.h
+</span><span style="color:#e8e8d3;">/usr/lib/pkgconfig/valadoc-0.42.pc
+</span><span style="color:#e8e8d3;">/usr/share/vala/vapi/valadoc-0.42.deps
+</span><span style="color:#e8e8d3;">/usr/share/vala/vapi/valadoc-0.42.vapi
+</span><span style="color:#e8e8d3;">/usr/lib/libvaladoc-0.42.so -&gt; /usr/lib/libvaladoc-0.42.so.0.0.0
+</span></pre>
+<p>installed_size: 400KB</p>
+<h3 id="vala-doc">vala-doc</h3>
+<p>This is the developer documentation of Vala itself in the form of GNOME devhelp books.
+Almost nobody will install it and it is only meant for users of gnome-builder and other
+IDEs, and some people that use plugins for vim and all that jazz.</p>
+<p>Files:</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Attributes.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Classes.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Concepts.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Delegates.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Enumerated_types__Enums_.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Errors.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Expressions.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/GIDL_metadata_format.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/GIR_metadata_format.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Generics.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Interfaces.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Methods.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Namespaces.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Overview.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Preprocessor.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Statements.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Structs.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/Types.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/default.css
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/index.html
+</span><span style="color:#e8e8d3;">/usr/share/devhelp/books/vala-0.42/vala-0.42.devhelp2
+</span></pre>
+<p>installed_size: 315KB</p>
+<h2 id="fitting-in-xbps-src">Fitting in xbps-src</h2>
+<p>Now that they have a somewhat sane separation instead of the no-brainer that
+was before we can provide guidelines of what to put where inside xbps-src
+templates.</p>
+<h3 id="generating-vapi">Generating vapi</h3>
+<p>This is the most common usage of vala inside xbps-src, to generate vala
+bindings for usage in other packages. There is a build_option dedicated
+to it called <code>vala</code>.</p>
+<p>Currently 21 packages use the <code>vapi</code> build option to provide the option
+to generate vala bindings, some do so unconditionally or use the old, now
+wrong style of checking whether we are cross compiling.</p>
+<p>Now packages that want to generate vala bindings are encouraged to:</p>
+<ul>
+<li>Add the vala build_option like this:</li>
+</ul>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">build_options</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">vala</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>Note that vala usually requires GObject Introspection, so it is recommended
+that you include them as well via the <code>gir</code> build_option.</p>
+<p>And after adding the vala build_option to add vala to hostmakedepends
+conditionally using <code>vopt_if</code>.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">foo bar $(</span><span style="color:#ffb964;">vopt_if</span><span style="color:#99ad6a;"> vala vala)
+</span></pre>
+<p>If you're providing a -devel package you should move the vala bindings there,
+also doing it conditionally with <code>if [ &quot;$build_option_vala&quot; ]; then</code>.</p>
+<pre style="background-color:#151515;">
+<span style="color:#fad07a;">foo-devel_package</span><span style="color:#e8e8d3;">() {
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">short_desc</span><span style="color:#e8e8d3;">+=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> - development files</span><span style="color:#556633;">&quot;
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">depends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">foo-${</span><span style="color:#ffb964;">version</span><span style="color:#99ad6a;">}_${</span><span style="color:#ffb964;">revision</span><span style="color:#99ad6a;">}
+</span><span style="color:#99ad6a;">    </span><span style="color:#99ad6a;">pkg_install() {
+</span><span style="color:#99ad6a;">        </span><span style="color:#99ad6a;">vmove </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">usr/lib/*.so</span><span style="color:#556633;">&quot;
+</span><span style="color:#99ad6a;">        </span><span style="color:#99ad6a;">vmove usr/include
+</span><span style="color:#99ad6a;">        </span><span style="color:#99ad6a;">if [ </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">build_option_vala</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> ]; then
+</span><span style="color:#99ad6a;">            </span><span style="color:#99ad6a;">vmove usr/share/vala
+</span><span style="color:#99ad6a;">        </span><span style="color:#99ad6a;">fi
+</span><span style="color:#99ad6a;">    </span><span style="color:#99ad6a;">}
+</span><span style="color:#99ad6a;">}
+</span></pre><h3 id="linking-libvala">Linking libvala</h3>
+<p>The second most common usage with 2 total users is linking against libvala.
+For that just add libvala-devel to makedepends and vala to hostmakedepends.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">vala</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">vala-devel</span><span style="color:#556633;">&quot;
+</span></pre>
+<p>That will provide all content necessary to link against libvala itself.</p>
+<h3 id="linking-libvaladoc">Linking libvaladoc</h3>
+<p>This has 0 total users but I'm going to write it down anyways, just do
+the same as <a href="https://maxice8.github.io/16-splitting-vala/#linking-libvala">above</a> but with valadoc-devel instead of
+vala-devel</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">hostmakedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">vala</span><span style="color:#556633;">&quot;
+</span><span style="color:#ffb964;">makedepends</span><span style="color:#e8e8d3;">=</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">valadoc-devel</span><span style="color:#556633;">&quot;
+</span></pre><h2 id="benefits">Benefits</h2>
+<p>This new organisation brings in a couple of benefits to Void Linux, the
+maintainers and the end users.</p>
+<h3 id="size-reduction">Size reduction</h3>
+<p>Packages are now smaller and will take less time to install when building
+and take up less space on disk.</p>
+<p>Here is a nice table:</p>
+<table><thead><tr><th> Package       </th><th> Before  </th><th> After   </th><th> Change </th></tr></thead><tbody>
+<tr><td> libvala       </td><td> 2665KB  </td><td> 1691KB  </td><td> -974KB </td></tr>
+<tr><td> vala          </td><td> 9052KB  </td><td> 8640KB  </td><td> -412KB </td></tr>
+<tr><td> vala-devel    </td><td> 1233KB  </td><td> 516KB   </td><td> -704KB </td></tr>
+<tr><td> valadoc       </td><td> N/A     </td><td> 1388KB  </td><td> 1388KB </td></tr>
+<tr><td> valadoc-devel </td><td> N/A     </td><td> 400KB   </td><td>  400KB </td></tr>
+<tr><td> vala-doc      </td><td> N/A     </td><td> 315KB   </td><td>  315KB </td></tr>
+<tr><td> Total         </td><td> 12950KB </td><td> 12950KB </td><td>    0KB </td></tr>
+</tbody></table>
+<p>Keen readers will notice the total size didn't really change, but on the other
+side the most used packages, libvala, vala and vala-devel are the ones that saw
+actual size reductions. Sounds like a pretty nice trade-off, total size remains
+but the packages that see most use are smaller.</p>
+<h3 id="simpler-usage">Simpler usage</h3>
+<p>It is now much simpler to use it in xbps-src as noted <a href="https://maxice8.github.io/16-splitting-vala/#fitting-in-xbps-src">above</a>
+we now know where and how we should include each component for each use case.</p>
+<h3 id="unnecessary-libraries">Unnecessary libraries</h3>
+<p>We no longer include libvaladoc for no reason, which is very good, it was just
+sitting there, destined to do absolutely nothing.</p>
+<h2 id="closing">Closing</h2>
+<p>Some wild changes but overall pretty welcome ones, they are not yet in Void Linux,
+we need this <a href="https://github.com/void-linux/void-packages/pull/8239">pull request</a>
+to be merged.</p>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

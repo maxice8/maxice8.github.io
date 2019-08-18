@@ -1,0 +1,251 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>maxice8-devel</title>
+        <link>https://maxice8.github.io</link>
+        <description></description>
+        <generator>Zola</generator>
+        <language>en</language>
+        <atom:link href="https://maxice8.github.io/tags/xbps-src/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Wed, 13 Feb 2019 00:00:00 +0000</lastBuildDate>
+        
+            <item>
+                <title>When writing makefiles goes wrong</title>
+                <pubDate>Wed, 13 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/21-makefiles/</link>
+                <guid>https://maxice8.github.io/21-makefiles/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;Recently &lt;a href=&quot;https:&#x2F;&#x2F;sourceforge.net&#x2F;projects&#x2F;giflib&#x2F;&quot;&gt;giflib&lt;&#x2F;a&gt; made a new update,
+after a long time, from 5.1.4 to 5.1.5, it didn&#x27;t have any impressive at first,
+fixing a few bugs then i read this.&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#151515;&quot;&gt;
+&lt;span style=&quot;color:#e8e8d3;&quot;&gt;Build Fixes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e8e8d3;&quot;&gt;-----------
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e8e8d3;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e8e8d3;&quot;&gt;The horrible old autoconf build system has been removed with extreme prejudice.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e8e8d3;&quot;&gt;You now build this simply by running &amp;quot;make&amp;quot; from the top-level directory.
+&lt;&#x2F;span&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;I thought to myself, oh nice, it makes stuff simpler, less packages for us to install
+to build the package means reduced build times and since we just build and install we
+don&#x27;t need incremental compiling and all that other nice stuff.&lt;&#x2F;p&gt;
+&lt;p&gt;Wrong!&lt;&#x2F;p&gt;
+&lt;p&gt;My other side went, it is extremely easy to fuck up Makefiles though, let&#x27;s hope they
+did their homework.&lt;&#x2F;p&gt;
+&lt;p&gt;They didn&#x27;t.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Updating libgit2 and cargo annoyance</title>
+                <pubDate>Tue, 12 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/20-cargo-annoyance/</link>
+                <guid>https://maxice8.github.io/20-cargo-annoyance/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;Recently &lt;a href=&quot;https:&#x2F;&#x2F;libgit2.org&#x2F;&quot;&gt;libgit2&lt;&#x2F;a&gt; released version 0.28 which had
+a few changes to the API, most prominently the change of &lt;code&gt;giterr&lt;&#x2F;code&gt; functions
+to &lt;code&gt;git_error&lt;&#x2F;code&gt; and the rename of &lt;code&gt;git_buf_free&lt;&#x2F;code&gt; to &lt;code&gt;git_buf_dispose&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;This isn&#x27;t much of a problem, those changes were wonderfully explained
+in the
+&lt;a href=&quot;https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;libgit2&#x2F;libgit2&#x2F;master&#x2F;docs&#x2F;changelog.md&quot;&gt;release notes&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;So i sprang into action, all of it sounded easy, turns out thanks to a
+specific fearlessly concurrent language and its ecosystem, it wasn&#x27;t.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Assuming gir is nocross</title>
+                <pubDate>Thu, 07 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/17-gir-nocross-assumption/</link>
+                <guid>https://maxice8.github.io/17-gir-nocross-assumption/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;A while back i wrote an article about making gir be cross compilable on
+&lt;a href=&quot;https:&#x2F;&#x2F;voidlinux.org&quot;&gt;Void Linux&lt;&#x2F;a&gt;, called &lt;a href=&quot;..&#x2F;8-cross-the-gir&quot;&gt;crossing the gir&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;This article post is a small rant about a thankfully uncommon problem
+but that sadly still annoys me greatly, it is an anti-pattern born
+out of an outdated assumption that at best cause unhelpful error
+messages and at worst silently fail much later on.&lt;&#x2F;p&gt;
+&lt;p&gt;This is the story of assuming gir is not cross compilable.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Crossing the gir world</title>
+                <pubDate>Thu, 07 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/19-crossing-gir-worldwide/</link>
+                <guid>https://maxice8.github.io/19-crossing-gir-worldwide/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a small blog post with medium usage of numbers to show how much
+lines of patches and how many packages on xbps-src had gir enabled for
+cross arches.&lt;&#x2F;p&gt;
+&lt;p&gt;We will also look at how many fixes went upstream with links to each
+merge request and pull request that has been made and merged.&lt;&#x2F;p&gt;
+&lt;p&gt;The numbers are from the day this article is published.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Splitting and understanding Vala&#x27;s place in xbps-src</title>
+                <pubDate>Wed, 06 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/16-splitting-vala/</link>
+                <guid>https://maxice8.github.io/16-splitting-vala/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;A while back Void Linux started cross compiling GObject Introspection data
+using a combniation of qemu-user-static for running resulting binaries
+prelink and patches from Yocto.&lt;&#x2F;p&gt;
+&lt;p&gt;A nice side-effect of having gir cross compilable is that now we can also
+generate vala bindings (vapi), with that in mind i started working on
+cleaning up the templates that generate vala bindings and making them
+appropriate for cross compilation.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Follow up on &#x27;Wrapping vala for cross with xbps-src&#x27;</title>
+                <pubDate>Tue, 05 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/15-wrapping-vala-follow-up/</link>
+                <guid>https://maxice8.github.io/15-wrapping-vala-follow-up/</guid>
+                <description>&lt;h2 id=&quot;preface&quot;&gt;Preface&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a small post making some corrections about the &lt;a href=&quot;..&#x2F;14-wrapping-vala&quot;&gt;previous&lt;&#x2F;a&gt;.
+It is heavily recommended you read that one before coming to this one.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Updating packages with tmplgen</title>
+                <pubDate>Mon, 04 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/11-updating-tmplgen/</link>
+                <guid>https://maxice8.github.io/11-updating-tmplgen/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a follow up tutorial on my &lt;a href=&quot;..&#x2F;7-using-tmplgen&quot;&gt;first tutorial&lt;&#x2F;a&gt;,
+Reading that is highly recommended and it is assumed you already know
+the basics covered in that.&lt;&#x2F;p&gt;
+&lt;p&gt;Today i saw a package needed updating, ruby-faraday_middleware. A great
+opportunity to write this article in how tmplgen can help you keep your
+language specific packages updated.&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#151515;&quot;&gt;
+&lt;span style=&quot;color:#e8e8d3;&quot;&gt;.&#x2F;xbps-src update-check srcpkgs&#x2F;ruby-faraday_middleware
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e8e8d3;&quot;&gt;ruby-faraday_middleware-0.13.0 -&amp;gt; ruby-faraday_middleware-0.13.1
+&lt;&#x2F;span&gt;&lt;&#x2F;pre&gt;</description>
+            </item>
+        
+            <item>
+                <title>Wrapping vala for cross with xbps-src</title>
+                <pubDate>Mon, 04 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/14-wrapping-vala/</link>
+                <guid>https://maxice8.github.io/14-wrapping-vala/</guid>
+                <description>&lt;h2 id=&quot;preface&quot;&gt;Preface&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a continuation of &lt;a href=&quot;..&#x2F;8-cross-the-gir&quot;&gt;crossing the gir&lt;&#x2F;a&gt;, it is highly
+recommended you read it before.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;Today we are going to make vala work with cross compilation, it currently already
+compiles with it, but there are a few problems with projects that generate vala
+bindings.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>libgusb: Meson, Gir, Cross face-off</title>
+                <pubDate>Sun, 03 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/9-libgusb-meson-gir-cross/</link>
+                <guid>https://maxice8.github.io/9-libgusb-meson-gir-cross/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;This is a shorter post, following up on the &lt;a href=&quot;..&#x2F;8-cross-the-gir&#x2F;#meson-1&quot;&gt;Loose Ends&lt;&#x2F;a&gt;
+section of the &lt;a href=&quot;..&#x2F;8-cross-the-gir&quot;&gt;cross-the-gir&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;After dealing with the fallout from merging gir support, there wasn&#x27;t much to do,
+glibc-2.29 is still waiting. I decided to take some time to find out why libgusb
+is failing.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Basic usage of tmplgen, a Void Linux template generator</title>
+                <pubDate>Sat, 02 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/7-using-tmplgen/</link>
+                <guid>https://maxice8.github.io/7-using-tmplgen/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;Many modern languages (and some old ones) today have their own
+package manager ecosystem, where someone working on that language
+can easily get pieces of code written by other people that do
+their task for them.&lt;&#x2F;p&gt;
+&lt;p&gt;A few examples include:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;metacpan.org&#x2F;&quot;&gt;meta::cpan&lt;&#x2F;a&gt; for Perl.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;pypi.org&#x2F;&quot;&gt;PyPi&lt;&#x2F;a&gt; for Python.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;rubygems.org&#x2F;&quot;&gt;RubyGems&lt;&#x2F;a&gt; for Ruby.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;crates.io&#x2F;&quot;&gt;crates&lt;&#x2F;a&gt; for Rust.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Crossing the gir</title>
+                <pubDate>Sat, 02 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/8-cross-the-gir/</link>
+                <guid>https://maxice8.github.io/8-cross-the-gir/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;For those uninitiated, gir is &lt;a href=&quot;https:&#x2F;&#x2F;gi.readthedocs.io&#x2F;en&#x2F;latest&#x2F;&quot;&gt;GObject Introspection&lt;&#x2F;a&gt;.
+A technology from GNOME that allows libraries to expose bindings to any language
+that can speak to C. It is the reason you can use lots of languages to write your
+GNOME and GTK applications while &lt;a href=&quot;https:&#x2F;&#x2F;qt.io&quot;&gt;Qt5&lt;&#x2F;a&gt; is mostly limited to C++
+and Python.&lt;&#x2F;p&gt;
+&lt;p&gt;On &lt;a href=&quot;https:&#x2F;&#x2F;voidlinux.org&quot;&gt;Void Linux&lt;&#x2F;a&gt; a high emphasis is placed into stuff being
+able to be cross compiled and for a long time gir has eluded us, with it&#x27;s requirement
+of running stuff on the target system and using raw dumps of C structures.&lt;&#x2F;p&gt;
+&lt;p&gt;Now this is a river that is going to be crossed.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Fixing cross CPython3 modules in Void Linux, pt. 2</title>
+                <pubDate>Fri, 01 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/2-void-cpython3-cross-pt2/</link>
+                <guid>https://maxice8.github.io/2-void-cpython3-cross-pt2/</guid>
+                <description>&lt;h2 id=&quot;context&quot;&gt;Context&lt;&#x2F;h2&gt;
+&lt;p&gt;After fixing the problem discussed in &lt;a href=&quot;https:&#x2F;&#x2F;maxice8.github.io&#x2F;1-void-cpython3-cross-pt1&#x2F;&quot;&gt;part 1&lt;&#x2F;a&gt;. Another bug was hit.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>build_helper in xbps-src and what it can do for you</title>
+                <pubDate>Fri, 01 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/4-build-helper-void/</link>
+                <guid>https://maxice8.github.io/4-build-helper-void/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;On 2019-01-20, starting with this &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;void-linux&#x2F;void-packages&#x2F;commit&#x2F;78333e638f5224bf0458183fa7d04c8f5f06bf6d&quot;&gt;commit&lt;&#x2F;a&gt;, the groundwork was laid for a new mechanism inside
+xbps-src that will prove to be immensely helpful in tackling new challenges like, cross
+compiling &lt;a href=&quot;https:&#x2F;&#x2F;rust-lang.org&quot;&gt;rust&lt;&#x2F;a&gt; and &lt;a href=&quot;https:&#x2F;&#x2F;gi.readthedocs.io&#x2F;en&#x2F;latest&#x2F;&quot;&gt;GObject Introspection&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>xbps-src shlib tracking and bumping</title>
+                <pubDate>Fri, 01 Feb 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/5-foray-into-common-shlibs/</link>
+                <guid>https://maxice8.github.io/5-foray-into-common-shlibs/</guid>
+                <description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;&#x2F;h2&gt;
+&lt;p&gt;If you used &lt;a href=&quot;https:&#x2F;&#x2F;voidlinux.org&quot;&gt;Void Linux&lt;&#x2F;a&gt; for some amount of time you
+probably ran into these types of errors when updating packages:&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#151515;&quot;&gt;
+&lt;span style=&quot;color:#ffb964;&quot;&gt;foo-1.0.0_1:&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e8e8d3;&quot;&gt; broken, unresolvable shlib &lt;&#x2F;span&gt;&lt;span style=&quot;color:#556633;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#99ad6a;&quot;&gt;libbar.so.2&lt;&#x2F;span&gt;&lt;span style=&quot;color:#556633;&quot;&gt;&amp;#39;
+&lt;&#x2F;span&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Annoying as it is, it is part of a very important part of &lt;a href=&quot;https:&#x2F;&#x2F;voidlinux.org&quot;&gt;Void Linux&lt;&#x2F;a&gt;
+and its QA, today we will look at how xbps-src cooperates with xbps.
+to make shlibs work.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+            <item>
+                <title>Fixing cross CPython3 modules in Void Linux, pt. 1</title>
+                <pubDate>Thu, 31 Jan 2019 00:00:00 +0000</pubDate>
+                <link>https://maxice8.github.io/1-void-cpython3-cross-pt1/</link>
+                <guid>https://maxice8.github.io/1-void-cpython3-cross-pt1/</guid>
+                <description>&lt;h2 id=&quot;context&quot;&gt;Context&lt;&#x2F;h2&gt;
+&lt;p&gt;Last week i have been working on getting a particularly complex beast to be
+cross-compilable under Void Linux&#x27;s &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;void-linux&#x2F;void-packages&quot;&gt;xbps-src&lt;&#x2F;a&gt;:
+&lt;a href=&quot;https:&#x2F;&#x2F;gi.readthedocs.io&#x2F;en&#x2F;latest&#x2F;&quot;&gt;GObject Introspection&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;While work was done on xbps-src cross compilation of CPython3 modules, 2
+problems were found.&lt;&#x2F;p&gt;
+</description>
+            </item>
+        
+    </channel>
+</rss>

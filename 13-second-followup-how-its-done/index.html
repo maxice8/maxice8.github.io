@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>maxice8-devel</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://maxice8.github.io/style.css">
+    <link rel="stylesheet" href="https://maxice8.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://maxice8.github.io/color/background_blue.css">
+    
+    <link rel="stylesheet" href="https://maxice8.github.io/font-hack-subset.css">
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="https://maxice8.github.io/rss.xml">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://maxice8.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                            maxice8-devel
+                        </div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <ul class="menu__inner">
+                
+                <li class="active"><a href="https://maxice8.github.io">Home</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;tags">Tags</a></li>
+            
+                <li><a href="https://maxice8.github.io&#x2F;about">About</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;github.com&#x2F;maxice8" target="_blank" rel="noopener noreferrer">github</a></li>
+            
+                <li><a href="https:&#x2F;&#x2F;gitlab.alpinelinux.org&#x2F;Leo" target="_blank" rel="noopener noreferrer">alpine</a></li>
+            </ul>
+        </nav>
+    
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://maxice8.github.io/13-second-followup-how-its-done/">Second followup on &#x27;How its done&#x27;</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2019-02-04
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://maxice8.github.io/tags/site/">#site</a></span>
+    
+
+        
+        <div class="post-content">
+            <h2 id="introduction">Introduction</h2>
+<p>Some time back i asked <a href="https://github.com/Cogitri">Cogitri</a> to start writing
+about his exploits with his projects like <a href="https://github.com/Cogitri/gxi">gxi</a>
+and <a href="https://github.com/Cogitri/tmplgen">tmplgen</a>, he got around to it and
+started by looking at my setup.</p>
+<p>Needless to say we exchanged quite a few things and it got me into finishing
+the restructuring of my blog. So let's start with the changes i have done
+before.</p>
+<p>This can be considered the third follow up with the second one being
+<a href="../10-weighting-the-pages/">weighting the pages</a></p>
+<p><a name="continue-reading"></a></p>
+<h2 id="changes">Changes</h2>
+<h3 id="removing-all-js">Removing all JS</h3>
+<p>It was annoying to deal with it, so i decided to just strip it out, the only
+things using it with any value was the slideout function so i removed the
+slides on the side as well.</p>
+<p>Currently mobile users can't access categories, tags or the about page easily
+and fixing this is a super low priority thing so don't expect much.</p>
+<h3 id="travis-ci">Travis CI</h3>
+<p>We now use the native Travis CI method for deploying pages, it hasn't changed
+the results (as expected) but caused a few changes.</p>
+<ul>
+<li>No longer need to deal with ghp-import</li>
+<li>No longer need to manually push, now Travis CI is credited in the commit</li>
+</ul>
+<p>This is the diff of the changes done.</p>
+<pre style="background-color:#151515;">
+<span style="color:#e8e8d3;">diff --git a/.travis.yml b/.travis.yml
+</span><span style="color:#e8e8d3;">index d70e3c7..a832ba5 100644
+</span><span style="background-color:#4e738a;color:#ffffff;">--- a/.travis.yml
+</span><span style="background-color:#4e738a;color:#ffffff;">+++ b/.travis.yml
+</span><span style="font-style:italic;color:#888888;">@@ -2,19 +2,20 @@</span><span style="color:#e8e8d3;"> branches:
+</span><span style="color:#e8e8d3;">     </span><span style="color:#e8e8d3;">only:
+</span><span style="color:#e8e8d3;">         </span><span style="color:#a1000d;">- devel
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#a1000d;">-before_script:
+</span><span style="color:#558f1f;">+deploy:
+</span><span style="color:#558f1f;">+    provider: pages
+</span><span style="color:#558f1f;">+    skip-cleanup: true
+</span><span style="color:#558f1f;">+    github-token: $GH_TOKEN
+</span><span style="color:#558f1f;">+    verbose: true
+</span><span style="color:#558f1f;">+    target_branch: master
+</span><span style="color:#558f1f;">+    local-dir: public
+</span><span style="color:#558f1f;">+    on:
+</span><span style="color:#558f1f;">+        branch: devel
+</span><span style="color:#558f1f;">+
+</span><span style="color:#558f1f;">+install:
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;"># Download and unzip the zola executable
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;"># Replace the version numbers in the URL by the version you want to use
+</span><span style="color:#e8e8d3;">   </span><span style="color:#a1000d;">- curl -s -L https://github.com/getzola/zola/releases/download/v0.5.1/zola-v0.5.1-x86_64-unknown-linux-gnu.tar.gz | sudo tar xvzf - -C /usr/local/bin
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">
+</span><span style="color:#e8e8d3;"> </span><span style="color:#e8e8d3;">script: |
+</span><span style="color:#e8e8d3;">   </span><span style="color:#e8e8d3;">zola build
+</span><span style="color:#a1000d;">-
+</span><span style="color:#a1000d;">-# If you are using a different folder than `public` for the output directory, you will
+</span><span style="color:#a1000d;">-# need to change the `zola` command and the `ghp-import` path
+</span><span style="color:#a1000d;">-after_success: |
+</span><span style="color:#a1000d;">-  [ $TRAVIS_BRANCH = devel ] &amp;&amp;
+</span><span style="color:#a1000d;">-  zola build &amp;&amp;
+</span><span style="color:#a1000d;">-  sudo pip install ghp-import &amp;&amp;
+</span><span style="color:#a1000d;">-  ghp-import -n -b master public &amp;&amp;
+</span><span style="color:#a1000d;">-  git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git master
+</span></pre>
+<p>And the final file.</p>
+<pre style="background-color:#151515;">
+<span style="color:#ffb964;">branches</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">only</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">        </span><span style="color:#e8e8d3;">- </span><span style="color:#99ad6a;">devel
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">deploy</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">provider</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">pages
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">skip-cleanup</span><span style="color:#e8e8d3;">: true
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">github-token</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">$GH_TOKEN
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">verbose</span><span style="color:#e8e8d3;">: true
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">target_branch</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">master
+</span><span style="color:#e8e8d3;">    </span><span style="color:#ffb964;">local-dir</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">public
+</span><span style="color:#e8e8d3;">    </span><span style="color:#e8e8d3;">on:
+</span><span style="color:#e8e8d3;">        </span><span style="color:#ffb964;">branch</span><span style="color:#e8e8d3;">: </span><span style="color:#99ad6a;">devel
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">install</span><span style="color:#e8e8d3;">:
+</span><span style="color:#e8e8d3;">  </span><span style="color:#888888;"># Download and unzip the zola executable
+</span><span style="color:#e8e8d3;">  </span><span style="color:#888888;"># Replace the version numbers in the URL by the version you want to use
+</span><span style="color:#e8e8d3;">  </span><span style="color:#e8e8d3;">- </span><span style="color:#99ad6a;">curl -s -L https://github.com/getzola/zola/releases/download/v0.5.1/zola-v0.5.1-x86_64-unknown-linux-gnu.tar.gz | sudo tar xvzf - -C /usr/local/bin
+</span><span style="color:#e8e8d3;">
+</span><span style="color:#ffb964;">script</span><span style="color:#e8e8d3;">: </span><span style="color:#8fbfdc;">|
+</span><span style="color:#99ad6a;">  </span><span style="color:#99ad6a;">zola build
+</span></pre>
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2019
+ maxice8</span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>
